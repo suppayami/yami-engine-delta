@@ -1,0 +1,222 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"fav",
+				"favourite_id"
+			],
+			[
+				"favourite",
+				"favourite_id"
+			],
+			[
+				"favou",
+				"favourite_id"
+			],
+			[
+				"favo",
+				"favourite_id"
+			]
+		]
+	},
+	"buffers":
+	[
+	],
+	"build_system": "",
+	"build_system_choices":
+	[
+	],
+	"build_varint": "",
+	"command_palette":
+	{
+		"height": 375.0,
+		"last_filter": "pack",
+		"selected_items":
+		[
+			[
+				"pack",
+				"Package Control: Install Package"
+			]
+		],
+		"width": 579.0
+	},
+	"console":
+	{
+		"height": 153.0,
+		"history":
+		[
+			"import urllib.request,os,hashlib; h = 'eb2297e1a458f27d836c04bb0cbaf282' + 'd0e7a3098092775ccb37ca9d6b2e4b7d'; pf = 'Package Control.sublime-package'; ipp = sublime.installed_packages_path(); urllib.request.install_opener( urllib.request.build_opener( urllib.request.ProxyHandler()) ); by = urllib.request.urlopen( 'http://packagecontrol.io/' + pf.replace(' ', '%20')).read(); dh = hashlib.sha256(by).hexdigest(); print('Error validating download (got %s instead of %s), please try manual install' % (dh, h)) if dh != h else open(os.path.join( ipp, pf), 'wb' ).write(by)"
+		]
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"file_history":
+	[
+		"/Users/DrYami/Downloads/jasmine-standalone-2.3.4/SpecRunner.html",
+		"/Users/DrYami/Projects/omori/prototype/jasmine/spec/SpecHelper.js",
+		"/Users/DrYami/Projects/omori/prototype/spec/support/jasmine.json",
+		"/Users/DrYami/Projects/omori/prototype/SpecRunner.html",
+		"/Users/DrYami/Projects/omori/prototype/jasmine/SpecRunner.html",
+		"/Users/DrYami/Projects/lac/resources/views/bookmark/create.blade.php",
+		"/Users/DrYami/Projects/lac/resources/views/user/boxes.blade.php",
+		"/Users/DrYami/Projects/lac/resources/views/user/bookmarks.blade.php",
+		"/Users/DrYami/Projects/lac/resources/views/template/profile.blade.php",
+		"/Users/DrYami/Projects/lac/app/Repositories/Eloquent/BookmarkRepository.php",
+		"/Users/DrYami/Projects/lac/resources/js/create_bookmark.js",
+		"/Users/DrYami/Projects/lac/resources/js/app.js",
+		"/Users/DrYami/Projects/lac/app/Http/Kernel.php",
+		"/Users/DrYami/Projects/lac/app/Http/Controllers/BookmarkController.php",
+		"/Users/DrYami/Projects/lac/resources/lang/en/user.php",
+		"/Users/DrYami/Projects/lac/resources/assets/sass/_create.scss",
+		"/Users/DrYami/Projects/lac/resources/views/template/home.blade.php",
+		"/Users/DrYami/Projects/lac/resources/views/bookmark/read.blade.php",
+		"/Users/DrYami/Projects/lac/app/Http/Requests/BookmarkCreateRequest.php",
+		"/Users/DrYami/Projects/lac/config/app.php",
+		"/Users/DrYami/Projects/lac/app/Repositories/Eloquent/UserRepository.php",
+		"/Users/DrYami/Projects/lac/resources/views/user/update.blade.php",
+		"/Users/DrYami/Projects/lac/app/Http/Controllers/UserController.php",
+		"/Users/DrYami/Projects/lac/app/Http/routes.php",
+		"/Users/DrYami/Projects/lac/app/Http/Requests/UserRequest.php",
+		"/Users/DrYami/Projects/lac/resources/views/layout/create-button.blade.php",
+		"/Users/DrYami/Downloads/Phase One Capture One 8 Crack (Trial reset)/Trial.reg",
+		"/Users/DrYami/Projects/lac/app/Models/IndexModel.php",
+		"/Users/DrYami/Projects/lac/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php",
+		"/Users/DrYami/Projects/lac/.env",
+		"/Users/DrYami/.homestead/Homestead.yaml",
+		"/Users/DrYami/Projects/lac/composer.json",
+		"/Users/DrYami/Library/Application Support/Sublime Text 3/Packages/User/Preferences.sublime-settings"
+	],
+	"find":
+	{
+		"height": 37.0
+	},
+	"find_in_files":
+	{
+		"height": 0.0,
+		"where_history":
+		[
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"sheets":
+			[
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 27.0
+	},
+	"input":
+	{
+		"height": 37.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.find_results":
+	{
+		"height": 0.0
+	},
+	"pinned_build_system": "",
+	"project": "untitled.sublime-project",
+	"replace":
+	{
+		"height": 50.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+			[
+				"model",
+				"vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php"
+			]
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_symbol":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"selected_group": 0,
+	"settings":
+	{
+	},
+	"show_minimap": true,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 287.0,
+	"status_bar_visible": true,
+	"template_settings":
+	{
+	}
+}

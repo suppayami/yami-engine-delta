@@ -1,0 +1,8 @@
+{
+    "firstgid": 1,
+    "image": ".\/test\/tilemap\/fixture\/Tileset.png",
+    "imageheight": 96,
+    "imagewidth": 96,
+    "tileheight": 48,
+    "tilewidth": 48
+}

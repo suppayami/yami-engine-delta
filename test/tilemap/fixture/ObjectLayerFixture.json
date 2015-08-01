@@ -1,0 +1,26 @@
+{
+    "draworder": "topdown",
+    "height": 18,
+    "name": "Object Layer 1",
+    "objects": [{
+        "gid": 358,
+        "height": 48,
+        "id": 9,
+        "name": "",
+        "properties": {
+            "Collision": "Tile Layer 2"
+        },
+        "rotation": 0,
+        "type": "",
+        "visible": true,
+        "width": 48,
+        "x": 351,
+        "y": 298
+    }],
+    "opacity": 1,
+    "type": "objectgroup",
+    "visible": true,
+    "width": 20,
+    "x": 0,
+    "y": 0
+}

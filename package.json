@@ -1,0 +1,17 @@
+{
+  "name": "omori-prototype",
+  "dependencies": {
+    "gulp": "*",
+    "gulp-jasmine-browser": "*",
+    "gulp-jshint": "*",
+    "gulp-concat": "*",
+    "gulp-cached": "*",
+    "gulp-uglify": "*",
+    "gulp-watch": "*",
+    "gulp-plumber": "*",
+    "jasmine-spec-reporter": "*",
+    "gulp-jasmine-phantom": "*",
+    "jshint-stylish": "*",
+    "jaguarjs-jsdoc": "git+https://github.com/davidshimjs/jaguarjs-jsdoc.git"
+  }
+}
