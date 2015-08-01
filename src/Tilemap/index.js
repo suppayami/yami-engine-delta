@@ -101,6 +101,8 @@ YED.Tilemap = {
         var tileRows = Math.ceil(this._height / this._tileHeight) + 1;
         var layerWidth = tileCols * this._tileWidth;
         var layerHeight = tileRows * this._tileHeight;
+        // loop index
+        var i;
         this._layerWidth = layerWidth;
         this._layerHeight = layerHeight;
 
@@ -126,11 +128,11 @@ YED.Tilemap = {
         this._upperLayer.move(0, 0, this._width, this._height);
         this._upperLayer.z = 4;
 
-        for (var i = 0; i < lowerLayers.length; i++) {
+        for (i = 0; i < lowerLayers.length; i++) {
             this._lowerLayer.addChild(lowerLayers[i]);
         }
 
-        for (var i = 0; i < upperLayers.length; i++) {
+        for (i = 0; i < upperLayers.length; i++) {
             this._upperLayer.addChild(upperLayers[i]);
         }
 
