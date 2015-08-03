@@ -3,6 +3,9 @@
  */
 
 var gulp = require('gulp');
+var requireDir = require('require-dir');
+
+requireDir('./tasks/build');
 
 require('./tasks/build.js');
 require('./tasks/jshint.js');

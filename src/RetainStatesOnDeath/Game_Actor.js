@@ -38,8 +38,6 @@
 
         // restore states
         this.restoreRetainStateOnDeath();
-
-        console.log(this.states());
     };
 
     /**

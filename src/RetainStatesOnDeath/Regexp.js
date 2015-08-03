@@ -1,16 +1,19 @@
-/**
- * Enum for RegExp, used to notetags
- *
- * @readonly
- * @enum {RegExp}
- * @memberof YED.RetainStateOnDeath
- */
-var Regexp = {
-    /**
-     * Retain on death notetag for state
-     */
-    RETAIN: /<(?:retain on death)>/i
-};
+/* globals YED: false */
 
-// exports
-module.exports = Regexp;
+(function() {
+    /**
+     * Enum for RegExp, used to notetags
+     *
+     * @readonly
+     * @enum {RegExp}
+     * @memberof YED.RetainStateOnDeath
+     */
+    var Regexp = {
+        /**
+         * Retain on death notetag for state
+         */
+        RETAIN: /<(?:retain on death)>/i
+    };
+
+    YED.RetainStateOnDeath.Regexp = Regexp;
+}());

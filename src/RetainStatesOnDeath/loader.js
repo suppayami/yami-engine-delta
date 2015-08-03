@@ -1,10 +1,11 @@
-// requires
-var Utils = require('./Utils');
+/* globals YED: false */
 
 /**
  * Pre-processes and notetag parsing
  */
 (function() {
+    // shorten dependencies
+    var Utils = YED.RetainStateOnDeath.Utils;
     // Aliasing: Scene_Boot.start
     var _Scene_Boot_start = Scene_Boot.prototype.start;
 

@@ -1,17 +1,13 @@
 {
   "name": "omori-prototype",
   "dependencies": {
-    "gulp": "*",
-    "gulp-jasmine-browser": "*",
-    "gulp-jshint": "*",
-    "gulp-concat": "*",
-    "gulp-cached": "*",
-    "gulp-uglify": "*",
-    "gulp-watch": "*",
-    "gulp-plumber": "*",
-    "jasmine-spec-reporter": "*",
-    "gulp-jasmine-phantom": "*",
-    "jshint-stylish": "*",
-    "jaguarjs-jsdoc": "git+https://github.com/davidshimjs/jaguarjs-jsdoc.git"
+    "gulp": "3.9.x",
+    "gulp-jshint": "1.11.x",
+    "gulp-concat": "2.6.x",
+    "gulp-cached": "1.1.x",
+    "gulp-jasmine-phantom": "1.3.x",
+    "jshint-stylish": "1.0.x",
+    "jaguarjs-jsdoc": "git+https://github.com/davidshimjs/jaguarjs-jsdoc.git",
+    "require-dir": "0.3.x"
   }
 }
