@@ -1,0 +1,13 @@
+{
+  "name": "YED Demo",
+  "main": "index.html",
+  "window": {
+    "toolbar": true,
+    "frame": true,
+    "width": 816,
+    "height": 624
+  },
+  "webkit": {
+    "plugin": true
+  }
+}

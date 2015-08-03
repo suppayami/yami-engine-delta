@@ -121,7 +121,6 @@ Object.defineProperties(Tileset.prototype, {
 Tileset.prototype._setupData = function() {
     if (!!this.data) {
         this.bitmap = ImageManager.loadNormalBitmap(this.data.image, 0);
-        console.log(this.data.image);
     }
 };
 

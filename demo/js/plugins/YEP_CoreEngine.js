@@ -1,7 +1,7 @@
 //=============================================================================
 // Yanfly Engine Plugins - Core Engine
 // YEP_CoreEngine.js
-// Last Updated: 2015.07.30
+// Last Updated: 2015.08.01
 //=============================================================================
 
 if ($imported == undefined) { var $imported = {}; }
@@ -25,6 +25,11 @@ $imported["YEP_CoreEngine"] = true;
  * @desc Adjusts the height of the screen.                          .
  * Default: 624
  * @default 624
+ *
+ * @param Reposition Battlers
+ * @desc Allow the plugin to reposition battlers to fit resolution?
+ * NO - false     YES - true
+ * @default true
  *
  * @param ---Eventing---
  * @desc
@@ -72,6 +77,11 @@ $imported["YEP_CoreEngine"] = true;
  *
  * @param ---Stats---
  * @default
+ *
+ * @param Max Level
+ * @desc Adjusts the maximum level limit for actors.                .
+ * Default: 99
+ * @default 9999
  *
  * @param Actor MaxHP
  * @desc Adjusts the maximum HP limit for actors.                   .
@@ -373,6 +383,7 @@ $imported["YEP_CoreEngine"] = true;
  * ============================================================================
  *
  * ChangeLog:
+ *   2015.08.01 - Adjusting resolution size also now adjusts window size.
  *   2015.07.30 - Combined Core Engine with Higher Parameters, Higher Item, and
  *                Higher Gold Limit plugins.
  *   2015.07.16 - Added Flexible Variables parameter.
@@ -389,22 +400,22 @@ var parameters = PluginManager.parameters('YEP_CoreEngine');
 var _yep_DigitGroup = String(parameters['Digit Grouping'] || 'true');
 
 toGroup = function(inVal) {
-	if (typeof inVal !== 'string') { inVal = String(inVal); }
-	if (!eval(_yep_DigitGroup)) {
-			return inVal;
-	}
-	var arrWhole = inVal.split(".");
-	var arrTheNumber = arrWhole[0].split("").reverse();
-	var newNum = Array();
-	for(var i=0; i<arrTheNumber.length; i++){
-		newNum[newNum.length] = ((i%3===2) && (i<arrTheNumber.length-1)) ? "," +
-			arrTheNumber[i]: arrTheNumber[i];
-	}
-	var returnNum = newNum.reverse().join("");
-	if(arrWhole[1]){
-	returnNum += "." + arrWhole[1];
-	}
-	return returnNum;
+    if (typeof inVal !== 'string') { inVal = String(inVal); }
+    if (!eval(_yep_DigitGroup)) {
+            return inVal;
+    }
+    var arrWhole = inVal.split(".");
+    var arrTheNumber = arrWhole[0].split("").reverse();
+    var newNum = Array();
+    for(var i=0; i<arrTheNumber.length; i++){
+        newNum[newNum.length] = ((i%3===2) && (i<arrTheNumber.length-1)) ? "," +
+            arrTheNumber[i]: arrTheNumber[i];
+    }
+    var returnNum = newNum.reverse().join("");
+    if(arrWhole[1]){
+    returnNum += "." + arrWhole[1];
+    }
+    return returnNum;
 };
 
 //=============================================================================
@@ -415,8 +426,8 @@ var _yep_DefaultFont = String(parameters['Default Font'] || 'GameFont');
 
 var _YEP_CoreEngine_Bitmap_init = Bitmap.prototype.initialize;
 Bitmap.prototype.initialize = function(width, height) {
-	_YEP_CoreEngine_Bitmap_init.call(this, width, height);
-	this.fontFace = _yep_DefaultFont;
+    _YEP_CoreEngine_Bitmap_init.call(this, width, height);
+    this.fontFace = _yep_DefaultFont;
 }
 
 //=============================================================================
@@ -425,141 +436,141 @@ Bitmap.prototype.initialize = function(width, height) {
 
 var _YEP_CORE_Scene_Boot_start = Scene_Boot.prototype.start;
 Scene_Boot.prototype.start = function() {
-	_YEP_CORE_Scene_Boot_start.call(this);
-	DataManager.processCORENotetags1($dataItems);
+    _YEP_CORE_Scene_Boot_start.call(this);
+    DataManager.processCORENotetags1($dataItems);
   DataManager.processCORENotetags1($dataWeapons);
   DataManager.processCORENotetags1($dataArmors);
-	DataManager.processCORENotetags2($dataEnemies);
-	DataManager.processCORENotetags3($dataActors);
-	DataManager.processCORENotetags4($dataClasses);
+    DataManager.processCORENotetags2($dataEnemies);
+    DataManager.processCORENotetags3($dataActors);
+    DataManager.processCORENotetags4($dataClasses);
 };
 
 var _yep_core_maxItem = Number(parameters['Default Max'] || 99);
 DataManager.processCORENotetags1 = function(group) {
-	for (var n = 1; n < group.length; n++) {
-		var obj = group[n];
-		var notedata = obj.note.split(/[\r\n]+/);
+    for (var n = 1; n < group.length; n++) {
+        var obj = group[n];
+        var notedata = obj.note.split(/[\r\n]+/);
 
-		obj.maxItem = _yep_core_maxItem;
+        obj.maxItem = _yep_core_maxItem;
 
-		for (var i = 0; i < notedata.length; i++) {
-			var line = notedata[i];
-			if (line.match(/<(?:PRICE|price):[ ](\d+)>/i)) {
+        for (var i = 0; i < notedata.length; i++) {
+            var line = notedata[i];
+            if (line.match(/<(?:PRICE|price):[ ](\d+)>/i)) {
         obj.price = parseInt(RegExp.$1);
-			} else if (line.match(/<(?:MAX ITEM|max item):[ ](\d+)>/i)) {
+            } else if (line.match(/<(?:MAX ITEM|max item):[ ](\d+)>/i)) {
         obj.maxItem = Math.max(1, parseInt(RegExp.$1));
-			} else if (line.match(/<(.*):[ ]*([\+\-]\d+)>/i)) {
+            } else if (line.match(/<(.*):[ ]*([\+\-]\d+)>/i)) {
         var stat = String(RegExp.$1).toUpperCase();
-				var value = parseInt(RegExp.$2);
-				switch (stat) {
-					case 'HP' || 'MAXHP' || 'MAX HP':
-						obj.params[0] = value;
-						break;
-					case 'MP' || 'MAXMP' || 'MAX MP' || 'SP' || 'MAXSP' || 'MAX SP':
-						obj.params[1] = value;
-						break;
-					case 'ATK' || 'STR':
-						obj.params[2] = value;
-						break;
-					case 'DEF':
-						obj.params[3] = value;
-						break;
-					case 'MAT' || 'INT' || 'SPI':
-						obj.params[4] = value;
-						break;
-					case 'MDF' || 'RES':
-						obj.params[5] = value;
-						break;
-					case 'AGI' || 'SPD':
-						obj.params[6] = value;
-						break;
-					case 'LUK':
-						obj.params[7] = value;
-						break;
-					case 'EXP' || 'XP':
-						obj.exp = value;
-				}
-			}
-		}
-	}
+                var value = parseInt(RegExp.$2);
+                switch (stat) {
+                    case 'HP' || 'MAXHP' || 'MAX HP':
+                        obj.params[0] = value;
+                        break;
+                    case 'MP' || 'MAXMP' || 'MAX MP' || 'SP' || 'MAXSP' || 'MAX SP':
+                        obj.params[1] = value;
+                        break;
+                    case 'ATK' || 'STR':
+                        obj.params[2] = value;
+                        break;
+                    case 'DEF':
+                        obj.params[3] = value;
+                        break;
+                    case 'MAT' || 'INT' || 'SPI':
+                        obj.params[4] = value;
+                        break;
+                    case 'MDF' || 'RES':
+                        obj.params[5] = value;
+                        break;
+                    case 'AGI' || 'SPD':
+                        obj.params[6] = value;
+                        break;
+                    case 'LUK':
+                        obj.params[7] = value;
+                        break;
+                    case 'EXP' || 'XP':
+                        obj.exp = value;
+                }
+            }
+        }
+    }
 };
 
 DataManager.processCORENotetags2 = function(group) {
-	for (var n = 1; n < group.length; n++) {
-		var obj = group[n];
-		var notedata = obj.note.split(/[\r\n]+/);
+    for (var n = 1; n < group.length; n++) {
+        var obj = group[n];
+        var notedata = obj.note.split(/[\r\n]+/);
 
-		for (var i = 0; i < notedata.length; i++) {
-			var line = notedata[i];
-			if (line.match(/<(?:GOLD|gold):[ ](\d+)>/i)) {
+        for (var i = 0; i < notedata.length; i++) {
+            var line = notedata[i];
+            if (line.match(/<(?:GOLD|gold):[ ](\d+)>/i)) {
         obj.gold = parseInt(RegExp.$1);
-			} else if (line.match(/<(.*):[ ]*(\d+)>/i)) {
+            } else if (line.match(/<(.*):[ ]*(\d+)>/i)) {
         var stat = String(RegExp.$1).toUpperCase();
-				var value = parseInt(RegExp.$2);
-				switch (stat) {
-					case 'HP' || 'MAXHP' || 'MAX HP':
-						obj.params[0] = value;
-						break;
-					case 'MP' || 'MAXMP' || 'MAX MP' || 'SP' || 'MAXSP' || 'MAX SP':
-						obj.params[1] = value;
-						break;
-					case 'ATK' || 'STR':
-						obj.params[2] = value;
-						break;
-					case 'DEF':
-						obj.params[3] = value;
-						break;
-					case 'MAT' || 'INT' || 'SPI':
-						obj.params[4] = value;
-						break;
-					case 'MDF' || 'RES':
-						obj.params[5] = value;
-						break;
-					case 'AGI' || 'SPD':
-						obj.params[6] = value;
-						break;
-					case 'LUK':
-						obj.params[7] = value;
-						break;
-				}
-			}
-		}
-	}
+                var value = parseInt(RegExp.$2);
+                switch (stat) {
+                    case 'HP' || 'MAXHP' || 'MAX HP':
+                        obj.params[0] = value;
+                        break;
+                    case 'MP' || 'MAXMP' || 'MAX MP' || 'SP' || 'MAXSP' || 'MAX SP':
+                        obj.params[1] = value;
+                        break;
+                    case 'ATK' || 'STR':
+                        obj.params[2] = value;
+                        break;
+                    case 'DEF':
+                        obj.params[3] = value;
+                        break;
+                    case 'MAT' || 'INT' || 'SPI':
+                        obj.params[4] = value;
+                        break;
+                    case 'MDF' || 'RES':
+                        obj.params[5] = value;
+                        break;
+                    case 'AGI' || 'SPD':
+                        obj.params[6] = value;
+                        break;
+                    case 'LUK':
+                        obj.params[7] = value;
+                        break;
+                }
+            }
+        }
+    }
 };
 
 var _yep_core_maxLevel = Number(parameters['Max Level'] || 99);
 DataManager.processCORENotetags3 = function(group) {
-	for (var n = 1; n < group.length; n++) {
-		var obj = group[n];
-		var notedata = obj.note.split(/[\r\n]+/);
+    for (var n = 1; n < group.length; n++) {
+        var obj = group[n];
+        var notedata = obj.note.split(/[\r\n]+/);
 
-		obj.maxLevel = _yep_core_maxLevel;
+        obj.maxLevel = _yep_core_maxLevel;
 
-		for (var i = 0; i < notedata.length; i++) {
-			var line = notedata[i];
-			if (line.match(/<(?:MAX LEVEL|max level):[ ](\d+)>/i)) {
+        for (var i = 0; i < notedata.length; i++) {
+            var line = notedata[i];
+            if (line.match(/<(?:MAX LEVEL|max level):[ ](\d+)>/i)) {
         obj.maxLevel = parseInt(RegExp.$1);
-				if (obj.maxLevel < 1) obj.maxLevel = 1;
-			} else if (line.match(/<(?:INITIAL LEVEL|initial level):[ ](\d+)>/i)) {
-				obj.initialLevel = parseInt(RegExp.$1);
-				if (obj.initialLevel < 1) obj.initialLevel = 1;
-			}
-		}
-	}
+                if (obj.maxLevel < 1) obj.maxLevel = 1;
+            } else if (line.match(/<(?:INITIAL LEVEL|initial level):[ ](\d+)>/i)) {
+                obj.initialLevel = parseInt(RegExp.$1);
+                if (obj.initialLevel < 1) obj.initialLevel = 1;
+            }
+        }
+    }
 };
 
 DataManager.processCORENotetags4 = function(group) {
-	for (var n = 1; n < group.length; n++) {
-		var obj = group[n];
-		var notedata = obj.note.split(/[\r\n]+/);
+    for (var n = 1; n < group.length; n++) {
+        var obj = group[n];
+        var notedata = obj.note.split(/[\r\n]+/);
 
-		obj.learnings.forEach(function(learning) {
-			if (learning.note.match(/<(?:LEARN_LEVEL|learn level):[ ](\d+)>/i)) {
-				learning.level = parseInt(RegExp.$1);
-				if (learning.level < 1) obj.maxLevel = 1;
-			}
-		}, this);
-	}
+        obj.learnings.forEach(function(learning) {
+            if (learning.note.match(/<(?:LEARN_LEVEL|learn level):[ ](\d+)>/i)) {
+                learning.level = parseInt(RegExp.$1);
+                if (learning.level < 1) obj.maxLevel = 1;
+            }
+        }, this);
+    }
 };
 
 //=============================================================================
@@ -571,18 +582,27 @@ SceneManager._screenHeight = Number(parameters['Screen Height'] || 624);
 SceneManager._boxWidth     = Number(parameters['Screen Width'] || 816);
 SceneManager._boxHeight    = Number(parameters['Screen Height'] || 624);
 
+var _YEP_CORE_SceneManager_run = SceneManager.run;
+SceneManager.run = function(sceneClass) {
+    _YEP_CORE_SceneManager_run.call(this, sceneClass);
+        var resizeWidth = Graphics.boxWidth - 816;
+        var resizeHeight = Graphics.boxHeight - 624;
+        window.resizeBy(resizeWidth, resizeHeight);
+        window.moveBy(-1 * resizeWidth / 2, -1 * resizeHeight / 2);
+};
+
 //=============================================================================
 // BattleManager
 //=============================================================================
 
 var _YEP_CORE_BattleManager_displayStartMessages =
-		BattleManager.displayStartMessages;
+        BattleManager.displayStartMessages;
 
 BattleManager.displayStartMessages = function() {
   _YEP_CORE_BattleManager_displayStartMessages.call(this);
-	$gameTroop.members().forEach(function(enemy) {
-			enemy.recoverAll();
-	});
+    $gameTroop.members().forEach(function(enemy) {
+            enemy.recoverAll();
+    });
 };
 
 //=============================================================================
@@ -592,7 +612,7 @@ BattleManager.displayStartMessages = function() {
 var _yep_ani_rate = Number(parameters['Animation Rate'] || 4);
 
 Sprite_Animation.prototype.setupRate = function() {
-	this._rate = _yep_ani_rate;
+    this._rate = _yep_ani_rate;
 };
 
 //=============================================================================
@@ -600,15 +620,39 @@ Sprite_Animation.prototype.setupRate = function() {
 //=============================================================================
 
 var _YEP_CoreEngine_Sprite_Battler_updateSelectionEffect =
-		Sprite_Battler.prototype.updateSelectionEffect;
+        Sprite_Battler.prototype.updateSelectionEffect;
 var _yep_flashTarget = String(parameters['Flash Target'] || 'true');
 
 Sprite_Battler.prototype.updateSelectionEffect = function() {
     if (eval(_yep_flashTarget) || this._battler.isActor()) {
-			_YEP_CoreEngine_Sprite_Battler_updateSelectionEffect.call(this);
-		} else {
-			if (this._battler.isSelected()) this.startEffect('whiten');
-		}
+            _YEP_CoreEngine_Sprite_Battler_updateSelectionEffect.call(this);
+        } else {
+            if (this._battler.isSelected()) this.startEffect('whiten');
+        }
+};
+
+//=============================================================================
+// Sprite_Actor
+//=============================================================================
+
+var _yep_core_reposition = String(parameters['Reposition Battlers'] || 'true');
+var _YEP_CORE_Sprite_Actor_setActorHome = Sprite_Actor.prototype.setActorHome;
+Sprite_Actor.prototype.setActorHome = function(index) {
+    _YEP_CORE_Sprite_Actor_setActorHome.call(this, index);
+        if (!eval(_yep_core_reposition)) return;
+        this._homeX += Graphics.boxWidth - 816;
+        this._homeY += Graphics.boxHeight - 624;
+};
+
+//=============================================================================
+// Sprite_Enemy
+//=============================================================================
+
+var _YEP_CORE_Sprite_Enemy_setBattler = Sprite_Enemy.prototype.setBattler;
+Sprite_Enemy.prototype.setBattler = function(battler) {
+    _YEP_CORE_Sprite_Enemy_setBattler.call(this, battler);
+        if (!eval(_yep_core_reposition)) return;
+        this._homeY += Graphics.boxHeight - 624;
 };
 
 //=============================================================================
@@ -641,7 +685,7 @@ Game_BattlerBase.prototype.paramMax = function(paramId) {
 
 var _YEP_CORE_Game_Actor_isMaxLevel = Game_Actor.prototype.isMaxLevel;
 Game_Actor.prototype.isMaxLevel = function() {
-		if (this.maxLevel() == 0) return false;
+        if (this.maxLevel() == 0) return false;
     return _YEP_CORE_Game_Actor_isMaxLevel.call(this);
 };
 
@@ -649,23 +693,23 @@ var _yep_core_actorMaxHp = Number(parameters['Actor MaxHP'] || 9999);
 var _yep_core_actorMaxMp = Number(parameters['Actor MaxMP'] || 9999);
 var _yep_core_actorParam = Number(parameters['Actor Parameter'] || 999);
 Game_Actor.prototype.paramMax = function(paramId) {
-	if (paramId === 0) {
-			return _yep_core_actorMaxHp;
-	} else if (paramId === 1) {
-			return _yep_core_actorMaxMp;
-	} else {
-			return _yep_core_actorParam;
-	}
+    if (paramId === 0) {
+            return _yep_core_actorMaxHp;
+    } else if (paramId === 1) {
+            return _yep_core_actorMaxMp;
+    } else {
+            return _yep_core_actorParam;
+    }
 };
 
 var _YEP_CORE_Game_Actor_paramBase = Game_Actor.prototype.paramBase;
 Game_Actor.prototype.paramBase = function(paramId) {
-		if (this.level > 99) {
-			var i = this.currentClass().params[paramId][99];
-			var j = this.currentClass().params[paramId][98];
-			i += (i - j) * (this.level - 99);
-			return i;
-		}
+        if (this.level > 99) {
+            var i = this.currentClass().params[paramId][99];
+            var j = this.currentClass().params[paramId][98];
+            i += (i - j) * (this.level - 99);
+            return i;
+        }
     return _YEP_CORE_Game_Actor_paramBase.call(this, paramId);
 };
 
@@ -689,12 +733,12 @@ Game_Party.prototype.maxItems = function(item) {
 
 Game_Map.prototype.displayX = function() {
     return parseFloat(Math.floor(this._displayX *
-			this.tileWidth())) / this.tileWidth();
+            this.tileWidth())) / this.tileWidth();
 };
 
 Game_Map.prototype.displayY = function() {
     return parseFloat(Math.floor(this._displayY *
-			this.tileHeight())) / this.tileHeight();
+            this.tileHeight())) / this.tileHeight();
 };
 
 Game_Map.prototype.adjustX = function(x) {
@@ -720,17 +764,17 @@ Game_Map.prototype.adjustY = function(y) {
 //=============================================================================
 
 var _YEP_CoreEngine_Game_Variables_setValue =
-		Game_Variables.prototype.setValue;
+        Game_Variables.prototype.setValue;
 var _yep_flexibleVar = String(parameters['Flexible Variables'] || 'true');
 Game_Variables.prototype.setValue = function(variableId, value) {
     if (eval(_yep_flexibleVar)) {
-			if (variableId > 0 && variableId < $dataSystem.variables.length) {
-	        this._data[variableId] = value;
-	        this.onChange();
-	    }
-		} else {
-			_YEP_CoreEngine_Game_Variables_setValue.call(this);
-		}
+            if (variableId > 0 && variableId < $dataSystem.variables.length) {
+            this._data[variableId] = value;
+            this.onChange();
+        }
+        } else {
+            _YEP_CoreEngine_Game_Variables_setValue.call(this);
+        }
 };
 
 //=============================================================================
@@ -788,15 +832,15 @@ var _yep_color_tpgauge2  = Number(parameters['Color: TP Gauge 2'] || 29);
 var _yep_color_tpcost    = Number(parameters['Color: TP Cost'] || 29);
 
 Window_Base.prototype.lineHeight = function() {
-	return _yep_line_height;
+    return _yep_line_height;
 };
 Window_Base.prototype.standardFontFace = function() {
     if ($gameSystem.isChinese()) {
-		return _yep_ChineseFont;
+        return _yep_ChineseFont;
     } else if ($gameSystem.isKorean()) {
-		return _yep_KoreanFont;
+        return _yep_KoreanFont;
     } else {
-		return _yep_DefaultFont;
+        return _yep_DefaultFont;
     }
 };
 Window_Base.prototype.standardFontSize = function() {
@@ -812,7 +856,7 @@ Window_Base.prototype.standardBackOpacity = function() {
     return _yep_window_opacity;
 };
 Window_Base.prototype.normalColor = function() {
-	return this.textColor(_yep_color_normal);
+    return this.textColor(_yep_color_normal);
 };
 Window_Base.prototype.systemColor = function() {
     return this.textColor(_yep_color_system);
@@ -858,24 +902,24 @@ Window_Base.prototype.tpCostColor = function() {
 };
 
 Window_Base.prototype.drawGauge = function(dx, dy, dw, rate, color1, color2) {
-	var color3 = this.gaugeBackColor();
-	var fillW = Math.floor(dw * rate).clamp(0, dw);
-	var gaugeH = this.gaugeHeight();
-	var gaugeY = dy + this.lineHeight() - gaugeH - 2;
-	if (eval(_yep_gauge_outline)) {
-		color3.paintOpacity = this.translucentOpacity();
-		this.contents.fillRect(dx, gaugeY-1, dw+2, gaugeH+2, color3);
-		dx += 1;
-	} else {
-		var fillW = Math.floor(dw * rate);
-		var gaugeY = dy + this.lineHeight() - gaugeH - 2;
-		this.contents.fillRect(dx, gaugeY, dw, gaugeH, color3);
-	}
+    var color3 = this.gaugeBackColor();
+    var fillW = Math.floor(dw * rate).clamp(0, dw);
+    var gaugeH = this.gaugeHeight();
+    var gaugeY = dy + this.lineHeight() - gaugeH - 2;
+    if (eval(_yep_gauge_outline)) {
+        color3.paintOpacity = this.translucentOpacity();
+        this.contents.fillRect(dx, gaugeY-1, dw+2, gaugeH+2, color3);
+        dx += 1;
+    } else {
+        var fillW = Math.floor(dw * rate);
+        var gaugeY = dy + this.lineHeight() - gaugeH - 2;
+        this.contents.fillRect(dx, gaugeY, dw, gaugeH, color3);
+    }
     this.contents.gradientFillRect(dx, gaugeY, fillW, gaugeH, color1, color2);
 };
 
 Window_Base.prototype.gaugeHeight = function() {
-		return _yep_gauge_height;
+        return _yep_gauge_height;
 };
 
 Window_Base.prototype.drawActorLevel = function(actor, x, y) {
@@ -887,7 +931,7 @@ Window_Base.prototype.drawActorLevel = function(actor, x, y) {
 
 Window_Base.prototype.drawCurrentAndMax = function(current, max, x, y,
                                                    width, color1, color2) {
-		var labelWidth = this.textWidth('HP');
+        var labelWidth = this.textWidth('HP');
     var valueWidth = this.textWidth(toGroup(max));
     var slashWidth = this.textWidth('/');
     var x1 = x + width - valueWidth;
@@ -918,23 +962,19 @@ Window_Base.prototype.drawActorTp = function(actor, x, y, width) {
 
 Window_Base.prototype.drawActorSimpleStatus = function(actor, x, y, width) {
     var lineHeight = this.lineHeight();
-		var xpad = Window_Base._faceWidth + (2 * _yep_text_padding);
+        var xpad = Window_Base._faceWidth + (2 * _yep_text_padding);
     var x2 = x + xpad;
-    var width2 = Math.min(200, width - xpad - this.textPadding());
+    var width2 = Math.max(200, width - xpad - this.textPadding());
     this.drawActorName(actor, x, y);
     this.drawActorLevel(actor, x, y + lineHeight * 1);
     this.drawActorIcons(actor, x, y + lineHeight * 2);
     this.drawActorClass(actor, x2, y);
     this.drawActorHp(actor, x2, y + lineHeight * 1, width2);
     this.drawActorMp(actor, x2, y + lineHeight * 2, width2);
-		if (eval(_yep_menu_tp_bar)) {
-			this.drawActorTp(actor, x2, y + lineHeight * 3, width2);
-		}
+        if (eval(_yep_menu_tp_bar)) {
+            this.drawActorTp(actor, x2, y + lineHeight * 3, width2);
+        }
 };
-
-//=============================================================================
-// Window_Base
-//=============================================================================
 
 var _yep_core_goldFontSize = String(parameters['Gold Font Size'] || 28);
 var _icon_gold            = Number(parameters['Gold Icon'] || 0);
@@ -962,9 +1002,7 @@ Window_Base.prototype.drawCurrencyValue = function(value, unit, wx, wy, ww) {
 };
 
 Window_Base.prototype.usingGoldIcon = function(unit) {
-    if (unit !== TextManager.currencyUnit) {
-      return false;
-    }
+    if (unit !== TextManager.currencyUnit) return false;
     return _icon_gold > 0;
 }
 
@@ -975,13 +1013,13 @@ Window_Base.prototype.usingGoldIcon = function(unit) {
 Window_MenuStatus.prototype.drawItemStatus = function(index) {
     var actor = $gameParty.members()[index];
     var rect = this.itemRect(index);
-		var xpad = _yep_window_padding + Window_Base._faceWidth;
+        var xpad = _yep_window_padding + Window_Base._faceWidth;
     var x = rect.x + xpad;
-		if (!eval(_yep_menu_tp_bar)) {
-			var y = rect.y + rect.height / 2 - this.lineHeight() * 1.5;
-		} else {
-			var y = rect.y;
-		}
+        if (!eval(_yep_menu_tp_bar)) {
+            var y = rect.y + rect.height / 2 - this.lineHeight() * 1.5;
+        } else {
+            var y = rect.y;
+        }
     var width = rect.width - x - this.textPadding();
     this.drawActorSimpleStatus(actor, x, y, width);
 };
@@ -997,7 +1035,7 @@ Window_ItemList.prototype.numberWidth = function() {
 var _yep_is_qntySize = Number(parameters['Quantity Text Size'] || 28);
 Window_ItemList.prototype.drawItemNumber = function(item, x, y, width) {
     if (!this.needsNumber()) return;
-		var numItems = toGroup($gameParty.numItems(item));
+        var numItems = toGroup($gameParty.numItems(item));
     this.contents.fontSize = _yep_is_qntySize;
     this.drawText('\u00d7' + numItems, x, y, width, 'right');
     this.resetFontSettings();
@@ -1012,12 +1050,12 @@ Window_SkillStatus.prototype.refresh = function() {
     if (this._actor) {
         var w = this.width - this.padding * 2;
         var h = this.height - this.padding * 2;
-				if (!eval(_yep_menu_tp_bar)) {
-					var y = rect.height / 2 - this.lineHeight() * 1.5;
-				} else {
-					var y = 0;
-				}
-				var xpad = _yep_window_padding + Window_Base._faceWidth;
+                if (!eval(_yep_menu_tp_bar)) {
+                    var y = rect.height / 2 - this.lineHeight() * 1.5;
+                } else {
+                    var y = 0;
+                }
+                var xpad = _yep_window_padding + Window_Base._faceWidth;
         var width = w - xpad - this.textPadding();
         this.drawActorFace(this._actor, 0, 0, 144, h);
         this.drawActorSimpleStatus(this._actor, xpad, y, width);
@@ -1027,11 +1065,11 @@ Window_SkillStatus.prototype.refresh = function() {
 Window_SkillList.prototype.drawSkillCost = function(skill, x, y, width) {
     if (this._actor.skillTpCost(skill) > 0) {
         this.changeTextColor(this.tpCostColor());
-				var skillcost = toGroup(this._actor.skillTpCost(skill));
+                var skillcost = toGroup(this._actor.skillTpCost(skill));
         this.drawText(skillcost, x, y, width, 'right');
     } else if (this._actor.skillMpCost(skill) > 0) {
         this.changeTextColor(this.mpCostColor());
-				var skillcost = toGroup(this._actor.skillMpCost(skill));
+                var skillcost = toGroup(this._actor.skillMpCost(skill));
         this.drawText(skillcost, x, y, width, 'right');
     }
 };
@@ -1042,14 +1080,14 @@ Window_SkillList.prototype.drawSkillCost = function(skill, x, y, width) {
 
 Window_EquipStatus.prototype.drawCurrentParam = function(x, y, paramId) {
     this.resetTextColor();
-		var actorparam = toGroup(this._actor.param(paramId));
+        var actorparam = toGroup(this._actor.param(paramId));
     this.drawText(actorparam, x, y, 48, 'right');
 };
 
 Window_EquipStatus.prototype.drawNewParam = function(x, y, paramId) {
     var newValue = this._tempActor.param(paramId);
     var diffvalue = newValue - this._actor.param(paramId);
-		var actorparam = toGroup(newValue);
+        var actorparam = toGroup(newValue);
     this.changeTextColor(this.paramchangeTextColor(diffvalue));
     this.drawText(actorparam, x, y, 48, 'right');
 };
@@ -1058,7 +1096,7 @@ Window_Base.prototype.drawItemName = function(item, x, y, width) {
     width = width || 312;
     if (item) {
         var iconBoxWidth = this.lineHeight();
-				var padding = (iconBoxWidth - Window_Base._iconWidth) / 2;
+                var padding = (iconBoxWidth - Window_Base._iconWidth) / 2;
         this.resetTextColor();
         this.drawIcon(item.iconIndex, x + padding, y + padding);
         this.drawText(item.name, x + iconBoxWidth, y, width - iconBoxWidth);
@@ -1077,7 +1115,7 @@ Window_Status.prototype.drawParameters = function(x, y) {
         this.changeTextColor(this.systemColor());
         this.drawText(TextManager.param(paramId), x, y2, 160);
         this.resetTextColor();
-				var actorParam = toGroup(this._actor.param(paramId));
+                var actorParam = toGroup(this._actor.param(paramId));
         this.drawText(actorParam, x + 160, y2, 60, 'right');
     }
 };
@@ -1092,9 +1130,9 @@ Window_Status.prototype.drawExpInfo = function(x, y) {
         value1 = '-------';
         value2 = '-------';
     } else {
-			value1 = toGroup(value1);
-			value2 = toGroup(value2);
-		}
+            value1 = toGroup(value1);
+            value2 = toGroup(value2);
+        }
     this.changeTextColor(this.systemColor());
     this.drawText(expTotal, x, y + lineHeight * 0, 270);
     this.drawText(expNext, x, y + lineHeight * 2, 270);
@@ -1114,7 +1152,7 @@ Window_ShopBuy.prototype.drawItem = function(index) {
     this.changePaintOpacity(this.isEnabled(item));
     this.drawItemName(item, rect.x, rect.y, rect.width);
     this.contents.fontSize = _yep_core_goldFontSize;
-		var itemPrice = toGroup(this.price(item));
+        var itemPrice = toGroup(this.price(item));
     this.drawText(itemPrice, rect.x, rect.y, rect.width, 'right');
     this.changePaintOpacity(true);
     this.resetFontSettings();
@@ -1129,7 +1167,7 @@ Window_ShopNumber.prototype.drawNumber = function() {
     var y = this.itemY();
     var width = this.cursorWidth() - this.textPadding();
     this.resetTextColor();
-		var itemNumber = toGroup(this._number);
+        var itemNumber = toGroup(this._number);
     this.drawText(itemNumber, x, y, width, 'right');
 };
 
@@ -1141,18 +1179,65 @@ Window_BattleLog.prototype.showNormalAnimation = function(targets,
 animationId, mirror) {
     var animation = $dataAnimations[animationId];
     if (animation) {
-			if (animation.position == 3) {
-				targets.forEach(function(target) {
-						target.startAnimation(animationId, mirror, 0);
-				});
-			} else {
-					var delay = this.animationBaseDelay();
-        	var nextDelay = this.animationNextDelay();
-        	targets.forEach(function(target) {
-            	target.startAnimation(animationId, mirror, delay);
-            	delay += nextDelay;
-        	});
-			}
+            if (animation.position == 3) {
+                targets.forEach(function(target) {
+                        target.startAnimation(animationId, mirror, 0);
+                });
+            } else {
+                    var delay = this.animationBaseDelay();
+            var nextDelay = this.animationNextDelay();
+            targets.forEach(function(target) {
+                target.startAnimation(animationId, mirror, delay);
+                delay += nextDelay;
+            });
+            }
+    }
+};
+
+var _yami_Game_CharacterBase_updateMove = Game_CharacterBase.prototype.updateMove;
+var _yami_Game_Character_setMoveRoute = Game_Event.prototype.setMoveRoute;
+var _yami_Game_Event_updateSelfMovement = Game_Event.prototype.updateSelfMovement;
+
+Game_CharacterBase.prototype.update = function() {
+    if (this.isJumping()) {
+        this.updateJump();
+    } else if (this.isMoving()) {
+        this.updateMove();
+    }
+
+    if (!this.isMoving()) {
+        this.updateStop();
+    }
+
+    this.updateAnimation();
+};
+
+Game_CharacterBase.prototype.updateMove = function() {
+    _yami_Game_CharacterBase_updateMove.call(this);
+
+    if (!this.isMoving()) {
+        this.updateStop();
+    }
+};
+
+Game_Character.prototype.queueMoveRoute = function(moveRoute) {
+    this._originalMoveRoute       = moveRoute;
+    this._originalMoveRouteIndex  = 0;
+};
+
+Game_Character.prototype.setMoveRoute = function(moveRoute) {
+    if (!this._moveRouteForcing) {
+        _yami_Game_Character_setMoveRoute.call(this, moveRoute);
+    } else {
+        this.queueMoveRoute(moveRoute);
+    }
+};
+
+Game_Event.prototype.updateSelfMovement = function() {
+    _yami_Game_Event_updateSelfMovement.call(this);
+
+    if (this.isNearTheScreen() && this.checkStop(this.stopCountThreshold())) {
+        this.resetStopCount();
     }
 };
 

@@ -1,10 +1,8 @@
-//=============================================================================
-// AltMenuScreen.js
-//=============================================================================
-
 /*:
+ * AltMenuScreen.js
+ *
  * @plugindesc Alternative menu screen layout.
- * @author Yoji Ojima
+ * @author Hjhj
  *
  * @help This plugin does not provide plugin commands.
  */

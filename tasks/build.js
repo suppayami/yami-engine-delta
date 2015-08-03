@@ -46,6 +46,7 @@ gulp.task('build', ['lint-engine'], function() {
                 .pipe(buffer())
                 .pipe(gulp.dest(dest))
                 .pipe(gulp.dest(demo));
+
             b.bundle().pipe(bundledStream);
         });
     });

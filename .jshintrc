@@ -1,0 +1,25 @@
+{
+    "bitwise"       : true,
+    "latedef"       : false,
+    "undef"         : true,
+    "jasmine"       : true,
+    "browser"       : true,
+    "eqnull"        : true,
+    "laxbreak"      : true,
+    "nonbsp"        : true,
+    "unused"        : true,
+    "node"          : true,
+
+    // Custom Globals
+    "globals"       : {
+        "$dataStates"   :   false,
+        "$gamePlayer"   :   false,
+        "$gameMap"      :   false,
+        "DataManager"   :   false,
+        "ImageManager"  :   false,
+        "Scene_Boot"    :   false,
+        "Bitmap"        :   false,
+        "Sprite"        :   false,
+        "Game_Actor"    :   false
+    }
+}
