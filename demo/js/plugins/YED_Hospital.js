@@ -1207,7 +1207,7 @@ YED.Hospital = {};
 
         // Hospital Plugin Command
         if (command === 'OpenHospital') {
-            YED.Utils.gotoHospitalScene.call(this);
+            YED.Hospital.Utils.gotoHospitalScene.call(this);
         }
     };
 }());
