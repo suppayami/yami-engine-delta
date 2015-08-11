@@ -1351,6 +1351,20 @@ if (typeof toGroup !== 'function'){
 		}
 }
 
+Game_CharacterBase.prototype.update = function() {
+    if (this.isJumping()) {
+        this.updateJump();
+    } else if (this.isMoving()) {
+        this.updateMove();
+    }
+
+    if (!this.isMoving()) {
+        this.updateStop();
+    }
+
+    this.updateAnimation();
+};
+
 //=============================================================================
 // End of File
 //=============================================================================

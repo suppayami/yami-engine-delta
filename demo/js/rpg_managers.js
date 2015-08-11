@@ -2451,6 +2451,7 @@ PluginManager.loadScript = function(name) {
     script.type = 'text/javascript';
     script.src = url;
     script.onerror = this.onError.bind(this);
+    script.async = false;
     script._url = url;
     document.body.appendChild(script);
 };

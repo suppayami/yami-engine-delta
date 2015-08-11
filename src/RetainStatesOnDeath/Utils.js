@@ -1,7 +1,9 @@
 /* globals YED: false */
 
 (function() {
-    // shorten dependencies
+    /**
+     * Shorten Dependencies
+     */
     var Regexp = YED.RetainStateOnDeath.Regexp;
 
     /**

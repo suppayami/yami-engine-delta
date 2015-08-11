@@ -51,7 +51,9 @@ YED.RetainStateOnDeath = {};
 /* globals YED: false */
 
 (function() {
-    // shorten dependencies
+    /**
+     * Shorten Dependencies
+     */
     var Regexp = YED.RetainStateOnDeath.Regexp;
 
     /**
@@ -114,9 +116,13 @@ YED.RetainStateOnDeath = {};
  * Pre-processes and notetag parsing
  */
 (function() {
-    // shorten dependencies
+    /**
+     * Shorten Dependencies
+     */
     var Utils = YED.RetainStateOnDeath.Utils;
-    // Aliasing: Scene_Boot.start
+    /**
+     * Aliasing methods
+     */
     var _Scene_Boot_start = Scene_Boot.prototype.start;
 
     /**
@@ -132,6 +138,9 @@ YED.RetainStateOnDeath = {};
 }());
 
 (function() {
+    /**
+     * Aliasing methods
+     */
     var _Game_Actor_initialize = Game_Actor.prototype.initialize;
     var _Game_Actor_die = Game_Actor.prototype.die;
 

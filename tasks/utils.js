@@ -11,4 +11,6 @@ utils.getGlobs = function(module, files) {
     return result;
 };
 
+utils.baseModule = 'YED_';
+
 module.exports = utils;

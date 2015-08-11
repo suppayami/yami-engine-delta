@@ -1,4 +1,7 @@
 (function() {
+    /**
+     * Aliasing methods
+     */
     var _Game_Actor_initialize = Game_Actor.prototype.initialize;
     var _Game_Actor_die = Game_Actor.prototype.die;
 

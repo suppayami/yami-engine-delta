@@ -4,13 +4,9 @@
  * Pre-processes and notetag parsing
  */
 (function() {
-    /**
-     * Shorten Dependencies
-     */
-    var Utils = YED.RetainStateOnDeath.Utils;
-    /**
-     * Aliasing methods
-     */
+    // shorten dependencies
+    var Utils = YED.Hospital.Utils;
+    // Aliasing: Scene_Boot.start
     var _Scene_Boot_start = Scene_Boot.prototype.start;
 
     /**
@@ -21,6 +17,6 @@
     Scene_Boot.prototype.start = function() {
         _Scene_Boot_start.call(this);
 
-        Utils.processNotetag.call(DataManager);
+        Utils.processParameters.call(DataManager);
     };
 }());

@@ -12,14 +12,27 @@
 
     // Custom Globals
     "globals"       : {
-        "$dataStates"   :   false,
-        "$gamePlayer"   :   false,
-        "$gameMap"      :   false,
-        "DataManager"   :   false,
-        "ImageManager"  :   false,
-        "Scene_Boot"    :   false,
-        "Bitmap"        :   false,
-        "Sprite"        :   false,
-        "Game_Actor"    :   false
+        "$dataStates"       :   false,
+        "$gameParty"        :   false,
+        "$gamePlayer"       :   false,
+        "$gameMap"          :   false,
+        "DataManager"       :   false,
+        "ImageManager"      :   false,
+        "PluginManager"     :   false,
+        "TextManager"       :   false,
+        "SceneManager"      :   false,
+        "Scene_Boot"        :   false,
+        "Bitmap"            :   false,
+        "Sprite"            :   false,
+        "Graphics"          :   false,
+        "Game_Actor"        :   false,
+        "Game_Party"        :   false,
+        "Game_Interpreter"  :   false,
+        "Window_Base"       :   false,
+        "Window_Selectable" :   false,
+        "Window_Command"    :   false,
+        "Window_Gold"       :   false,
+        "Window_Help"       :   false,
+        "Scene_MenuBase"    :   false
     }
 }
