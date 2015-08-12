@@ -68,7 +68,7 @@
     /**
      * Clear window contents.
      */
-    Window_Help.prototype.clear = function() {
+    Window_HospitalHelp.prototype.clear = function() {
         this.setSymbol('');
     };
 
