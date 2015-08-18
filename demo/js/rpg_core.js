@@ -2176,6 +2176,7 @@ function Input() {
  */
 Input.initialize = function() {
     this.clear();
+    this._wrapNwjsAlert();
     this._setupEventHandlers();
 };
 
@@ -2402,6 +2403,24 @@ Object.defineProperty(Input, 'date', {
     },
     configurable: true
 });
+
+/**
+ * @static
+ * @method _wrapNwjsAlert
+ * @private
+ */
+Input._wrapNwjsAlert = function() {
+    if (Utils.isNwjs()) {
+        var _alert = window.alert;
+        window.alert = function() {
+            var gui = require('nw.gui');
+            var win = gui.Window.get();
+            _alert.apply(this, arguments);
+            win.focus();
+            Input.clear();
+        };
+    }
+};
 
 /**
  * @static
@@ -3862,8 +3881,10 @@ Tilemap.prototype.refresh = function() {
  * @private
  */
 Tilemap.prototype.updateTransform = function() {
-    var startX = Math.floor((this.origin.x - this._margin) / this._tileWidth);
-    var startY = Math.floor((this.origin.y - this._margin) / this._tileHeight);
+    var ox = Math.floor(this.origin.x);
+    var oy = Math.floor(this.origin.y);
+    var startX = Math.floor((ox - this._margin) / this._tileWidth);
+    var startY = Math.floor((oy - this._margin) / this._tileHeight);
     this._updateLayerPositions(startX, startY);
     if (this._needsRepaint || this._lastAnimationFrame !== this.animationFrame ||
             this._lastStartX !== startX || this._lastStartY !== startY) {
@@ -3933,8 +3954,10 @@ Tilemap.prototype._createLayers = function() {
  */
 Tilemap.prototype._updateLayerPositions = function(startX, startY) {
     var m = this._margin;
-    var x2 = (this.origin.x - m).mod(this._layerWidth);
-    var y2 = (this.origin.y - m).mod(this._layerHeight);
+    var ox = Math.floor(this.origin.x);
+    var oy = Math.floor(this.origin.y);
+    var x2 = (ox - m).mod(this._layerWidth);
+    var y2 = (oy - m).mod(this._layerHeight);
     var w1 = this._layerWidth - x2;
     var h1 = this._layerHeight - y2;
     var w2 = this._width - w1;

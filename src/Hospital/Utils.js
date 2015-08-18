@@ -80,7 +80,7 @@
      * @memberof YED.Hospital.Utils
      */
     Utils.gotoHospitalScene = function() {
-        var scene = YED.Hospital.Scene_Hospital;
+        var scene = YED.Hospital.Scenes.Hospital;
 
         SceneManager.push(scene);
     };

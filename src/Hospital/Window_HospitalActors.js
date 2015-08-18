@@ -6,30 +6,30 @@
      *
      * @class
      * @extends external:Window_Selectable
-     * @memberof YED.Hospital
+     * @memberof YED.Hospital.Windows
      *
      * @param {number} wx Window X
      * @param {number} wy Window Y
      * @param {number} [ww] Window Width
      * @param {number} wh Window Height
      */
-    var Window_HospitalActors = function() {
+    var HospitalActors = function() {
         this.initialize.apply(this, arguments);
     };
 
     /**
      * Inherits from Window_Base
      */
-    Window_HospitalActors.prototype =
+    HospitalActors.prototype =
         Object.create(Window_Selectable.prototype);
-    Window_HospitalActors.prototype.constructor = Window_HospitalActors;
+    HospitalActors.prototype.constructor = HospitalActors;
 
     /**
      * Initialize
      *
-     * @constructs Window_HospitalActors
+     * @constructs HospitalActors
      */
-    Window_HospitalActors.prototype.initialize = function(wx, wy, ww, wh) {
+    HospitalActors.prototype.initialize = function(wx, wy, ww, wh) {
         ww = ww || this.windowWidth();
 
         Window_Selectable.prototype.initialize.call(this, wx, wy, ww, wh);
@@ -41,14 +41,14 @@
      *
      * @return {number} Window Height
      */
-    Window_HospitalActors.prototype.windowWidth = function() {
+    HospitalActors.prototype.windowWidth = function() {
         return Graphics.boxWidth;
     };
 
     /**
      * Refresh Window contents.
      */
-    Window_HospitalActors.prototype.refresh = function() {
+    HospitalActors.prototype.refresh = function() {
         this.makeItemList();
         this.createContents();
         this.drawAllItems();
@@ -57,7 +57,7 @@
     /**
      * Get actors list.
      */
-    Window_HospitalActors.prototype.makeItemList = function() {
+    HospitalActors.prototype.makeItemList = function() {
         this._data = $gameParty.members();
     };
 
@@ -66,7 +66,7 @@
      *
      * @return {Game_Actor} Current select actor
      */
-    Window_HospitalActors.prototype.actor = function() {
+    HospitalActors.prototype.actor = function() {
         return this._data[this.index()];
     };
 
@@ -75,7 +75,7 @@
      *
      * @return {Boolean} Enabled Flag
      */
-    Window_HospitalActors.prototype.isCurrentItemEnabled = function() {
+    HospitalActors.prototype.isCurrentItemEnabled = function() {
         return this.isEnabled(this.actor());
     };
 
@@ -84,7 +84,7 @@
      *
      * @return {Boolean} Enabled Flag
      */
-    Window_HospitalActors.prototype.isEnabled = function(actor) {
+    HospitalActors.prototype.isEnabled = function(actor) {
         return !!actor ? actor.isHospitalizable() : false;
     };
 
@@ -93,7 +93,7 @@
      *
      * @return {number} Total actors
      */
-    Window_HospitalActors.prototype.maxItems = function() {
+    HospitalActors.prototype.maxItems = function() {
         return this._data ? this._data.length : 1;
     };
 
@@ -102,7 +102,7 @@
      *
      * @param  {number} index Actor Index
      */
-    Window_HospitalActors.prototype.drawItem = function(index) {
+    HospitalActors.prototype.drawItem = function(index) {
         var actor = this._data[index],
             rect = this.itemRect(index),
             gaugeWidth = 0,
@@ -140,7 +140,7 @@
      * @param  {number} y     Draw at Y
      * @param  {number} width Limit Text Width
      */
-    Window_HospitalActors.prototype.drawActorHospital = function(actor, x, y, width) {
+    HospitalActors.prototype.drawActorHospital = function(actor, x, y, width) {
         width = width || 168;
         this.drawCurrencyValue(actor.hospitalFee(),
             this.currencyUnit(), x, y, width);
@@ -151,14 +151,14 @@
      *
      * @return {String} Currency Unit
      */
-    Window_HospitalActors.prototype.currencyUnit = function() {
+    HospitalActors.prototype.currencyUnit = function() {
         return TextManager.currencyUnit;
     };
 
     /**
      * Update help window
      */
-    Window_HospitalActors.prototype.updateHelp = function() {
+    HospitalActors.prototype.updateHelp = function() {
         var symbol = '';
 
         if (!this.actor()) {
@@ -174,7 +174,7 @@
      *
      * @private
      */
-    Window_HospitalActors.prototype._getHelpSymbol = function() {
+    HospitalActors.prototype._getHelpSymbol = function() {
         var symbol = '';
 
         if (this.actor().isHealthy()) {
@@ -186,5 +186,5 @@
         return symbol;
     };
 
-    YED.Hospital.Window_HospitalActors = Window_HospitalActors;
+    YED.Hospital.Windows.HospitalActors = HospitalActors;
 }());

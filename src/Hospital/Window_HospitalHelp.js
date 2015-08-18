@@ -11,29 +11,29 @@
      *
      * @class
      * @extends external:Window_Help
-     * @memberof YED.Hospital
+     * @memberof YED.Hospital.Windows
      *
      * @param {number} wx Window X
      * @param {number} wy Window Y
      * @param {number} ww Window Width
      * @param {number} [wh] Window Height
      */
-    var Window_HospitalHelp = function() {
+    var HospitalHelp = function() {
         this.initialize.apply(this, arguments);
     };
 
     /**
      * Inherits from Window_Help
      */
-    Window_HospitalHelp.prototype = Object.create(Window_Help.prototype);
-    Window_HospitalHelp.prototype.constructor = Window_HospitalHelp;
+    HospitalHelp.prototype = Object.create(Window_Help.prototype);
+    HospitalHelp.prototype.constructor = HospitalHelp;
 
     /**
      * Initialize
      *
-     * @constructs Window_HospitalHelp
+     * @constructs HospitalHelp
      */
-    Window_HospitalHelp.prototype.initialize = function(wx, wy, ww, wh) {
+    HospitalHelp.prototype.initialize = function(wx, wy, ww, wh) {
         wh = wh || this.windowHeight();
 
         Window_Help.prototype.initialize.call(this, 1);
@@ -53,14 +53,14 @@
      *
      * @return {number} Window Height
      */
-    Window_HospitalHelp.prototype.windowHeight = function() {
+    HospitalHelp.prototype.windowHeight = function() {
         return this.fittingHeight(1);
     };
 
     /**
      * Refresh window contents.
      */
-    Window_HospitalHelp.prototype.refresh = function() {
+    HospitalHelp.prototype.refresh = function() {
         this.contents.clear();
         this._drawHelpText();
     };
@@ -68,14 +68,14 @@
     /**
      * Clear window contents.
      */
-    Window_HospitalHelp.prototype.clear = function() {
+    HospitalHelp.prototype.clear = function() {
         this.setSymbol('');
     };
 
     /**
      * Set window symbol for formatting texts.
      */
-    Window_HospitalHelp.prototype.setSymbol = function(symbol, actor) {
+    HospitalHelp.prototype.setSymbol = function(symbol, actor) {
         this._textSymbol = symbol;
         this._actor = actor;
         this.refresh();
@@ -87,7 +87,7 @@
      * @return {String} Help Text
      * @private
      */
-    Window_HospitalHelp.prototype._getHelpText = function() {
+    HospitalHelp.prototype._getHelpText = function() {
         var text  = Utils.parameters[this._textSymbol],
             actor = this._actor;
 
@@ -111,7 +111,7 @@
      *
      * @private
      */
-    Window_HospitalHelp.prototype._drawHelpText = function() {
+    HospitalHelp.prototype._drawHelpText = function() {
         var text = '';
 
         if (this._textSymbol !== '') {
@@ -120,5 +120,5 @@
         }
     };
 
-    YED.Hospital.Window_HospitalHelp = Window_HospitalHelp;
+    YED.Hospital.Windows.HospitalHelp = HospitalHelp;
 }());

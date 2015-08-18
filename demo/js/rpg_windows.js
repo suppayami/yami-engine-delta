@@ -2028,7 +2028,9 @@ Window_SkillType.prototype.numVisibleRows = function() {
 Window_SkillType.prototype.makeCommandList = function() {
     if (this._actor) {
         var skillTypes = this._actor.addedSkillTypes();
-        skillTypes.sort();
+        skillTypes.sort(function(a, b) {
+            return a - b;
+        });
         skillTypes.forEach(function(stypeId) {
             var name = $dataSystem.skillTypes[stypeId];
             this.addCommand(name, 'skill', true, stypeId);
@@ -4433,7 +4435,8 @@ Window_Message.prototype.isTriggered = function() {
 };
 
 Window_Message.prototype.doesContinue = function() {
-    return $gameMessage.hasText() && !this.areSettingsChanged();
+    return ($gameMessage.hasText() && !$gameMessage.scrollMode() &&
+            !this.areSettingsChanged());
 };
 
 Window_Message.prototype.areSettingsChanged = function() {
@@ -5365,7 +5368,9 @@ Window_ActorCommand.prototype.addAttackCommand = function() {
 
 Window_ActorCommand.prototype.addSkillCommands = function() {
     var skillTypes = this._actor.addedSkillTypes();
-    skillTypes.sort();
+    skillTypes.sort(function(a, b) {
+        return a - b;
+    });
     skillTypes.forEach(function(stypeId) {
         var name = $dataSystem.skillTypes[stypeId];
         this.addCommand(name, 'skill', true, stypeId);

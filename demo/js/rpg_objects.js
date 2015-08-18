@@ -3931,7 +3931,9 @@ Game_Actor.prototype.changeLevel = function(level, show) {
 Game_Actor.prototype.learnSkill = function(skillId) {
     if (!this.isLearnedSkill(skillId)) {
         this._skills.push(skillId);
-        this._skills.sort();
+        this._skills.sort(function(a, b) {
+            return a - b;
+        });
     }
 };
 
@@ -6470,14 +6472,19 @@ Game_CharacterBase.prototype.isNearTheScreen = function() {
 };
 
 Game_CharacterBase.prototype.update = function() {
+    if (this.isStopping()) {
+        this.updateStop();
+    }
     if (this.isJumping()) {
         this.updateJump();
     } else if (this.isMoving()) {
         this.updateMove();
-    } else {
-        this.updateStop();
     }
     this.updateAnimation();
+};
+
+Game_CharacterBase.prototype.updateStop = function() {
+    this._stopCount++;
 };
 
 Game_CharacterBase.prototype.updateJump = function() {
@@ -6507,10 +6514,6 @@ Game_CharacterBase.prototype.updateMove = function() {
     if (!this.isMoving()) {
         this.refreshBushDepth();
     }
-};
-
-Game_CharacterBase.prototype.updateStop = function() {
-    this._stopCount++;
 };
 
 Game_CharacterBase.prototype.updateAnimation = function() {
@@ -7150,8 +7153,13 @@ Game_Character.prototype.processRouteEnd = function() {
 };
 
 Game_Character.prototype.advanceMoveRouteIndex = function() {
-    if (this.isMovementSucceeded() || this._moveRoute.skippable) {
+    var moveRoute = this._moveRoute;
+    if (moveRoute && (this.isMovementSucceeded() || moveRoute.skippable)) {
+        var numCommands = moveRoute.list.length - 1;
         this._moveRouteIndex++;
+        if (moveRoute.repeat && this._moveRouteIndex >= numCommands) {
+            this._moveRouteIndex = 0;
+        }
     }
 };
 
@@ -7921,6 +7929,11 @@ Game_Player.prototype.moveDiagonally = function(horz, vert) {
     Game_Character.prototype.moveDiagonally.call(this, horz, vert);
 };
 
+Game_Player.prototype.jump = function(xPlus, yPlus) {
+    Game_Character.prototype.jump.call(this, xPlus, yPlus);
+    this._followers.jumpAll();
+};
+
 Game_Player.prototype.showFollowers = function() {
     this._followers.show();
 };
@@ -8067,6 +8080,17 @@ Game_Followers.prototype.updateMove = function() {
     for (var i = this._data.length - 1; i >= 0; i--) {
         var precedingCharacter = (i > 0 ? this._data[i - 1] : $gamePlayer);
         this._data[i].chaseCharacter(precedingCharacter);
+    }
+};
+
+Game_Followers.prototype.jumpAll = function() {
+    if ($gamePlayer.isJumping()) {
+        for (var i = 0; i < this._data.length; i++) {
+            var follower = this._data[i];
+            var sx = $gamePlayer.deltaXFrom(follower.x);
+            var sy = $gamePlayer.deltaYFrom(follower.y);
+            follower.jump(sx, sy);
+        }
     }
 };
 

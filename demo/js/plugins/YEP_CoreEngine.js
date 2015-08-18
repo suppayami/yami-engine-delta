@@ -1280,3 +1280,24 @@ Scene_Boot.prototype.isGameFontLoaded = function() {
 //=============================================================================
 // End of File
 //=============================================================================
+
+(function() {
+    var _Game_Action_itemCnt = Game_Action.prototype.itemCnt;
+    var _Game_Action_itemEva = Game_Action.prototype.itemEva;
+
+    Game_Action.prototype.itemCnt = function(target) {
+        if (target.canMove()) {
+            _Game_Action_itemCnt.call(this, target);
+        } else {
+            return 0;
+        }
+    };
+
+    Game_Action.prototype.itemEva = function(target) {
+        if (target.canMove()) {
+            _Game_Action_itemEva.call(this, target);
+        } else {
+            return 0;
+        }
+    };
+}());

@@ -11,29 +11,29 @@
      *
      * @class
      * @extends external:Window_Command
-     * @memberof YED.Hospital
+     * @memberof YED.Hospital.Windows
      *
      * @param {number} wx Window X
      * @param {number} wy Window Y
      * @param {number} [ww] Window Width
      * @param {number} [wh] Window Height
      */
-    var Window_HospitalCommand = function() {
+    var HospitalCommand = function() {
         this.initialize.apply(this, arguments);
     };
 
     /**
      * Inherits from Window_Command
      */
-    Window_HospitalCommand.prototype = Object.create(Window_Command.prototype);
-    Window_HospitalCommand.prototype.constructor = Window_HospitalCommand;
+    HospitalCommand.prototype = Object.create(Window_Command.prototype);
+    HospitalCommand.prototype.constructor = HospitalCommand;
 
     /**
      * Initialize Window when created.
      *
-     * @constructs Window_HospitalCommand
+     * @constructs HospitalCommand
      */
-    Window_HospitalCommand.prototype.initialize = function(wx, wy, ww, wh) {
+    HospitalCommand.prototype.initialize = function(wx, wy, ww, wh) {
         ww = ww || this.windowWidth();
         wh = wh || this.windowHeight();
 
@@ -48,7 +48,7 @@
      *
      * @return {number} Window Width
      */
-    Window_HospitalCommand.prototype.windowWidth = function() {
+    HospitalCommand.prototype.windowWidth = function() {
         return 240;
     };
 
@@ -57,7 +57,7 @@
      *
      * @return {number} Rows
      */
-    Window_HospitalCommand.prototype.numVisibleRows = function() {
+    HospitalCommand.prototype.numVisibleRows = function() {
         return 4;
     };
 
@@ -66,14 +66,14 @@
      *
      * @return {String} Align setting
      */
-    Window_HospitalCommand.prototype.itemTextAlign = function() {
+    HospitalCommand.prototype.itemTextAlign = function() {
         return Utils.parameters['Text Alignment'];
     };
 
     /**
      * Make commands list for Window.
      */
-    Window_HospitalCommand.prototype.makeCommandList = function() {
+    HospitalCommand.prototype.makeCommandList = function() {
         this._addHealCommand();
         this._addCustomCommand();
         this._addExitCommand();
@@ -82,7 +82,7 @@
     /**
      * Update help window
      */
-    Window_HospitalCommand.prototype.updateHelp = function() {
+    HospitalCommand.prototype.updateHelp = function() {
         var symbol = this._getHelpSymbol();
         this._helpWindow.setSymbol(symbol);
     };
@@ -92,7 +92,7 @@
      *
      * @private
      */
-    Window_HospitalCommand.prototype._addHealCommand = function() {
+    HospitalCommand.prototype._addHealCommand = function() {
         var healOneText = Utils.parameters['Heal One Command'],
             healAllText = Utils.parameters['Heal All Command'],
             enableHealAll = $gameParty.isHospitalizable();
@@ -106,7 +106,7 @@
      *
      * @private
      */
-    Window_HospitalCommand.prototype._addCustomCommand = function() {
+    HospitalCommand.prototype._addCustomCommand = function() {
         // made for future add-ons
     };
 
@@ -115,7 +115,7 @@
      *
      * @private
      */
-    Window_HospitalCommand.prototype._addExitCommand = function() {
+    HospitalCommand.prototype._addExitCommand = function() {
         var text = Utils.parameters['Exit Command'];
 
         this.addCommand(text, 'cancel', true);
@@ -126,7 +126,7 @@
      *
      * @private
      */
-    Window_HospitalCommand.prototype._getHelpSymbol = function() {
+    HospitalCommand.prototype._getHelpSymbol = function() {
         var symbol = '';
 
         switch (this.currentSymbol()) {
@@ -148,5 +148,5 @@
         return symbol;
     };
 
-    YED.Hospital.Window_HospitalCommand = Window_HospitalCommand;
+    YED.Hospital.Windows.HospitalCommand = HospitalCommand;
 }());

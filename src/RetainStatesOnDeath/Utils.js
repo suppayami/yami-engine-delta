@@ -23,25 +23,47 @@
      */
     Utils.processNotetag = function() {
         var group = $dataStates,    // shorten group name
-            obj,                    // for iterator
-            notedata,               // for iterator
-            line;                   // for iterator
+            obj,
+            notedata,
+            line;
 
         for (var i = 1; i < group.length; i++) {
             obj = group[i];
             notedata = obj.note.split(/[\r\n]+/);
 
-            // add methods
-            obj.isRetainStateOnDeath = Utils.isRetainStateOnDeath;
+            Utils._processMethods.call(this, obj);
 
-            // parse notetag
             for (var n = 0; n < notedata.length; n++) {
                 line = notedata[n];
-
-                if (line.match(Regexp.RETAIN)) {
-                    obj._retainStateOnDeath = true;
-                }
+                Utils._processProperties.call(this, obj, line);
             }
+        }
+    };
+
+    /**
+     * Add new methods into object.
+     *
+     * @function _processMethods
+     * @memberof YED.RetainStateOnDeath.Utils
+     * @param  {Object} obj Data object
+     * @private
+     */
+    Utils._processMethods = function(obj) {
+        obj.isRetainStateOnDeath = Utils.isRetainStateOnDeath;
+    };
+
+    /**
+     * Add new properties into object.
+     *
+     * @function _processProperties
+     * @memberof YED.RetainStateOnDeath.Utils
+     * @param  {Object} obj Data object
+     * @param  {String} notetag Notetag
+     * @private
+     */
+    Utils._processProperties = function(obj, notetag) {
+        if (notetag.match(Regexp.RETAIN)) {
+            obj._retainStateOnDeath = true;
         }
     };
 

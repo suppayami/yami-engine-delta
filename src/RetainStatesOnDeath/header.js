@@ -6,7 +6,6 @@
  * @author Yami Engine Delta [Dr.Yami]
  *
  * @help
- * Place this under any kind of core plugin.
  * There is no Configuration and Plugin Command.
  *
  * ============================================================================
