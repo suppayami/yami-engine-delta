@@ -21,7 +21,7 @@
      * @function processNotetag
      * @memberof YED.RetainStateOnDeath.Utils
      */
-    Utils.processNotetag = function() {
+    Utils.processNotetags = function() {
         var group = $dataStates,    // shorten group name
             obj,
             notedata,
@@ -35,7 +35,7 @@
 
             for (var n = 0; n < notedata.length; n++) {
                 line = notedata[n];
-                Utils._processProperties.call(this, obj, line);
+                Utils._processNotetag.call(this, obj, line);
             }
         }
     };
@@ -53,15 +53,15 @@
     };
 
     /**
-     * Add new properties into object.
+     * Process notetag for object.
      *
-     * @function _processProperties
+     * @function _processNotetag
      * @memberof YED.RetainStateOnDeath.Utils
      * @param  {Object} obj Data object
      * @param  {String} notetag Notetag
      * @private
      */
-    Utils._processProperties = function(obj, notetag) {
+    Utils._processNotetag = function(obj, notetag) {
         if (notetag.match(Regexp.RETAIN)) {
             obj._retainStateOnDeath = true;
         }

@@ -634,7 +634,7 @@
     </ul>
 </div>
     <div class="main">
-        <h1 class="page-title" data-filename="YED.RetainStateOnDeath.Utils.html">Namespace: Utils</h1>
+        <h1 class="page-title" data-filename="YED.SkillShop.Utils.html">Namespace: Utils</h1>
         
 
 
@@ -643,7 +643,7 @@
     
 <header>
     <h2>
-        <span class="ancestors"><a href="YED.html">YED</a><a href="YED.RetainStateOnDeath.html">.RetainStateOnDeath</a>.</span>
+        <span class="ancestors"><a href="YED.html">YED</a><a href="YED.SkillShop.html">.SkillShop</a>.</span>
     
     Utils
     </h2>
@@ -700,6 +700,55 @@
     
     
     
+        <h3 class="subsection-title">Members</h3>
+        
+        <dl>
+            
+<dt>
+    <div class="nameContainer">
+        <h4 class="name" id=".Utils.parameters"><span class="type-signature static">static</span>YED.SkillShop.Utils.Utils.parameters<span class="type-signature type object">Object</span> </h4>
+    </div>
+    
+    
+</dt>
+<dd>
+    
+    <div class="description">
+        <p>Contains module parsed parameters.</p>
+    </div>
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+    
+    
+</dd>
+
+        </dl>
+    
     
     
         <h3 class="subsection-title">Methods</h3>
@@ -708,14 +757,14 @@
             
 <dt>
     <div class="nameContainer">
-        <h4 class="name" id=".isRetainStateOnDeath">
+        <h4 class="name" id=".getBuyCostGold">
             
-            <span class="type-signature static">static</span>YED.RetainStateOnDeath.Utils.isRetainStateOnDeath<span class="signature">()</span><span class="glyphicon glyphicon-circle-arrow-right"></span><span class="type-signature returnType">{Boolean}</span>
+            <span class="type-signature static">static</span>YED.SkillShop.Utils.getBuyCostGold<span class="signature">()</span><span class="glyphicon glyphicon-circle-arrow-right"></span><span class="type-signature returnType">{Number}</span>
         </h4>
     
         
         <div class="tag-source">
-            RetainStatesOnDeath/Utils.js, line 70
+            SkillShop/Utils.js, line 157
         </div>
         
     </div>
@@ -726,8 +775,8 @@
     
     
     <div class="description">
-        <p>Check if the state is retained on death.
-Should be attached to state object.</p>
+        <p>Get skill buying gold cost.
+Should be attached to skill object.</p>
     </div>
     
 
@@ -790,11 +839,112 @@ Should be attached to state object.</p>
             
             <td class="type">
             
-                        Boolean
+                        Number
                         
                     
             </td>
-            <td class="description last">Retain flag</td>
+            <td class="description last">Gold Cost</td>
+        </tr>
+    
+    </tbody>
+</table>
+
+    
+    
+    
+</dd>
+
+        
+            
+<dt>
+    <div class="nameContainer">
+        <h4 class="name" id=".getBuyCostItems">
+            
+            <span class="type-signature static">static</span>YED.SkillShop.Utils.getBuyCostItems<span class="signature">()</span><span class="glyphicon glyphicon-circle-arrow-right"></span><span class="type-signature returnType">{Array.&lt;Array.&lt;Object, Number>>}</span>
+        </h4>
+    
+        
+        <div class="tag-source">
+            SkillShop/Utils.js, line 169
+        </div>
+        
+    </div>
+
+    
+</dt>
+<dd>
+    
+    
+    <div class="description">
+        <p>Get skill buying gold cost.
+Should be attached to skill object.</p>
+    </div>
+    
+
+    
+    
+    
+    
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    <h5>Returns:</h5>
+    
+
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Type</th>
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+    <tbody>
+    
+        <tr>
+            
+            <td class="type">
+            
+                        Array.&lt;Array.&lt;Object, Number>>
+                        
+                    
+            </td>
+            <td class="description last">Item Cost - [ItemObject, Amount]</td>
         </tr>
     
     </tbody>
@@ -811,12 +961,12 @@ Should be attached to state object.</p>
     <div class="nameContainer">
         <h4 class="name" id=".processNotetag">
             
-            <span class="type-signature static">static</span>YED.RetainStateOnDeath.Utils.processNotetag<span class="signature">()</span>
+            <span class="type-signature static">static</span>YED.SkillShop.Utils.processNotetag<span class="signature">()</span>
         </h4>
     
         
         <div class="tag-source">
-            RetainStatesOnDeath/Utils.js, line 17
+            SkillShop/Utils.js, line 43
         </div>
         
     </div>
@@ -828,6 +978,78 @@ Should be attached to state object.</p>
     
     <div class="description">
         <p>Process notetag function.
+Should be called with DataManager as current object.</p>
+    </div>
+    
+
+    
+    
+    
+    
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+    
+</dd>
+
+        
+            
+<dt>
+    <div class="nameContainer">
+        <h4 class="name" id=".processParameters">
+            
+            <span class="type-signature static">static</span>YED.SkillShop.Utils.processParameters<span class="signature">()</span>
+        </h4>
+    
+        
+        <div class="tag-source">
+            SkillShop/Utils.js, line 25
+        </div>
+        
+    </div>
+
+    
+</dt>
+<dd>
+    
+    
+    <div class="description">
+        <p>Process parameters function.
 Should be called with DataManager as current object.</p>
     </div>
     

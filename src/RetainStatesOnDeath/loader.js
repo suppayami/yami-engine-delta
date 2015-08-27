@@ -21,6 +21,6 @@
     Scene_Boot.prototype.start = function() {
         _Scene_Boot_start.call(this);
 
-        Utils.processNotetag.call(DataManager);
+        Utils.processNotetags.call(DataManager);
     };
 }());
