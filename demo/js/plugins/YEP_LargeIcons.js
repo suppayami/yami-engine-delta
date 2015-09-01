@@ -1,16 +1,19 @@
 //=============================================================================
 // Yanfly Engine Plugins - Large Icon Support
 // YEP_LargeIcons.js
-// Last Updated: 2015.07.10
+// Version: 1.00
 //=============================================================================
 
-if ($imported == undefined) { var $imported = {}; }
-$imported["YEP_LargeIcons"] = true;
+var Imported = Imported || {};
+Imported.YEP_LargeIcons = true;
+
+var Yanfly = Yanfly || {};
+Yanfly.LargeIcons = Yanfly.LargeIcons || {};
 
 //=============================================================================
 /*:
- * @plugindesc This pluging allows you the the ability to use larger icons on
- * individual image sheets.
+ * @plugindesc This pluging allows you the the ability to use larger icons
+ * on individual image sheets.
  * @author Yanfly Engine Plugins
  *
  * @param Icons Folder
@@ -34,28 +37,35 @@ $imported["YEP_LargeIcons"] = true;
  *
  * State icons are unaffected. This is to keep state icons uniform with each
  * when displayed adjacent with one another.
- *
- * ChangeLog:
- *   2015.07.10 - Complete.
  */
 //=============================================================================
 
-var parameters = PluginManager.parameters('YEP_LargeIcons');
+//=============================================================================
+// Parameter Variables
+//=============================================================================
+
+Yanfly.Parameters = PluginManager.parameters('YEP_LargeIcons');
+Yanfly.Param = Yanfly.Param || {};
+
+Yanfly.Param.IconsFolder = String(Yanfly.Parameters['Icons Folder']);
 
 //=============================================================================
 // Scene_Boot
 //=============================================================================
 
-var $largeIcons = [];
+Yanfly.Param.LargeIcons = [];
 
-var _YEP_LSS_Scene_Boot_start = Scene_Boot.prototype.start;
-Scene_Boot.prototype.start = function() {
-	_YEP_LSS_Scene_Boot_start.call(this);
-	DataManager.processLSSNotetags($dataSkills);
-  DataManager.processLSSNotetags($dataItems);
-  DataManager.processLSSNotetags($dataWeapons);
-  DataManager.processLSSNotetags($dataArmors);
-  DataManager.loadLargeIconData();
+Yanfly.LargeIcons.DataManager_isDatabaseLoaded = DataManager.isDatabaseLoaded;
+DataManager.isDatabaseLoaded = function() {
+    if (!Yanfly.LargeIcons.DataManager_isDatabaseLoaded.call(this)) {
+      return false;
+    }
+		this.processLSSNotetags($dataSkills);
+	  this.processLSSNotetags($dataItems);
+	  this.processLSSNotetags($dataWeapons);
+	  this.processLSSNotetags($dataArmors);
+	  this.loadLargeIconData();
+		return true;
 };
 
 DataManager.processLSSNotetags = function(group) {
@@ -66,15 +76,15 @@ DataManager.processLSSNotetags = function(group) {
 		for (var i = 0; i < notedata.length; i++) {
 			var line = notedata[i];
 			if (line.match(/<(?:ICON|icon):[ ](.*)>/i)) {
-        $largeIcons.push(RegExp.$1);
+        Yanfly.Param.LargeIcons.push(RegExp.$1);
 			}
 		}
 	}
 };
 
 DataManager.loadLargeIconData = function() {
-  for (var i = 0; i < $largeIcons.length; i++) {
-      ImageManager.loadLargeIcon($largeIcons[i], 0);
+  for (var i = 0; i < Yanfly.Param.LargeIcons.length; i++) {
+      ImageManager.loadLargeIcon(Yanfly.Param.LargeIcons[i], 0);
   }
 };
 
@@ -82,21 +92,20 @@ DataManager.loadLargeIconData = function() {
 // ImageManager
 //=============================================================================
 
-var _yep_lss_icons_folder = String(parameters['Icons Folder'] || 'img/icons/');
 ImageManager.loadLargeIcon = function(filename, hue) {
-    return this.loadBitmap(_yep_lss_icons_folder, filename, hue, true);
+    return this.loadBitmap(Yanfly.Param.IconsFolder, filename, hue, true);
 };
 
 //=============================================================================
 // Window_Base
 //=============================================================================
 
-var _yep_lss_Window_Base_drawIcon = Window_Base.prototype.drawIcon;
+Yanfly.LargeIcons.Window_Base_drawIcon = Window_Base.prototype.drawIcon;
 Window_Base.prototype.drawIcon = function(iconIndex, x, y) {
     if (typeof iconIndex === 'string') {
       this.drawLargeIcon(iconIndex, x, y);
     } else {
-      _yep_lss_Window_Base_drawIcon.call(this, iconIndex, x, y);
+      Yanfly.LargeIcons.Window_Base_drawIcon.call(this, iconIndex, x, y);
     }
 };
 

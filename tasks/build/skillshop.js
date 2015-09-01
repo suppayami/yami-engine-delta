@@ -11,7 +11,7 @@ var fileName   = ['header.js',
 
 var globs = utils.getGlobs(moduleName, fileName);
 
-gulp.task('build-hospital', function() {
+gulp.task('build-skillshop', function() {
     return gulp.src(globs)
         .pipe(concat(utils.baseModule + moduleName + '.js'))
         .pipe(gulp.dest('build/' + moduleName))

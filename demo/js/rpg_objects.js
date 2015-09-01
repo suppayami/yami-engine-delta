@@ -560,7 +560,10 @@ Game_Variables.prototype.value = function(variableId) {
 
 Game_Variables.prototype.setValue = function(variableId, value) {
     if (variableId > 0 && variableId < $dataSystem.variables.length) {
-        this._data[variableId] = Math.floor(value);
+        if (typeof value === 'number') {
+            value = Math.floor(value);
+        }
+        this._data[variableId] = value;
         this.onChange();
     }
 };
@@ -1601,7 +1604,7 @@ Game_Action.prototype.testItemEffect = function(target, effect) {
 };
 
 Game_Action.prototype.itemCnt = function(target) {
-    if (this.isPhysical()) {
+    if (this.isPhysical() && target.canMove()) {
         return target.cnt;
     } else {
         return 0;
@@ -5017,7 +5020,11 @@ Game_Party.prototype.onPlayerWalk = function() {
 };
 
 Game_Party.prototype.menuActor = function() {
-    return $gameActors.actor(this._menuActorId) || this.members()[0];
+    var actor = $gameActors.actor(this._menuActorId);
+    if (!this.members().contains(actor)) {
+        actor = this.members()[0];
+    }
+    return actor;
 };
 
 Game_Party.prototype.setMenuActor = function(actor) {
@@ -5045,7 +5052,11 @@ Game_Party.prototype.makeMenuActorPrevious = function() {
 };
 
 Game_Party.prototype.targetActor = function() {
-    return $gameActors.actor(this._targetActorId) || this.members()[0];
+    var actor = $gameActors.actor(this._targetActorId);
+    if (!this.members().contains(actor)) {
+        actor = this.members()[0];
+    }
+    return actor;
 };
 
 Game_Party.prototype.setTargetActor = function(actor) {

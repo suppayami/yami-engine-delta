@@ -1,16 +1,19 @@
 //=============================================================================
 // Yanfly Engine Plugins - Battle Engine Extension - Action Sequence Pack 1
 // YEP_X_ActSeqPack1.js
-// Last Updated: 2015.07.24
+// Version: 1.00
 //=============================================================================
 
-if ($imported == undefined) { var $imported = {}; }
-$imported["YEP_X_ActSeqPack1"] = true;
+var Imported = Imported || {};
+Imported.YEP_X_ActSeqPack1 = true;
+
+var Yanfly = Yanfly || {};
+Yanfly.ASP1 = Yanfly.ASP1 || {};
 
 //=============================================================================
  /*:
- * @plugindesc (Requires YEP_BattleEngineCore.js) Basic functions are added to
- * the Battle Engine Core's action sequences.
+ * @plugindesc (Requires YEP_BattleEngineCore.js) Basic functions are added
+ * to the Battle Engine Core's action sequences.
  * @author Yanfly Engine Plugins
  *
  * @param Default Volume
@@ -172,7 +175,7 @@ $imported["YEP_X_ActSeqPack1"] = true;
  *=============================================================================
  *
  *=============================================================================
- * ADD STATE X: target (show)
+ * ADD STATE X: target, (show)
  * ADD STATE X, Y, Z: target (show)
  *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
  * Affects the target with X state (including Y and Z if used in that format).
@@ -180,6 +183,18 @@ $imported["YEP_X_ActSeqPack1"] = true;
  *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
  * Usage Example: add state 5: target
  *                add state 6, 7, 8: user, show
+ *=============================================================================
+ *
+ *=============================================================================
+ * ANIMATION X: target, (mirror)
+ *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ * Plays animation X on target. 'Mirror' will cause the animation to appear
+ * mirrored. Keep in mind that animations played on actors will automatically
+ * be mirrored and setting the mirror option will reverse it and have it appear
+ * unmirrored.
+ *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ * Usage Example: animation 5: user
+ *                animation 6: target, mirror
  *=============================================================================
  *
  *=============================================================================
@@ -257,19 +272,21 @@ $imported["YEP_X_ActSeqPack1"] = true;
  *
  *=============================================================================
  * CHANGE VARIABLE X = Y
- * CHANGE VARIABLE X + Y
- * CHANGE VARIABLE X - Y
- * CHANGE VARIABLE X * Y
- * CHANGE VARIABLE X / Y
- * CHANGE VARIABLE X % Y
+ * CHANGE VARIABLE X += Y
+ * CHANGE VARIABLE X -= Y
+ * CHANGE VARIABLE X *= Y
+ * CHANGE VARIABLE X /= Y
+ * CHANGE VARIABLE X %= Y
  *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
  * Changes variable X in the middle of the action sequence to be modified
  * by value Y. Y can be either an integer or a piece of code.
  *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
- * Usage Example: change switch 1: on
- *                change switch 2: off
- *                change switch 3: toggle
- *                change switch 4: switch 5
+ * Usage Example: change variable 1 = 2
+ *                change variable 3 += 4
+ *                change variable 5 -= 6
+ *                change variable 7 *= 8
+ *                change variable 9 /= 10
+ *                change variable 11 %= 12
  *=============================================================================
  *
  *=============================================================================
@@ -417,6 +434,15 @@ $imported["YEP_X_ActSeqPack1"] = true;
  * Usage Example: me: stop
  *                me: Victory1
  *                me: Darkness, 80, 100, 0
+ *=============================================================================
+ *
+ *=============================================================================
+ * MOTION WAIT: target
+ *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ * Makes the game wait 12 frames if the target(s) performing the action is an
+ * actor. If the target(s) is not an actor, no waiting will be done.
+ *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ * Usage Example: motion wait: user
  *=============================================================================
  *
  *=============================================================================
@@ -578,24 +604,28 @@ $imported["YEP_X_ActSeqPack1"] = true;
  *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
  * Usage Example: wait for new line
  *=============================================================================
- *
- * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
- *
- * ChangeLog:
- *   2015.07.15 - Completed.
  */
 //=============================================================================
 
-var parameters = PluginManager.parameters('YEP_X_ActSeqPack1');
-var _yep_soundVol   = Number(parameters['Default Volume'] || 90);
-var _yep_soundPitch = Number(parameters['Default Pitch'] || 100);
-var _yep_soundPan   = Number(parameters['Default Pan'] || 0);
+if (Imported.YEP_BattleEngineCore) {
+
+//=============================================================================
+// Parameters
+//=============================================================================
+
+Yanfly.Parameters = PluginManager.parameters('YEP_X_ActSeqPack1');
+Yanfly.Param = Yanfly.Param || {};
+
+Yanfly.Param.SoundVolume = Number(Yanfly.Parameters['Default Volume']);
+Yanfly.Param.SoundPitch = Number(Yanfly.Parameters['Default Pitch']);
+Yanfly.Param.SoundPan = Number(Yanfly.Parameters['Default Pan']);
 
 //=============================================================================
 // BattleManager
 //=============================================================================
 
-var _YEP_ASP1_BM_processActionSequence = BattleManager.processActionSequence;
+Yanfly.ASP1.BattleManager_processActionSequence =
+    BattleManager.processActionSequence;
 BattleManager.processActionSequence = function(actionName, actionArgs) {
   // ADD STATE X
   if (actionName.match(/(?:ADD_STATE|ADD STATE)[ ](\d+(?:\s*,\s*\d+)*)/i)) {
@@ -659,7 +689,8 @@ BattleManager.processActionSequence = function(actionName, actionArgs) {
     return this.actionRefreshStatus();
   }
   // REMOVE STATE X
-  if (actionName.match(/(?:REMOVE_STATE|REMOVE STATE)[ ](\d+(?:\s*,\s*\d+)*)/i)) {
+  if
+  (actionName.match(/(?:REMOVE_STATE|REMOVE STATE)[ ](\d+(?:\s*,\s*\d+)*)/i)) {
     return this.actionRemoveState(actionName, actionArgs);
   }
   // SE, SOUND, SFX
@@ -670,13 +701,13 @@ BattleManager.processActionSequence = function(actionName, actionArgs) {
   if (actionName.match(/TP[ ](.*)/i)) {
     return this.actionTpModify(actionName, actionArgs);
   }
-  // Return to Original Action Sequences
-  return _YEP_ASP1_BM_processActionSequence.call(this, actionName, actionArgs);
+  return Yanfly.ASP1.BattleManager_processActionSequence.call(this,
+    actionName, actionArgs);
 };
 
 BattleManager.actionAddState = function(actionName, actionArgs) {
   var targets = this.makeActionTargets(actionArgs[0]);
-  if (targets.length < 1) return true;
+  if (targets.length < 1) return false;
   var show = false;
   for (var i = 0; i < actionArgs.length; ++i) {
     var actionArg = actionArgs[i];
@@ -697,10 +728,13 @@ BattleManager.actionAddState = function(actionName, actionArgs) {
   return false;
 };
 
-BattleManager.actionAnimation = function(animationId, actionArgs) {
+BattleManager.actionAnimation = function(aniId, actionArgs) {
+  if (aniId <= 0) return;
   var targets = this.makeActionTargets(actionArgs[0]);
-  if (targets.length < 1) return true;
-  this._logWindow.push('showAnimation', this._subject, targets, animationId);
+  if (targets.length < 1) return false;
+  var mirror = false;
+  if (actionArgs[1] && actionArgs[1].toUpperCase() === 'MIRROR') mirror = true;
+  this._logWindow.showNormalAnimation(targets, aniId, mirror);
   return false;
 };
 
@@ -718,10 +752,15 @@ BattleManager.actionBgmPlay = function(actionArgs) {
   } else {
     var name = actionArgs[0];
     if (!name) return true;
-    var vol = actionArgs[0] || _yep_soundVol;
-    var pitch = actionArgs[1] || _yep_soundPitch;
-    var pan = actionArgs[2] || _yep_soundPan;
-    var bgm = new YEP_Sound(name, vol, pitch, pan);
+    var vol = actionArgs[0] || Yanfly.Param.SoundVolume;
+    var pitch = actionArgs[1] || Yanfly.Param.SoundPitch;
+    var pan = actionArgs[2] || Yanfly.Param.SoundPan;
+    var bgm = {
+      name: name,
+      volume: vol,
+      pitch: pitch,
+      pan: pan
+    };
     AudioManager.playBgm(bgm);
   }
   return false;
@@ -741,10 +780,15 @@ BattleManager.actionBgsPlay = function(actionArgs) {
   } else {
     var name = actionArgs[0];
     if (!name) return true;
-    var vol = actionArgs[0] || _yep_soundVol;
-    var pitch = actionArgs[1] || _yep_soundPitch;
-    var pan = actionArgs[2] || _yep_soundPan;
-    var bgs = new YEP_Sound(name, vol, pitch, pan);
+    var vol = actionArgs[0] || Yanfly.Param.SoundVolume;
+    var pitch = actionArgs[1] || Yanfly.Param.SoundPitch;
+    var pan = actionArgs[2] || Yanfly.Param.SoundPan;
+    var bgs = {
+      name: name,
+      volume: vol,
+      pitch: pitch,
+      pan: pan
+    };
     AudioManager.playBgs(bgs);
   }
   return false;
@@ -803,9 +847,10 @@ BattleManager.actionChangeSwitch = function(actionName, actionArgs) {
   return true;
 };
 
-var cV1 = /CHANGE[ ](?:VARIABLE|VAR)[ ](\d+)[ ](.*)[ ](?:VARIABLE|VAR)[ ](\d+)/i;
-var cV2 = /CHANGE[ ](?:VARIABLE|VAR)[ ](\d+)[ ](.*)[ ](.*)/i;
 BattleManager.actionChangeVariable = function(actionName) {
+  var cV1 =
+  /CHANGE[ ](?:VARIABLE|VAR)[ ](\d+)[ ](.*)[ ](?:VARIABLE|VAR)[ ](\d+)/i;
+  var cV2 = /CHANGE[ ](?:VARIABLE|VAR)[ ](\d+)[ ](.*)[ ](.*)/i;
   var subject = this._subject;
   var user = this._subject;
   var target = this._targets[0];
@@ -895,14 +940,15 @@ BattleManager.actionGoldModify = function(value) {
 
 BattleManager.actionHpModify = function(actionName, actionArgs) {
     var targets = this.makeActionTargets(actionArgs[0]);
-    if (targets.length < 1) return true;
+    if (targets.length < 1) return false;
     var change;
     var percent;
     if (actionName.match(/HP[ ]([+-])(?:VARIABLE|VAR)[ ](\d+)/i)) {
       change = parseInt($gameVariables.value(parseInt(RegExp.$2)));
       if (String(RegExp.$1) === '-') change *= -1;
       percent = false;
-    } else if (actionName.match(/HP[ ]([+-])(?:VARIABLE|VAR)[ ](\d+)([%％])/i)) {
+    } else if
+    (actionName.match(/HP[ ]([+-])(?:VARIABLE|VAR)[ ](\d+)([%％])/i)) {
       change = parseInt($gameVariables.value(parseInt(RegExp.$2)));
       if (String(RegExp.$1) === '-') change *= -1;
       percent = true;
@@ -913,7 +959,7 @@ BattleManager.actionHpModify = function(actionName, actionArgs) {
       change = parseInt(RegExp.$1);
       percent = false;
     } else {
-      return true;
+      return false;
     }
     var show = false;
     for (var i = 0; i < actionArgs.length; ++i) {
@@ -940,10 +986,15 @@ BattleManager.actionMePlay = function(actionArgs) {
   } else {
     var name = actionArgs[0];
     if (!name) return true;
-    var vol = actionArgs[0] || _yep_soundVol;
-    var pitch = actionArgs[1] || _yep_soundPitch;
-    var pan = actionArgs[2] || _yep_soundPan;
-    var me = new YEP_Sound(name, vol, pitch, pan);
+    var vol = actionArgs[0] || Yanfly.Param.SoundVolume;
+    var pitch = actionArgs[1] || Yanfly.Param.SoundPitch;
+    var pan = actionArgs[2] || Yanfly.Param.SoundPan;
+    var me = {
+      name: name,
+      volume: vol,
+      pitch: pitch,
+      pan: pan
+    };
     AudioManager.playMe(me);
   }
   return false;
@@ -951,14 +1002,15 @@ BattleManager.actionMePlay = function(actionArgs) {
 
 BattleManager.actionMpModify = function(actionName, actionArgs) {
     var targets = this.makeActionTargets(actionArgs[0]);
-    if (targets.length < 1) return true;
+    if (targets.length < 1) return false;
     var change;
     var percent;
     if (actionName.match(/MP[ ]([+-])(?:VARIABLE|VAR)[ ](\d+)/i)) {
       change = parseInt($gameVariables.value(parseInt(RegExp.$2)));
       if (String(RegExp.$1) === '-') change *= -1;
       percent = false;
-    } else if (actionName.match(/MP[ ]([+-])(?:VARIABLE|VAR)[ ](\d+)([%％])/i)) {
+    } else if
+    (actionName.match(/MP[ ]([+-])(?:VARIABLE|VAR)[ ](\d+)([%％])/i)) {
       change = parseInt($gameVariables.value(parseInt(RegExp.$2)));
       if (String(RegExp.$1) === '-') change *= -1;
       percent = true;
@@ -969,7 +1021,7 @@ BattleManager.actionMpModify = function(actionName, actionArgs) {
       change = parseInt(RegExp.$1);
       percent = false;
     } else {
-      return true;
+      return false;
     }
     var show = false;
     for (var i = 0; i < actionArgs.length; ++i) {
@@ -996,13 +1048,14 @@ BattleManager.actionRefreshStatus = function() {
 
 BattleManager.actionRemoveState = function(actionName, actionArgs) {
   var targets = this.makeActionTargets(actionArgs[0]);
-  if (targets.length < 1) return true;
+  if (targets.length < 1) return false;
   var show = false;
   for (var i = 0; i < actionArgs.length; ++i) {
     var actionArg = actionArgs[i];
     if (actionArg.toUpperCase() === 'SHOW') show = true;
   }
-  if (actionName.match(/(?:REMOVE_STATE|REMOVE STATE)[ ](\d+(?:\s*,\s*\d+)*)/i)) {
+  if
+  (actionName.match(/(?:REMOVE_STATE|REMOVE STATE)[ ](\d+(?:\s*,\s*\d+)*)/i)) {
     var states = JSON.parse('[' + RegExp.$1.match(/\d+/g) + ']');
   } else {
     return true;
@@ -1070,10 +1123,15 @@ BattleManager.actionSePlay = function(actionArgs) {
   } else {
     var name = actionArgs[0];
     if (!name) return true;
-    var vol = actionArgs[0] || _yep_soundVol;
-    var pitch = actionArgs[1] || _yep_soundPitch;
-    var pan = actionArgs[2] || _yep_soundPan;
-    var se = new YEP_Sound(name, vol, pitch, pan);
+    var vol = actionArgs[0] || Yanfly.Param.SoundVolume;
+    var pitch = actionArgs[1] || Yanfly.Param.SoundPitch;
+    var pan = actionArgs[2] || Yanfly.Param.SoundPan;
+    var se = new {
+      name: name,
+      volume: vol,
+      pitch: pitch,
+      pan: pan
+    };
     AudioManager.playSe(se);
   }
   return false;
@@ -1081,14 +1139,15 @@ BattleManager.actionSePlay = function(actionArgs) {
 
 BattleManager.actionTpModify = function(actionName, actionArgs) {
     var targets = this.makeActionTargets(actionArgs[0]);
-    if (targets.length < 1) return true;
+    if (targets.length < 1) return false;
     var change;
     var percent;
     if (actionName.match(/TP[ ]([+-])(?:VARIABLE|VAR)[ ](\d+)/i)) {
       change = parseInt($gameVariables.value(parseInt(RegExp.$2)));
       if (String(RegExp.$1) === '-') change *= -1;
       percent = false;
-    } else if (actionName.match(/TP[ ]([+-])(?:VARIABLE|VAR)[ ](\d+)([%％])/i)) {
+    } else if
+    (actionName.match(/TP[ ]([+-])(?:VARIABLE|VAR)[ ](\d+)([%％])/i)) {
       change = parseInt($gameVariables.value(parseInt(RegExp.$2)));
       if (String(RegExp.$1) === '-') change *= -1;
       percent = true;
@@ -1099,7 +1158,7 @@ BattleManager.actionTpModify = function(actionName, actionArgs) {
       change = parseInt(RegExp.$1);
       percent = false;
     } else {
-      return true;
+      return false;
     }
     var show = false;
     for (var i = 0; i < actionArgs.length; ++i) {
@@ -1120,27 +1179,6 @@ BattleManager.actionTpModify = function(actionName, actionArgs) {
 };
 
 //=============================================================================
-// New Objects
-//=============================================================================
-
-function YEP_Sound() {
-    this.initialize.apply(this, arguments);
-}
-
-Object.defineProperties(YEP_Sound.prototype, {
-      name: { get: function() { return this._name; }, configurable: true },
-      volume: { get: function() { return this._volume; }, configurable: true },
-      pitch: { get: function() { return this._pitch; }, configurable: true },
-      pan: { get: function() { return this._pan; }, configurable: true }
-});
-
-YEP_Sound.prototype.initialize = function(name, volume, pitch, pan) {
-    this._name = name;
-    this._volume = volume;
-    this._pitch = pitch;
-    this._pan = pan;
-};
-
-//=============================================================================
 // End of File
 //=============================================================================
+};

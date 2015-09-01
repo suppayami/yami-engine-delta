@@ -234,4 +234,6 @@
     Core.prototype.isExist = function() {
         return this.data.isExist();
     };
+
+    YED.Tilemap.Core = Core;
 }());

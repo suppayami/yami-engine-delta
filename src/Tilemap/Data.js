@@ -151,7 +151,7 @@
 
         for (; i < length; i++) {
             data = tilesetsData[i];
-            ImageManager.loadNormalBitmap(data.image, 0);
+            ImageManager.loadParserTileset(data.image, 0);
         }
     };
 

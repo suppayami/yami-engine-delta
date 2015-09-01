@@ -1389,6 +1389,7 @@ Graphics.loadFont = function(name, url) {
     style.type = 'text/css';
     head.item(0).appendChild(style);
     style.sheet.insertRule(rule, 0);
+    this._createFontLoader(name);
 };
 
 /**
@@ -1607,6 +1608,7 @@ Graphics._createAllElements = function() {
     this._createRenderer();
     this._createFPSMeter();
     this._createModeBox();
+    this._createGameFontLoader();
 };
 
 /**
@@ -1916,6 +1918,36 @@ Graphics._createModeBox = function() {
     box.appendChild(text);
 
     this._modeBox = box;
+};
+
+/**
+ * @static
+ * @method _createGameFontLoader
+ * @private
+ */
+Graphics._createGameFontLoader = function() {
+    this._createFontLoader('GameFont');
+};
+
+/**
+ * @static
+ * @method _createFontLoader
+ * @param {String} name
+ * @private
+ */
+Graphics._createFontLoader = function(name) {
+    var div = document.createElement('div');
+    var text = document.createTextNode('.');
+    div.style.fontFamily = name;
+    div.style.color = 'transparent';
+    div.style.position = 'absolute';
+    div.style.margin = 'auto';
+    div.style.top = '0px';
+    div.style.left = '0px';
+    div.style.width = '1px';
+    div.style.height = '1px';
+    div.appendChild(text);
+    document.body.appendChild(div);
 };
 
 /**
@@ -7624,8 +7656,12 @@ Html5Audio._startGainTween = function (duration) {
  */
 Html5Audio._applyTweenValue = function (volume) {
     Html5Audio._tweenGain += Html5Audio._tweenGainStep;
-    if (Html5Audio._tweenGain < 0) Html5Audio._tweenGain = 0;
-    else if (Html5Audio._tweenGain > volume) Html5Audio._tweenGain = volume;
+    if (Html5Audio._tweenGain < 0 && Html5Audio._tweenGainStep < 0) {
+        Html5Audio._tweenGain = 0;
+    }
+    else if (Html5Audio._tweenGain > volume && Html5Audio._tweenGainStep > 0) {
+        Html5Audio._tweenGain = volume;
+    }
 
     if (Math.abs(Html5Audio._tweenTargetGain - Html5Audio._tweenGain) < 0.01) {
         Html5Audio._tweenGain = Html5Audio._tweenTargetGain;

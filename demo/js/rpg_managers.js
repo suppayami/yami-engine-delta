@@ -1116,6 +1116,7 @@ AudioManager.saveBgm = function() {
             name: bgm.name,
             volume: bgm.volume,
             pitch: bgm.pitch,
+            pan: bgm.pan,
             pos: this._bgmBuffer ? this._bgmBuffer.seek() : 0
         };
     } else {
@@ -1130,6 +1131,7 @@ AudioManager.saveBgs = function() {
             name: bgs.name,
             volume: bgs.volume,
             pitch: bgs.pitch,
+            pan: bgs.pan,
             pos: this._bgsBuffer ? this._bgsBuffer.seek() : 0
         };
     } else {

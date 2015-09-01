@@ -1,16 +1,19 @@
 //=============================================================================
 // Yanfly Engine Plugins - Job Points
 // YEP_JobPoints.js
-// Last Updated: 2015.07.14
+// Version: 1.00
 //=============================================================================
 
-if ($imported == undefined) { var $imported = {}; }
-$imported["YEP_JobPoints"] = true;
+var Imported = Imported || {};
+Imported.YEP_JobPoints = true;
+
+var Yanfly = Yanfly || {};
+Yanfly.Jp = Yanfly.Jp || {};
 
 //=============================================================================
  /*:
- * @plugindesc This plugin by itself doesn't do much, but it enables actors to
- * acquire JP (job points) used for other plugins.
+ * @plugindesc This plugin by itself doesn't do much, but it enables actors
+ * to acquire JP (job points) used for other plugins.
  * @author Yanfly Engine Plugins
  *
  * @param JP Text
@@ -77,43 +80,46 @@ $imported["YEP_JobPoints"] = true;
  * Enemy Notetag
  *   <JP: x>
  *   When the enemy is defeated, the party members present will gain x JP each.
- *
- * ChangeLog:
- *   2015.07.14 - Completed.
  */
 //=============================================================================
 
-if (typeof toGroup !== 'function'){
-		toGroup = function(inVal) {
-				return inVal;
-		}
-}
+//=============================================================================
+// Parameter Variables
+//=============================================================================
 
-var parameters = PluginManager.parameters('YEP_JobPoints');
-var _yep_Jp = String(parameters['JP Text'] || 'JP');
-var _yep_JpIcon = Number(parameters['JP Icon'] || 0);
+Yanfly.Parameters = PluginManager.parameters('YEP_JobPoints');
+Yanfly.Param = Yanfly.Param || {};
+Yanfly.Icon = Yanfly.Icon || {};
+
+Yanfly.Param.Jp = String(Yanfly.Parameters['JP Text']);
+Yanfly.Icon.Jp = Number(Yanfly.Parameters['JP Icon']);
+Yanfly.Param.JpPerAction = String(Yanfly.Parameters['JP Per Action']);
+Yanfly.Param.JpPerEnemy = String(Yanfly.Parameters['JP Per Enemy']);
+Yanfly.Param.JpTextFormat = String(Yanfly.Parameters['JP Gained in Battle']);
+Yanfly.Param.JpPerLevel = String(Yanfly.Parameters['JP Per Level']);
 
 //=============================================================================
 // DataManager
 //=============================================================================
 
-var _YEP_JP_Scene_Boot_start = Scene_Boot.prototype.start;
-Scene_Boot.prototype.start = function() {
-	_YEP_JP_Scene_Boot_start.call(this);
-	DataManager.processJPNotetags1($dataActors);
-  DataManager.processJPNotetags2($dataSkills);
-  DataManager.processJPNotetags2($dataItems);
-	DataManager.processJPNotetags3($dataEnemies);
-	DataManager.processJPNotetags4($dataClasses);
-	DataManager.processJPNotetags4($dataWeapons);
-	DataManager.processJPNotetags4($dataArmors);
-	DataManager.processJPNotetags4($dataStates);
+Yanfly.Jp.DataManager_isDatabaseLoaded = DataManager.isDatabaseLoaded;
+DataManager.isDatabaseLoaded = function() {
+    if (!Yanfly.Jp.DataManager_isDatabaseLoaded.call(this)) return false;
+		this.processJPNotetags1($dataActors);
+	  this.processJPNotetags2($dataSkills);
+	  this.processJPNotetags2($dataItems);
+		this.processJPNotetags3($dataEnemies);
+		this.processJPNotetags4($dataClasses);
+		this.processJPNotetags4($dataWeapons);
+		this.processJPNotetags4($dataArmors);
+		this.processJPNotetags4($dataStates);
+		return true;
 };
 
 DataManager.processJPNotetags1 = function(group) {
-  var note1 = /<(?:STARTING_JP|starting jp):[ ](\d+)>/i;
-  var note2 = /<(?:CLASS|class)[ ](\d+)[ ](?:STARTING_JP|starting jp):[ ](\d+)>/i;
-	var note3 = /<(?:JP RATE|jp rate):[ ](\d+)([%％])>/i;
+  var note1 = /<(?:STARTING JP):[ ](\d+)>/i;
+  var note2 = /<(?:CLASS)[ ](\d+)[ ](?:STARTING JP):[ ](\d+)>/i;
+	var note3 = /<(?:JP RATE):[ ](\d+)([%％])>/i;
 	for (var n = 1; n < group.length; n++) {
 		var obj = group[n];
 		var notedata = obj.note.split(/[\r\n]+/);
@@ -134,15 +140,14 @@ DataManager.processJPNotetags1 = function(group) {
 	}
 };
 
-var _yep_jp_JpPerAction = String(parameters['JP Per Action'] || '10');
 DataManager.processJPNotetags2 = function(group) {
-  var note1 = /<(?:GAIN_JP|gain jp):[ ](\d+)>/i;
-  var note2 = /<(?:TARGET_GAIN_JP|target gain jp):[ ](\d+)>/i;
+  var note1 = /<(?:GAIN JP):[ ](\d+)>/i;
+  var note2 = /<(?:TARGET GAIN JP):[ ](\d+)>/i;
 	for (var n = 1; n < group.length; n++) {
 		var obj = group[n];
 		var notedata = obj.note.split(/[\r\n]+/);
 
-    obj.gainJp = _yep_jp_JpPerAction;
+    obj.gainJp = Yanfly.Param.JpPerAction;
     obj.targetGainJp = 0;
 
 		for (var i = 0; i < notedata.length; i++) {
@@ -156,14 +161,13 @@ DataManager.processJPNotetags2 = function(group) {
 	}
 };
 
-var _yep_jp_JpPerEnemy = String(parameters['JP Per Enemy'] || '50');
 DataManager.processJPNotetags3 = function(group) {
-  var note1 = /<(?:JP|jp):[ ](\d+)>/i;
+  var note1 = /<(?:JP):[ ](\d+)>/i;
 	for (var n = 1; n < group.length; n++) {
 		var obj = group[n];
 		var notedata = obj.note.split(/[\r\n]+/);
 
-    obj.jp = _yep_jp_JpPerEnemy;
+    obj.jp = Yanfly.Param.JpPerEnemy;
 
 		for (var i = 0; i < notedata.length; i++) {
 			var line = notedata[i];
@@ -175,7 +179,7 @@ DataManager.processJPNotetags3 = function(group) {
 };
 
 DataManager.processJPNotetags4 = function(group) {
-  var note1 = /<(?:JP RATE|jp rate):[ ](\d+)([%％])>/i;
+  var note1 = /<(?:JP RATE):[ ](\d+)([%％])>/i;
 	for (var n = 1; n < group.length; n++) {
 		var obj = group[n];
 		var notedata = obj.note.split(/[\r\n]+/);
@@ -195,27 +199,26 @@ DataManager.processJPNotetags4 = function(group) {
 // BattleManager
 //=============================================================================
 
-var _YEP_JP_BattleManager_makeRewards = BattleManager.makeRewards;
+Yanfly.Jp.BattleManager_makeRewards = BattleManager.makeRewards;
 BattleManager.makeRewards = function() {
-    _YEP_JP_BattleManager_makeRewards.call(this);
+    Yanfly.Jp.BattleManager_makeRewards.call(this);
     this._rewards.jp = $gameTroop.jpTotal();
 };
 
-var _YEP_JP_BattleManager_displayRewards = BattleManager.displayRewards;
+Yanfly.Jp.BattleManager_displayRewards = BattleManager.displayRewards;
 BattleManager.displayRewards = function() {
-    _YEP_JP_BattleManager_displayRewards.call(this);
+    Yanfly.Jp.BattleManager_displayRewards.call(this);
 		this.gainJp();
 };
 
-var _yep_jp_TextFormat = String(parameters['JP Gained in Battle'] ||
-													'%1 gains %2%3!');
 BattleManager.gainJp = function() {
 		var jp = $gameTroop.jpTotal();
 		$gameMessage.newPage();
 		$gameParty.members().forEach(function(actor) {
 			actor.gainJp(jp);
-			var fmt = _yep_jp_TextFormat;
-			var text = fmt.format(actor.name(), toGroup(actor.battleJp()), _yep_Jp);
+			var fmt = Yanfly.Param.JpTextFormat;
+			var text = fmt.format(actor.name(), Yanfly.Util.toGroup(actor.battleJp()),
+				Yanfly.Param.Jp);
 			$gameMessage.add('\\.' + text);
 		});
 };
@@ -224,15 +227,15 @@ BattleManager.gainJp = function() {
 // Game_Battler
 //=============================================================================
 
-var _YEP_JP_Game_Battler_useItem = Game_Battler.prototype.useItem
+Yanfly.Jp.Game_Battler_useItem = Game_Battler.prototype.useItem;
 Game_Battler.prototype.useItem = function(item) {
-    _YEP_JP_Game_Battler_useItem.call(this, item);
+    Yanfly.Jp.Game_Battler_useItem.call(this, item);
     if (this.isActor()) this.gainJp(eval(item.gainJp), this._classId);
 };
 
-var _YEP_JP_Game_Battler_onBattleStart = Game_Battler.prototype.onBattleStart;
+Yanfly.Jp.Game_Battler_onBattleStart = Game_Battler.prototype.onBattleStart;
 Game_Battler.prototype.onBattleStart = function() {
-    _YEP_JP_Game_Battler_onBattleStart.call(this);
+    Yanfly.Jp.Game_Battler_onBattleStart.call(this);
 		this._battleJp = 0;
 };
 
@@ -240,9 +243,9 @@ Game_Battler.prototype.onBattleStart = function() {
 // Game_Actor
 //=============================================================================
 
-var _YEP_JP_Game_Actor_setup = Game_Actor.prototype.setup
+Yanfly.Jp.Game_Actor_setup = Game_Actor.prototype.setup;
 Game_Actor.prototype.setup = function(actorId) {
-    _YEP_JP_Game_Actor_setup.call(this, actorId);
+    Yanfly.Jp.Game_Actor_setup.call(this, actorId);
     this.initJp();
 };
 
@@ -305,11 +308,10 @@ Game_Actor.prototype.battleJp = function() {
 		return this._battleJp;
 };
 
-var _yep_jp_JpPerLevel = String(parameters['JP Per Level'] || '100');
-var _YEP_JP_Game_Actor_levelUp = Game_Actor.prototype.levelUp;
+Yanfly.Jp.Game_Actor_levelUp = Game_Actor.prototype.levelUp;
 Game_Actor.prototype.levelUp = function() {
-    _YEP_JP_Game_Actor_levelUp.call(this);
-		this.gainJp(eval(_yep_jp_JpPerLevel), this._classId);
+    Yanfly.Jp.Game_Actor_levelUp.call(this);
+		this.gainJp(eval(Yanfly.Param.JpPerLevel), this._classId);
 };
 
 //=============================================================================
@@ -328,6 +330,18 @@ Game_Troop.prototype.jpTotal = function() {
     return this.deadMembers().reduce(function(r, enemy) {
         return r + enemy.jp();
     }, 0);
+};
+
+//=============================================================================
+// Utilities
+//=============================================================================
+
+Yanfly.Util = Yanfly.Util || {};
+
+if (!Yanfly.Util.toGroup) {
+		Yanfly.Util.toGroup = function(inVal) {
+				return inVal;
+		}
 };
 
 //=============================================================================

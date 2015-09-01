@@ -5852,6 +5852,11 @@ Window_DebugRange.prototype.drawItem = function(index) {
     this.drawText(text, rect.x, rect.y, rect.width);
 };
 
+Window_DebugRange.prototype.isCancelTriggered = function() {
+    return (Window_Selectable.prototype.isCancelTriggered() ||
+            Input.isTriggered('debug'));
+};
+
 Window_DebugRange.prototype.processCancel = function() {
     Window_Selectable.prototype.processCancel.call(this);
     Window_DebugRange.lastTopRow = this.topRow();

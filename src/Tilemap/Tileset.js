@@ -123,7 +123,7 @@
      */
     Tileset.prototype._setupData = function() {
         if (!!this.data) {
-            this.bitmap = ImageManager.loadNormalBitmap(this.data.image, 0);
+            this.bitmap = ImageManager.loadParserTileset(this.data.image, 0);
         }
     };
 

@@ -1,16 +1,19 @@
 //=============================================================================
 // Yanfly Engine Plugins - Skill Cost Extension - Items
 // YEP_X_SkillCostItems.js
-// Last Updated: 2015.07.28
+// Version: 1.00
 //=============================================================================
 
-if ($imported == undefined) { var $imported = {}; }
-$imported["YEP_X_SkillCostItems"] = true;
+var Imported = Imported || {};
+Imported.YEP_X_SkillCostItems = true;
+
+var Yanfly = Yanfly || {};
+Yanfly.SCI = Yanfly.SCI || {};
 
 //=============================================================================
  /*:
- * @plugindesc (Requires YEP_SkillCostCore.js) Skills can now have an item cost
- * attached to them.
+ * @plugindesc (Requires YEP_SkillCore.js) Skills can now have an item
+ * cost attached to them.
  * @author Yanfly Engine Plugins
  *
  * @param Item Cost Format
@@ -33,8 +36,8 @@ $imported["YEP_X_SkillCostItems"] = true;
  * @default true
  *
  * @help
- * This plugin requires YEP_SkillCostCore.
- * Make sure this plugin is located under YEP_SkillCostCore in the plugin list.
+ * This plugin requires YEP_SkillCore.
+ * Make sure this plugin is located under YEP_SkillCore in the plugin list.
  *                                                                  .
  * Skill Notetags:
  *   <Item x Cost: y>
@@ -52,22 +55,32 @@ $imported["YEP_X_SkillCostItems"] = true;
  *   <Item Cost Text: x>
  *   Must be placed below the item-based cost notetag in order to occur. This
  *   will change the text used for the item-based skill cost.
- *
- * ChangeLog:
- *   2015.07.28 - Completed.
  */
 //=============================================================================
 
-var parameters = PluginManager.parameters('YEP_X_SkillCostItems');
+if (Imported.YEP_SkillCore) {
+
+//=============================================================================
+// Parameter Variables
+//=============================================================================
+
+Yanfly.Parameters = PluginManager.parameters('YEP_X_SkillCostItems');
+Yanfly.Param = Yanfly.Param || {};
+
+Yanfly.Param.SCIShowIcon = String(Yanfly.Parameters['Show Item Icon']);
+Yanfly.Param.SCITextColor = Number(Yanfly.Parameters['Item Text Color']);
+Yanfly.Param.SCIFontSize = Number(Yanfly.Parameters['Item Font Size']);
+Yanfly.Param.SCICostFormat = String(Yanfly.Parameters['Item Cost Format']);
 
 //=============================================================================
 // DataManager
 //=============================================================================
 
-var _YEP_SCI_Scene_Boot_start = Scene_Boot.prototype.start;
-Scene_Boot.prototype.start = function() {
-	_YEP_SCI_Scene_Boot_start.call(this);
-	DataManager.processSCINotetags($dataSkills);
+Yanfly.SCI.DataManager_isDatabaseLoaded = DataManager.isDatabaseLoaded;
+DataManager.isDatabaseLoaded = function() {
+    if (!Yanfly.SCI.DataManager_isDatabaseLoaded.call(this)) return false;
+		this.processSCINotetags($dataSkills);
+		return true;
 };
 
 DataManager.processSCINotetags = function(group) {
@@ -97,9 +110,9 @@ DataManager.processSCINotetags = function(group) {
         obj.itemCostValue = Math.max(1, parseInt(RegExp.$2));
         obj.itemCostIcon = obj.itemCostItem.iconIndex;
         obj.itemCostText = obj.itemCostItem.name;
-      } else if (line.match(/<(?:ITEM_COST_ICON|item cost icon):[ ](\d+)>/i)) {
+      } else if (line.match(/<(?:ITEM COST ICON):[ ](\d+)>/i)) {
         obj.itemCostIcon = parseInt(RegExp.$1);
-      } else if (line.match(/<(?:ITEM_COST_TEXT|item cost text):[ ](.*)>/i)) {
+      } else if (line.match(/<(?:ITEM COST TEXT):[ ](.*)>/i)) {
         obj.itemCostText = String(RegExp.$1);
       }
 		}
@@ -110,21 +123,21 @@ DataManager.processSCINotetags = function(group) {
 // Game_BattlerBase
 //=============================================================================
 
-var _YEP_SCI_Game_BattlerBase_canPaySkillCost =
+Yanfly.SCI.Game_BattlerBase_canPaySkillCost =
     Game_BattlerBase.prototype.canPaySkillCost;
 Game_BattlerBase.prototype.canPaySkillCost = function(skill) {
     if (!this.canPaySkillItemCost(skill)) return false;
-    return _YEP_SCI_Game_BattlerBase_canPaySkillCost.call(this, skill);
+    return Yanfly.SCI.Game_BattlerBase_canPaySkillCost.call(this, skill);
 };
 
 Game_BattlerBase.prototype.canPaySkillItemCost = function(skill) {
     return true;
 };
 
-var _YEP_SCI_Game_Battlerbase_paySkillCost =
+Yanfly.SCI.Game_BattlerBase_paySkillCost =
     Game_BattlerBase.prototype.paySkillCost;
 Game_BattlerBase.prototype.paySkillCost = function(skill) {
-    _YEP_SCI_Game_Battlerbase_paySkillCost.call(this, skill);
+    Yanfly.SCI.Game_BattlerBase_paySkillCost.call(this, skill);
     this.paySkillItemCost(skill);
 };
 
@@ -153,34 +166,33 @@ Game_BattlerBase.prototype.paySkillItemCost = function(skill) {
 // Window_SkillList
 //=============================================================================
 
-var _YEP_SCI_Window_SList_drawOtherCost =
+Yanfly.SCI.Window_SkillList_drawOtherCost =
     Window_SkillList.prototype.drawOtherCost;
 Window_SkillList.prototype.drawOtherCost = function(skill, wx, wy, dw) {
 		dw = this.drawSkillItemCost(skill, wx, wy, dw);
-    return _YEP_SCI_Window_SList_drawOtherCost.call(this, skill, wx, wy, dw);
+    return Yanfly.SCI.Window_SkillList_drawOtherCost.call(this, skill, wx,
+			wy, dw);
 };
 
-var _yep_sci_showIcon = String(parameters['Show Item Icon'] || 'true');
-var _yep_sci_textColor = Number(parameters['Item Text Color'] || 0);
-var _yep_sci_fontSize = Number(parameters['Item Font Size'] || 28);
-var _yep_sci_costFormat = String(parameters['Item Cost Format'] || '%1');
 Window_SkillList.prototype.drawSkillItemCost = function(skill, wx, wy, dw) {
 		if (!skill.itemCostItem) { return dw;	}
-		if (eval(_yep_sci_showIcon) && skill.itemCostIcon > 0) {
+		if (eval(Yanfly.Param.SCIShowIcon) && skill.itemCostIcon > 0) {
 			var iw = wx + dw - Window_Base._iconWidth;
 			this.drawIcon(skill.itemCostIcon, iw, wy + 2);
 			dw -= Window_Base._iconWidth + 2;
 		}
-		this.changeTextColor(this.textColor(_yep_sci_textColor));
-		var fmt = _yep_sci_costFormat;
-		var text = fmt.format(toGroup(toGroup(skill.itemCostValue)),
-			toGroup($gameParty.numItems(skill.itemCostItem)), skill.itemCostText);
-		this.contents.fontSize = _yep_sci_fontSize;
+		this.changeTextColor(this.textColor(Yanfly.Param.SCITextColor));
+		var fmt = Yanfly.Param.SCICostFormat;
+		var text = fmt.format(Yanfly.Util.toGroup(skill.itemCostValue),
+			Yanfly.Util.toGroup($gameParty.numItems(skill.itemCostItem)),
+			skill.itemCostText);
+		this.contents.fontSize = Yanfly.Param.SCIFontSize;
 		this.drawText(text, wx, wy, dw, 'right');
 		this.resetFontSettings();
-		return dw - this.textWidth(text) - _yep_scc_CostPadding;
+		return dw - this.textWidth(text) - Yanfly.Param.SCCCostPadding;
 };
 
 //=============================================================================
 // End of File
 //=============================================================================
+};

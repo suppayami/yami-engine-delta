@@ -1,6 +1,5 @@
 /* globals YED: false */
 
-// framework implement
 (function() {
 
     var _DataManager_loadMapData = DataManager.loadMapData;
@@ -129,8 +128,8 @@
         var y2 = this.origin.y % this._layerHeight;
         var w1 = this._layerWidth - x2;
         var h1 = this._layerHeight - y2;
-        var w2 = this._width - w1;
-        var h2 = this._height - h1;
+        // var w2 = this._width - w1;
+        // var h2 = this._height - h1;
 
         var moveFunc = function(layer) {
             layer.move(-x2, -y2);
