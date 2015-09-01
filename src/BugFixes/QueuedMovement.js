@@ -1,6 +1,5 @@
 (function() {
     var _Game_Character_setMoveRoute = Game_Event.prototype.setMoveRoute;
-    var _Game_Event_updateSelfMovement = Game_Event.prototype.updateSelfMovement;
 
     Game_Character.prototype.queueMoveRoute = function(moveRoute) {
         this._originalMoveRoute       = moveRoute;

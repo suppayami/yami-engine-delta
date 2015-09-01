@@ -1,5 +1,6 @@
 (function() {
     var _Game_CharacterBase_updateMove = Game_CharacterBase.prototype.updateMove;
+    var _Game_Event_updateSelfMovement = Game_Event.prototype.updateSelfMovement;
 
     Game_CharacterBase.prototype.update = function() {
         if (this.isJumping()) {
@@ -24,7 +25,7 @@
     };
 
     Game_Event.prototype.updateSelfMovement = function() {
-        _yami_Game_Event_updateSelfMovement.call(this);
+        _Game_Event_updateSelfMovement.call(this);
 
         if (this.isNearTheScreen() && this.checkStop(this.stopCountThreshold())) {
             this.resetStopCount();

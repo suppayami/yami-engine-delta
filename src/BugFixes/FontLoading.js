@@ -7,7 +7,7 @@
             text = document.createTextNode('Loading Font...');
 
         span.style.color = 'transparent';
-        span.style.fontFamily = 'GameFont';
+        span.style.fontFamily = name;
         span.appendChild(text);
         document.body.appendChild(span);
     };

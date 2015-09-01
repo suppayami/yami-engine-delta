@@ -111,7 +111,8 @@
             match,
             type,
             id,
-            number;
+            number,
+            flag;
 
         match = notetag.match(Regexp.GOLD_COST);
         if (match) {
@@ -126,7 +127,7 @@
             buyCost.itemCost.push([type, id, number]);
         }
 
-        match = notetag.match(Redexp.VARIABLE_COST);
+        match = notetag.match(Regexp.VARIABLE_COST);
         if (match) {
             id = Number(match[1]);
             number = Number(match[2]);
@@ -134,7 +135,7 @@
             buyCost.variableCost.push([id, number]);
         }
 
-        match = notetag.match(Redexp.SWITCH_NEED);
+        match = notetag.match(Regexp.SWITCH_NEED);
         if (match) {
             id = Number(match[1]);
             flag = match[2].toLowerCase() === 'true' ? true : false;
@@ -170,7 +171,8 @@
             id,
             amount,
             item,
-            i;
+            i,
+            type;
 
         for (i = 0; i < itemCost.length; i++) {
             el = itemCost[i];
