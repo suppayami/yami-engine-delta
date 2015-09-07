@@ -477,6 +477,10 @@ YED.Tilemap = {};
 
         this.tileWidth  = tileWidth;
         this.tileHeight = tileHeight;
+
+        if (!this.data.visible) {
+            this.visible = false;
+        }
     };
 
     Object.defineProperties(Layer.prototype, {
@@ -559,6 +563,19 @@ YED.Tilemap = {};
         tilesData: {
             get: function() {
                 return this.data.data;
+            }
+        },
+
+        /**
+         * Objects data, an one dimensional array contains object data
+         *
+         * @member {Object[]}
+         * @memberof YED.Tilemap.Layer#
+         * @readonly
+         */
+        objectsData: {
+            get: function() {
+                return this.data.objects;
             }
         },
 
@@ -672,7 +689,27 @@ YED.Tilemap = {};
      * @private
      */
     Layer.prototype._renderObjectLayer = function() {
+        var i = 0,
+            length = this.objectsData.length,
+            tileId,
+            bitmapX,
+            bitmapY,
+            data;
 
+        for (; i < length; i++) {
+            data = this.objectsData[i];
+
+            tileId = data.gid;
+
+            bitmapX = Math.round(data.x);
+            bitmapY = Math.round(data.y - data.height);
+
+            if (tileId === 0) {
+                continue;
+            }
+
+            this._drawTile(tileId, bitmapX, bitmapY);
+        }
     };
 
     /**
@@ -1036,16 +1073,15 @@ YED.Tilemap = {};
     };
 
     Tilemap.prototype._createLayers = function() {
-        // get layers from Game_Map
-        var upperLayers = $gameMap.tilemapUpperLayers();
-        var lowerLayers = $gameMap.tilemapLowerLayers();
-        // width, height
-        var tileCols = Math.ceil(this._width / this._tileWidth) + 1;
-        var tileRows = Math.ceil(this._height / this._tileHeight) + 1;
-        var layerWidth = tileCols * this._tileWidth;
-        var layerHeight = tileRows * this._tileHeight;
-        // loop index
-        var i;
+        var margin = this._margin,
+            upperLayers = $gameMap.tilemapUpperLayers(),
+            lowerLayers = $gameMap.tilemapLowerLayers(),
+            tileCols = Math.ceil(this._width / this._tileWidth) + 1,
+            tileRows = Math.ceil(this._height / this._tileHeight) + 1,
+            layerWidth = tileCols * this._tileWidth,
+            layerHeight = tileRows * this._tileHeight,
+            i;
+
         this._layerWidth = layerWidth;
         this._layerHeight = layerHeight;
 
@@ -1064,11 +1100,11 @@ YED.Tilemap = {};
          */
 
         this._lowerLayer = new Sprite();
-        this._lowerLayer.move(0, 0, this._width, this._height);
+        this._lowerLayer.move(-margin, -margin, this._width, this._height);
         this._lowerLayer.z = 0;
 
         this._upperLayer = new Sprite();
-        this._upperLayer.move(0, 0, this._width, this._height);
+        this._upperLayer.move(-margin, -margin, this._width, this._height);
         this._upperLayer.z = 4;
 
         for (i = 0; i < lowerLayers.length; i++) {
@@ -1085,17 +1121,22 @@ YED.Tilemap = {};
     };
 
     Tilemap.prototype._updateLayerPositions = function(startX, startY) {
-        var x2 = this.origin.x % this._layerWidth;
-        var y2 = this.origin.y % this._layerHeight;
-        var w1 = this._layerWidth - x2;
-        var h1 = this._layerHeight - y2;
-        // var w2 = this._width - w1;
-        // var h2 = this._height - h1;
+        /* jshint unused:vars */
+        var m = this._margin,
+            ox = Math.floor(this.origin.x),
+            oy = Math.floor(this.origin.y),
+            x2 = -(ox - m),
+            y2 = -(oy - m),
+            w1 = this._layerWidth - x2,
+            h1 = this._layerHeight - y2,
+            w2 = this._width - w1,
+            h2 = this._height - h1;
+
+        // TODO: Loop map!!!
 
         var moveFunc = function(layer) {
-            layer.move(-x2, -y2);
-            // layer.setFrame(x2, y2, w1, h1);
-            // console.log(x2,y2,w1,h1,w2,h2);
+            layer.move(x2, y2);
+            // layer.setFrame(0, 0, w2, h2);
         };
 
         for (var i = 0; i < 2; i++) {
@@ -1112,6 +1153,7 @@ YED.Tilemap = {};
     };
 
     Tilemap.prototype._paintAllTiles = function(startX, startY) {
+        /* jshint unused:vars */
         // destroy method
     };
 

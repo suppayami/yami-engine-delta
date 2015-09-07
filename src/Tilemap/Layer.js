@@ -38,6 +38,10 @@
 
         this.tileWidth  = tileWidth;
         this.tileHeight = tileHeight;
+
+        if (!this.data.visible) {
+            this.visible = false;
+        }
     };
 
     Object.defineProperties(Layer.prototype, {
@@ -120,6 +124,19 @@
         tilesData: {
             get: function() {
                 return this.data.data;
+            }
+        },
+
+        /**
+         * Objects data, an one dimensional array contains object data
+         *
+         * @member {Object[]}
+         * @memberof YED.Tilemap.Layer#
+         * @readonly
+         */
+        objectsData: {
+            get: function() {
+                return this.data.objects;
             }
         },
 
@@ -233,7 +250,27 @@
      * @private
      */
     Layer.prototype._renderObjectLayer = function() {
+        var i = 0,
+            length = this.objectsData.length,
+            tileId,
+            bitmapX,
+            bitmapY,
+            data;
 
+        for (; i < length; i++) {
+            data = this.objectsData[i];
+
+            tileId = data.gid;
+
+            bitmapX = Math.round(data.x);
+            bitmapY = Math.round(data.y - data.height);
+
+            if (tileId === 0) {
+                continue;
+            }
+
+            this._drawTile(tileId, bitmapX, bitmapY);
+        }
     };
 
     /**
