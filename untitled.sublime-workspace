@@ -4,6 +4,26 @@
 		"selected_items":
 		[
 			[
+				"Window_Ho",
+				"Window_HospitalNurse"
+			],
+			[
+				"Window_Hospit",
+				"Window_HospitalCommand"
+			],
+			[
+				"store",
+				"storeRetainStateOnDeath"
+			],
+			[
+				"proto",
+				"prototype"
+			],
+			[
+				"pro",
+				"prototype"
+			],
+			[
 				"fav",
 				"favourite_id"
 			],
@@ -24,11 +44,35 @@
 	"buffers":
 	[
 		{
-			"file": "src/Hospital/loader.js",
+			"file": "demo/maps/Map3.json",
 			"settings":
 			{
-				"buffer_size": 500,
+				"buffer_size": 295234,
 				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "src/Tilemap/Layer.js",
+			"settings":
+			{
+				"buffer_size": 8140,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "src/Tilemap/bootstrap.js",
+			"settings":
+			{
+				"buffer_size": 4674,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "demo/js/rpg_objects.js",
+			"settings":
+			{
+				"buffer_size": 286292,
+				"line_ending": "Windows"
 			}
 		}
 	],
@@ -39,16 +83,20 @@
 	"build_varint": "",
 	"command_palette":
 	{
-		"height": 375.0,
-		"last_filter": "pack",
+		"height": 29.0,
+		"last_filter": "",
 		"selected_items":
 		[
 			[
 				"pack",
-				"Package Control: Install Package"
+				"Package Control: Disable Package"
+			],
+			[
+				"space",
+				"Indentation: Convert to Spaces"
 			]
 		],
-		"width": 579.0
+		"width": 593.0
 	},
 	"console":
 	{
@@ -69,33 +117,89 @@
 	},
 	"expanded_folders":
 	[
-		"/home/yami/shares/RMMV Projects/yed",
-		"/home/yami/shares/RMMV Projects/yed/build/Tilemap",
-		"/home/yami/shares/RMMV Projects/yed/demo",
-		"/home/yami/shares/RMMV Projects/yed/node_modules",
-		"/home/yami/shares/RMMV Projects/yed/src",
-		"/home/yami/shares/RMMV Projects/yed/src/Hospital",
-		"/home/yami/shares/RMMV Projects/yed/tasks",
-		"/home/yami/shares/RMMV Projects/yed/tasks/build",
-		"/home/yami/shares/RMMV Projects/yed/test"
+		"/Users/DrYami/Projects/yed",
+		"/Users/DrYami/Projects/yed/demo",
+		"/Users/DrYami/Projects/yed/demo/js",
+		"/Users/DrYami/Projects/yed/src",
+		"/Users/DrYami/Projects/yed/src/Tilemap"
 	],
 	"file_history":
 	[
-		"/home/yami/shares/RMMV Projects/yed/tasks/build.js",
-		"/home/yami/shares/RMMV Projects/yed/tasks/build/skillshop.js",
-		"/home/yami/shares/RMMV Projects/yed/gulpfile.js",
-		"/home/yami/shares/RMMV Projects/yed/package.json",
-		"/home/yami/shares/RMMV Projects/yed/demo/js/rpg_managers.js",
-		"/home/yami/shares/RMMV Projects/yed/tasks/build/tilemap.js",
-		"/home/yami/shares/RMMV Projects/yed/src/Tilemap/Data.js",
-		"/home/yami/shares/RMMV Projects/yed/src/Tilemap/Core.js",
-		"/home/yami/shares/RMMV Projects/yed/src/Tilemap/ImageManager.js",
-		"/home/yami/shares/RMMV Projects/yed/src/Tilemap/bootstrap.js",
-		"/home/yami/shares/RMMV Projects/yed/src/Tilemap/Tileset.js",
-		"/home/yami/shares/RMMV Projects/yed/demo/js/rpg_core.js",
-		"/home/yami/shares/RMMV Projects/yed/npm-debug.log",
-		"/home/yami/shares/RMMV Projects/yed/src/Tilemap/header.js",
-		"/home/yami/.config/sublime-text-3/Packages/User/Preferences.sublime-settings",
+		"/Users/DrYami/Projects/yed/demo/js/rpg_objects.js",
+		"/Users/DrYami/Projects/yed/src/Tilemap/Tileset.js",
+		"/Users/DrYami/Projects/yed/src/Tilemap/index.js",
+		"/Users/DrYami/Projects/yed/src/Tilemap/Data.js",
+		"/Users/DrYami/Projects/yed/src/Tilemap/Core.js",
+		"/Users/DrYami/Projects/yed/src/Tilemap/bootstrap.js",
+		"/Users/DrYami/Projects/yed/.jshintrc",
+		"/Users/DrYami/Projects/yed/src/BugFixes/QueuedMovement.js",
+		"/Users/DrYami/Projects/yed/src/BugFixes/MoveAnimationFix.js",
+		"/Users/DrYami/Projects/yed/src/SkillShop/Utils.js",
+		"/Users/DrYami/Projects/yed/src/BugFixes/FontLoading.js",
+		"/Users/DrYami/Projects/yed/src/SkillShop/header.js",
+		"/Users/DrYami/Projects/yed/src/SkillShop/Regexp.js",
+		"/Users/DrYami/Library/Application Support/Steam/steamapps/common/New Application MV/RMMV.app/Contents/MacOS/NewData/js/rpg_core.js",
+		"/Users/DrYami/Projects/yed/tasks/build.js",
+		"/Users/DrYami/Projects/yed/tasks/build/skillshop.js",
+		"/Users/DrYami/Projects/yed/src/RetainStatesOnDeath/Utils.js",
+		"/Users/DrYami/Projects/yed/src/RetainStatesOnDeath/loader.js",
+		"/Users/DrYami/Dropbox/YEP/YEP_GaugeSwapCore.js",
+		"/Users/DrYami/Dropbox/YEP/KeyboardConfig.js",
+		"/Users/DrYami/Library/Application Support/Sublime Text 3/Packages/User/Preferences.sublime-settings",
+		"/Users/DrYami/Projects/yed/src/RetainStatesOnDeath/header.js",
+		"/Users/DrYami/Projects/yed/demo/js/rpg_core.js",
+		"/Users/DrYami/Projects/yed/demo/package.json",
+		"/Users/DrYami/Projects/yed/demo/js/plugins/YEP_CoreEngine.js",
+		"/Users/DrYami/Projects/yed/demo/index.js",
+		"/Users/DrYami/Projects/yed/src/8DMovement/index.js",
+		"/Users/DrYami/Projects/yed/src/SkillShop/index.js",
+		"/Users/DrYami/Projects/yed/src/Hospital/Scene_Hospital.js",
+		"/Users/DrYami/Projects/yed/src/Hospital/Window_HospitalNurse.js",
+		"/Users/DrYami/Projects/yed/src/Hospital/Window_HospitalHelp.js",
+		"/Users/DrYami/Projects/yed/src/Hospital/Window_HospitalCommand.js",
+		"/Users/DrYami/Projects/yed/src/Hospital/index.js",
+		"/Users/DrYami/Projects/yed/src/Hospital/Window_HospitalActors.js",
+		"/Users/DrYami/Projects/yed/src/Hospital/Utils.js",
+		"/Users/DrYami/Downloads/FontLoading.js",
+		"/Users/DrYami/Projects/yed/src/BugFixes/EventPassable.js",
+		"/Users/DrYami/Projects/yed/src/BugFixes/AsyncPluginsLoading.js",
+		"/Users/DrYami/Projects/yed/demo/js/rpg_scenes.js",
+		"/Users/DrYami/Projects/yed/tasks/paths.js",
+		"/Users/DrYami/Desktop/beats",
+		"/Users/DrYami/Projects/yed/src/Hospital/Game_Interpreter.js",
+		"/Users/DrYami/Projects/yed/src/Hospital/Game_Party.js",
+		"/Users/DrYami/Projects/yed/src/Hospital/Game_Actor.js",
+		"/Users/DrYami/Projects/yed/notes/Hospital.md",
+		"/Users/DrYami/Projects/yed/demo/js/plugins/YEP_ItemSynthesis.js",
+		"/Users/DrYami/Projects/yed/tasks/build/hospital.js",
+		"/Users/DrYami/Projects/yed/src/YED.js",
+		"/Users/DrYami/Projects/yed/demo/js/rpg_windows.js",
+		"/Users/DrYami/Projects/yed/demo/index.html",
+		"/Users/DrYami/Projects/yed/demo/js/rpg_managers.js",
+		"/Users/DrYami/Projects/yed/src/Hospital/header.js",
+		"/Users/DrYami/Projects/yed/tasks/util/jsdoc.conf.json",
+		"/Users/DrYami/Projects/yed/src/Hospital/loader.js",
+		"/Users/DrYami/Projects/yed/src/RetainStatesOnDeath/Game_Party.js",
+		"/Users/DrYami/Projects/yed/src/RetainStatesOnDeath/Game_Actor.js",
+		"/Users/DrYami/Projects/yed/tasks/build/retainstateondeath.js",
+		"/Users/DrYami/Projects/yed/tasks/utils.js",
+		"/Users/DrYami/Projects/yed/demo/js/plugins/SimpleMsgSideView.js",
+		"/Users/DrYami/Projects/yed/demo/js/plugins/YEP_BattleEngineCore.js",
+		"/Users/DrYami/Projects/yed/demo/js/plugins/AltSaveScreen.js",
+		"/Users/DrYami/Projects/yed/demo/js/plugins/AltMenuScreen.js",
+		"/Users/DrYami/Projects/yed/package.json",
+		"/Users/DrYami/Projects/yed/gulpfile.js",
+		"/Users/DrYami/Projects/yed/tasks/watch.js",
+		"/Users/DrYami/Projects/yed/src/RetainStatesOnDeath/index.js",
+		"/Users/DrYami/Projects/yed/src/RetainStatesOnDeath/Regexp.js",
+		"/Users/DrYami/Projects/yed/demo/data/System.json",
+		"/Users/DrYami/Projects/yed/src/RetainStatesOnDeath/Loader.js",
+		"/Users/DrYami/Projects/yed/docs/external-Game_Actor.html",
+		"/Users/DrYami/Projects/yed/demo/js/rpg_sprites.js",
+		"/Users/DrYami/Projects/yed/demo/js/plugins/YEP_BattlePortraits.js",
+		"/Users/DrYami/Projects/yed/src/Tilemap/header.js",
+		"/Users/DrYami/Projects/yed/.gitignore",
+		"/Users/DrYami/Projects/yed/build/.gitignore",
 		"/Users/DrYami/Downloads/jasmine-standalone-2.3.4/SpecRunner.html",
 		"/Users/DrYami/Projects/omori/prototype/jasmine/spec/SpecHelper.js",
 		"/Users/DrYami/Projects/omori/prototype/spec/support/jasmine.json",
@@ -127,16 +231,15 @@
 		"/Users/DrYami/Projects/lac/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php",
 		"/Users/DrYami/Projects/lac/.env",
 		"/Users/DrYami/.homestead/Homestead.yaml",
-		"/Users/DrYami/Projects/lac/composer.json",
-		"/Users/DrYami/Library/Application Support/Sublime Text 3/Packages/User/Preferences.sublime-settings"
+		"/Users/DrYami/Projects/lac/composer.json"
 	],
 	"find":
 	{
-		"height": 31.0
+		"height": 35.0
 	},
 	"find_in_files":
 	{
-		"height": 0.0,
+		"height": 93.0,
 		"where_history":
 		[
 		]
@@ -146,7 +249,134 @@
 		"case_sensitive": false,
 		"find_history":
 		[
-			"ImageManager"
+			"* 2",
+			"tileWidth()",
+			"tileWidth",
+			"roundX",
+			"$gameMap",
+			"_updateLayerPositions",
+			"tilesData",
+			"isObjectLayer",
+			"checkPassage",
+			"isPassable",
+			"isMapPassable",
+			"tweeningControl",
+			"gainItem",
+			"restrict",
+			"itemCnt",
+			"counter",
+			"eva",
+			".some",
+			"dir8",
+			"moveDiagonally",
+			"dir4",
+			"Input.",
+			"roundXWithDirection",
+			"moveStraight",
+			"Input.",
+			"moveDiagonally",
+			"Game_Play",
+			"Scene_Hospital",
+			"Window_HospitalNurse",
+			"Window_HospitalHelp",
+			"Window_HospitalCommand",
+			"Window_HospitalActors",
+			"gameSystem",
+			"makeSaveContents",
+			"canvas",
+			"gainItem",
+			"tintPicture",
+			"rotatePicture",
+			"movePicture",
+			"showPicture",
+			"character = function",
+			"character",
+			"changeClass",
+			"name",
+			"gameActors",
+			"changeHp = ",
+			"changeHp = fun",
+			"changeHp",
+			"Game_Player",
+			"_onTrigger",
+			"helpWindow",
+			"Scene_Menu",
+			"onCommandOk",
+			"Scene_Menu",
+			"drawActorFace",
+			"Window_Menu",
+			"loadMessageFace",
+			"Scene_Synthesis",
+			"WIndow_Comman",
+			"drawCurrencyValue",
+			"textPadding",
+			"text",
+			"Game_Party",
+			"createContents",
+			"updateHelp",
+			"_refreshAllParts",
+			"updateHelp",
+			"_helpWindow",
+			"tilesetFlags",
+			"allTiles(",
+			"allTiles",
+			"checkPassage",
+			"isPassable",
+			"isMapPassable",
+			"isCollidedWithCharacters",
+			"isCollidedWithEvents",
+			"_priorityType",
+			"isNormalPriority",
+			"isCollidedWithEvents",
+			"Game_Event",
+			"_startDate",
+			"setLoadingImage",
+			"_loadingImage",
+			"_upperCanvas",
+			"loadFont",
+			"isFontLoaded",
+			"_startDate",
+			"20000",
+			"_clearUpperCanvas ",
+			"_clearUpperCanvas",
+			"isActive =",
+			"renderScene",
+			"Scene_Battl",
+			"onSceneLoading",
+			"updateLoading",
+			"css",
+			"Window",
+			"canReadGameFiles",
+			".start",
+			"start",
+			"Font",
+			"20000",
+			"GameFon",
+			"name = fu",
+			"active",
+			"textPadding",
+			"update = ",
+			"_faceWidth",
+			"window_command",
+			"windowWidth =",
+			"boxWidth",
+			"Window_SynthesisStatus",
+			"drawFace",
+			"rect",
+			"addCommand",
+			"addFinishCommand",
+			"Window_Command.prototype)",
+			"maxCols =",
+			"numVisibleRows =",
+			"Window_Command.prototype)",
+			"needsCommand =",
+			"Window_Base.prototype)",
+			"eraseState",
+			"clearStates",
+			"mhp =",
+			"hp = f",
+			"recover",
+			"new Game_Party"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -154,6 +384,11 @@
 		"regex": false,
 		"replace_history":
 		[
+			"Hospital",
+			"HospitalNurse",
+			"HospitalHelp",
+			"HospitalCommand",
+			"HospitalActors"
 		],
 		"reverse": false,
 		"show_context": true,
@@ -164,24 +399,24 @@
 	"groups":
 	[
 		{
-			"selected": 0,
+			"selected": 2,
 			"sheets":
 			[
 				{
 					"buffer": 0,
-					"file": "src/Hospital/loader.js",
-					"semi_transient": true,
+					"file": "demo/maps/Map3.json",
+					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 500,
+						"buffer_size": 295234,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								0,
-								0
+								290330,
+								290337
 							]
 						],
 						"settings":
@@ -189,16 +424,46 @@
 							"BracketHighlighterBusy": false,
 							"bh_regions":
 							[
-								"bh_unmatched",
-								"bh_unmatched_center",
-								"bh_unmatched_open",
-								"bh_unmatched_close",
-								"bh_unmatched_content",
 								"bh_round",
 								"bh_round_center",
 								"bh_round_open",
 								"bh_round_close",
 								"bh_round_content",
+								"bh_angle",
+								"bh_angle_center",
+								"bh_angle_open",
+								"bh_angle_close",
+								"bh_angle_content",
+								"bh_curly",
+								"bh_curly_center",
+								"bh_curly_open",
+								"bh_curly_close",
+								"bh_curly_content",
+								"bh_single_quote",
+								"bh_single_quote_center",
+								"bh_single_quote_open",
+								"bh_single_quote_close",
+								"bh_single_quote_content",
+								"bh_unmatched",
+								"bh_unmatched_center",
+								"bh_unmatched_open",
+								"bh_unmatched_close",
+								"bh_unmatched_content",
+								"bh_c_define",
+								"bh_c_define_center",
+								"bh_c_define_open",
+								"bh_c_define_close",
+								"bh_c_define_content",
+								"bh_regex",
+								"bh_regex_center",
+								"bh_regex_open",
+								"bh_regex_close",
+								"bh_regex_content",
+								"bh_tag",
+								"bh_tag_center",
+								"bh_tag_open",
+								"bh_tag_close",
+								"bh_tag_content",
 								"bh_square",
 								"bh_square_center",
 								"bh_square_open",
@@ -209,51 +474,286 @@
 								"bh_default_open",
 								"bh_default_close",
 								"bh_default_content",
-								"bh_c_define",
-								"bh_c_define_center",
-								"bh_c_define_open",
-								"bh_c_define_close",
-								"bh_c_define_content",
-								"bh_curly",
-								"bh_curly_center",
-								"bh_curly_open",
-								"bh_curly_close",
-								"bh_curly_content",
-								"bh_angle",
-								"bh_angle_center",
-								"bh_angle_open",
-								"bh_angle_close",
-								"bh_angle_content",
-								"bh_tag",
-								"bh_tag_center",
-								"bh_tag_open",
-								"bh_tag_close",
-								"bh_tag_content",
-								"bh_single_quote",
-								"bh_single_quote_center",
-								"bh_single_quote_open",
-								"bh_single_quote_close",
-								"bh_single_quote_content",
-								"bh_regex",
-								"bh_regex_center",
-								"bh_regex_open",
-								"bh_regex_close",
-								"bh_regex_content",
 								"bh_double_quote",
 								"bh_double_quote_center",
 								"bh_double_quote_open",
 								"bh_double_quote_close",
 								"bh_double_quote_content"
 							],
-							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
+							"syntax": "Packages/Better JavaScript/JSON.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 54003.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 3,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "src/Tilemap/Layer.js",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 8140,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1538,
+								1538
+							]
+						],
+						"settings":
+						{
+							"BracketHighlighterBusy": false,
+							"bh_regions":
+							[
+								"bh_round",
+								"bh_round_center",
+								"bh_round_open",
+								"bh_round_close",
+								"bh_round_content",
+								"bh_angle",
+								"bh_angle_center",
+								"bh_angle_open",
+								"bh_angle_close",
+								"bh_angle_content",
+								"bh_curly",
+								"bh_curly_center",
+								"bh_curly_open",
+								"bh_curly_close",
+								"bh_curly_content",
+								"bh_single_quote",
+								"bh_single_quote_center",
+								"bh_single_quote_open",
+								"bh_single_quote_close",
+								"bh_single_quote_content",
+								"bh_unmatched",
+								"bh_unmatched_center",
+								"bh_unmatched_open",
+								"bh_unmatched_close",
+								"bh_unmatched_content",
+								"bh_c_define",
+								"bh_c_define_center",
+								"bh_c_define_open",
+								"bh_c_define_close",
+								"bh_c_define_content",
+								"bh_regex",
+								"bh_regex_center",
+								"bh_regex_open",
+								"bh_regex_close",
+								"bh_regex_content",
+								"bh_tag",
+								"bh_tag_center",
+								"bh_tag_open",
+								"bh_tag_close",
+								"bh_tag_content",
+								"bh_square",
+								"bh_square_center",
+								"bh_square_open",
+								"bh_square_close",
+								"bh_square_content",
+								"bh_default",
+								"bh_default_center",
+								"bh_default_open",
+								"bh_default_close",
+								"bh_default_content",
+								"bh_double_quote",
+								"bh_double_quote_center",
+								"bh_double_quote_open",
+								"bh_double_quote_close",
+								"bh_double_quote_content"
+							],
+							"syntax": "Packages/Better JavaScript/JavaScript.tmLanguage",
 							"tab_size": 4,
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 0.0,
+						"translation.y": 705.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 2,
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "src/Tilemap/bootstrap.js",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 4674,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								3869,
+								3869
+							]
+						],
+						"settings":
+						{
+							"BracketHighlighterBusy": false,
+							"bh_regions":
+							[
+								"bh_single_quote",
+								"bh_single_quote_center",
+								"bh_single_quote_open",
+								"bh_single_quote_close",
+								"bh_single_quote_content",
+								"bh_angle",
+								"bh_angle_center",
+								"bh_angle_open",
+								"bh_angle_close",
+								"bh_angle_content",
+								"bh_double_quote",
+								"bh_double_quote_center",
+								"bh_double_quote_open",
+								"bh_double_quote_close",
+								"bh_double_quote_content",
+								"bh_round",
+								"bh_round_center",
+								"bh_round_open",
+								"bh_round_close",
+								"bh_round_content",
+								"bh_default",
+								"bh_default_center",
+								"bh_default_open",
+								"bh_default_close",
+								"bh_default_content",
+								"bh_square",
+								"bh_square_center",
+								"bh_square_open",
+								"bh_square_close",
+								"bh_square_content",
+								"bh_tag",
+								"bh_tag_center",
+								"bh_tag_open",
+								"bh_tag_close",
+								"bh_tag_content",
+								"bh_curly",
+								"bh_curly_center",
+								"bh_curly_open",
+								"bh_curly_close",
+								"bh_curly_content",
+								"bh_unmatched",
+								"bh_unmatched_center",
+								"bh_unmatched_open",
+								"bh_unmatched_close",
+								"bh_unmatched_content",
+								"bh_c_define",
+								"bh_c_define_center",
+								"bh_c_define_open",
+								"bh_c_define_close",
+								"bh_c_define_content",
+								"bh_regex",
+								"bh_regex_center",
+								"bh_regex_open",
+								"bh_regex_close",
+								"bh_regex_content"
+							],
+							"syntax": "Packages/Better JavaScript/JavaScript.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 2098.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 0,
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "demo/js/rpg_objects.js",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 286292,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								174318,
+								174318
+							]
+						],
+						"settings":
+						{
+							"BracketHighlighterBusy": false,
+							"bh_regions":
+							[
+								"bh_round",
+								"bh_round_center",
+								"bh_round_open",
+								"bh_round_close",
+								"bh_round_content",
+								"bh_angle",
+								"bh_angle_center",
+								"bh_angle_open",
+								"bh_angle_close",
+								"bh_angle_content",
+								"bh_curly",
+								"bh_curly_center",
+								"bh_curly_open",
+								"bh_curly_close",
+								"bh_curly_content",
+								"bh_single_quote",
+								"bh_single_quote_center",
+								"bh_single_quote_open",
+								"bh_single_quote_close",
+								"bh_single_quote_content",
+								"bh_unmatched",
+								"bh_unmatched_center",
+								"bh_unmatched_open",
+								"bh_unmatched_close",
+								"bh_unmatched_content",
+								"bh_c_define",
+								"bh_c_define_center",
+								"bh_c_define_open",
+								"bh_c_define_close",
+								"bh_c_define_content",
+								"bh_regex",
+								"bh_regex_center",
+								"bh_regex_open",
+								"bh_regex_close",
+								"bh_regex_content",
+								"bh_tag",
+								"bh_tag_center",
+								"bh_tag_open",
+								"bh_tag_close",
+								"bh_tag_content",
+								"bh_square",
+								"bh_square_center",
+								"bh_square_open",
+								"bh_square_close",
+								"bh_square_content",
+								"bh_default",
+								"bh_default_center",
+								"bh_default_open",
+								"bh_default_close",
+								"bh_default_content",
+								"bh_double_quote",
+								"bh_double_quote_center",
+								"bh_double_quote_open",
+								"bh_double_quote_close",
+								"bh_double_quote_content"
+							],
+							"syntax": "Packages/Better JavaScript/JavaScript.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 122408.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
 					"type": "text"
 				}
 			]
@@ -261,7 +761,7 @@
 	],
 	"incremental_find":
 	{
-		"height": 31.0
+		"height": 27.0
 	},
 	"input":
 	{
@@ -290,6 +790,10 @@
 		]
 	},
 	"menu_visible": true,
+	"output.exec":
+	{
+		"height": 124.0
+	},
 	"output.find_results":
 	{
 		"height": 0.0
@@ -298,7 +802,7 @@
 	"project": "untitled.sublime-project",
 	"replace":
 	{
-		"height": 58.0
+		"height": 64.0
 	},
 	"save_all_on_build": true,
 	"select_file":
