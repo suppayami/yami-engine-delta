@@ -159,8 +159,4 @@
         // destroy method
     };
 
-    Game_CharacterBase.prototype.isMapPassable = function(x, y, d) {
-        return true;
-    };
-
 }());

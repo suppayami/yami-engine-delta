@@ -19,6 +19,7 @@
     var Data = function(data) {
         this._loadListeners = [];
         this._isExist = false;
+        this._collision = []; // collision matrix
         this.data = data;
     };
 
@@ -129,6 +130,12 @@
             get: function() {
                 return this.data.tilesets;
             }
+        },
+
+        collision: {
+            get: function() {
+                return this._collision;
+            }
         }
     });
 
@@ -139,7 +146,32 @@
      */
     Data.prototype._setupData = function() {
         if (!!this.data) {
+            this._setupCollision();
             this._loadTilesets();
+        }
+    };
+
+    Data.prototype._setupCollision = function() {
+        var collisionLayers = this._getCollisionLayers(),
+            i,j,
+            layer;
+
+        for (i = 0; i < this.width * this.height; i++) {
+            this.collision[i] = 0;
+        };
+
+        for (i = 0; i < collisionLayers.length; i++) {
+            layer = collisionLayers[i];
+
+            if (!layer.data) {
+                continue;
+            }
+
+            for (j = 0; j < layer.data.length; j++) {
+                if (layer.data[j] > 0) {
+                    this.collision[j] = 1;
+                }
+            }
         }
     };
 
@@ -153,6 +185,12 @@
             data = tilesetsData[i];
             ImageManager.loadParserTileset(data.image, 0);
         }
+    };
+
+    Data.prototype._getCollisionLayers = function() {
+        return this.layers.filter(function(layer) {
+            return !!layer.properties && !!layer.properties.collision;
+        });
     };
 
     /**
