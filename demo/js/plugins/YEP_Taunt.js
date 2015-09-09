@@ -1,16 +1,19 @@
 //=============================================================================
 // Yanfly Engine Plugins - Taunt
 // YEP_Taunt.js
-// Last Updated: 2015.07.25
+// Version: 1.00
 //=============================================================================
 
-if ($imported == undefined) { var $imported = {}; }
-$imported["YEP_Taunt"] = true;
+var Imported = Imported || {};
+Imported.YEP_Taunt = true;
+
+var Yanfly = Yanfly || {};
+Yanfly.Taunt = Yanfly.Taunt || {};
 
 //=============================================================================
  /*:
- * @plugindesc Adds a Taunt mechanic to battle. Units with a taunt status will
- * force the enemy team to focus them as action targets.
+ * @plugindesc Adds a Taunt mechanic to battle. Units with a taunt status
+ * will force the enemy team to focus them as action targets.
  * @author Yanfly Engine Plugins
  *
  * @help
@@ -53,37 +56,37 @@ $imported["YEP_Taunt"] = true;
  *   <Bypass Taunt>
  *   This causes this skill/item to ignore taunts altogether and the skill/item
  *   is able to select single targets as if no taunts existed on the field.
- *
- * ChangeLog:
- *   2015.07.25 - Completed.
  */
 //=============================================================================
 
-var parameters = PluginManager.parameters('YEP_Taunt');
+//=============================================================================
+// DataManager
+//=============================================================================
 
-var _YEP_Taunt_Scene_Boot_start = Scene_Boot.prototype.start;
-Scene_Boot.prototype.start = function() {
-	_YEP_Taunt_Scene_Boot_start.call(this);
-	DataManager.processTauntNotetags1($dataActors);
-  DataManager.processTauntNotetags1($dataClasses);
-  DataManager.processTauntNotetags1($dataWeapons);
-  DataManager.processTauntNotetags1($dataArmors);
-  DataManager.processTauntNotetags1($dataStates);
-  DataManager.processTauntNotetags1($dataEnemies);
-  DataManager.processTauntNotetags2($dataSkills);
-  DataManager.processTauntNotetags2($dataEnemies);
+Yanfly.Taunt.DataManager_isDatabaseLoaded = DataManager.isDatabaseLoaded;
+DataManager.isDatabaseLoaded = function() {
+    if (!Yanfly.Taunt.DataManager_isDatabaseLoaded.call(this)) return false;
+		this.processTauntNotetags1($dataActors);
+	  this.processTauntNotetags1($dataClasses);
+	  this.processTauntNotetags1($dataWeapons);
+	  this.processTauntNotetags1($dataArmors);
+	  this.processTauntNotetags1($dataStates);
+	  this.processTauntNotetags1($dataEnemies);
+	  this.processTauntNotetags2($dataSkills);
+	  this.processTauntNotetags2($dataEnemies);
+		return true;
 };
 
 DataManager.processTauntNotetags1 = function(group) {
-	var note1 = /<(?:PHYSICAL_TAUNT|physical taunt)>/i;
-  var note2 = /<(?:MAGICAL_TAUNT|magical taunt)>/i;
-  var note3 = /<(?:CERTAIN_TAUNT|certain taunt)>/i;
-  var note4 = /<(?:NULL_PHYSICAL_TAUNT|null physical taunt)>/i;
-  var note5 = /<(?:NULL_MAGICAL_TAUNT|null magical taunt)>/i
-  var note6 = /<(?:NULL_CERTAIN_TAUNT|null certain taunt)>/i
-  var note7 = /<(?:IGNORE_PHYSICAL_TAUNT|ignore physical taunt)>/i
-  var note8 = /<(?:IGNORE_MAGICAL_TAUNT|ignore magical taunt)>/i
-  var note9 = /<(?:IGNORE_CERTAIN_TAUNT|ignore certain taunt)>/i
+	var note1 = /<(?:PHYSICAL TAUNT)>/i;
+  var note2 = /<(?:MAGICAL TAUNT)>/i;
+  var note3 = /<(?:CERTAIN TAUNT)>/i;
+  var note4 = /<(?:NULL PHYSICAL TAUNT)>/i;
+  var note5 = /<(?:NULL MAGICAL TAUNT)>/i
+  var note6 = /<(?:NULL CERTAIN TAUNT)>/i
+  var note7 = /<(?:IGNORE PHYSICAL TAUNT)>/i
+  var note8 = /<(?:IGNORE MAGICAL TAUNT)>/i
+  var note9 = /<(?:IGNORE CERTAIN TAUNT)>/i
   for (var n = 1; n < group.length; n++) {
 		var obj = group[n];
 		var notedata = obj.note.split(/[\r\n]+/);
@@ -126,7 +129,7 @@ DataManager.processTauntNotetags1 = function(group) {
 };
 
 DataManager.processTauntNotetags2 = function(group) {
-	var note1 = /<(?:BYPASS_TAUNT|bypass taunt)>/i;
+	var note1 = /<(?:BYPASS TAUNT)>/i;
   for (var n = 1; n < group.length; n++) {
 		var obj = group[n];
 		var notedata = obj.note.split(/[\r\n]+/);
@@ -368,10 +371,10 @@ Game_Enemy.prototype.ignoreTauntCertain = function() {
 // Game_Unit
 //=============================================================================
 
-var _YEP_Taunt_Game_Unit_aliveMembers = Game_Unit.prototype.aliveMembers;
+Yanfly.Taunt.Game_Unit_aliveMembers = Game_Unit.prototype.aliveMembers;
 Game_Unit.prototype.aliveMembers = function() {
     if (this._inBattle && $gameTemp._taunt) return this.tauntMembers();
-    return _YEP_Taunt_Game_Unit_aliveMembers.call(this);
+    return Yanfly.Taunt.Game_Unit_aliveMembers.call(this);
 };
 
 Game_Unit.prototype.physicalTauntMembers = function() {
@@ -400,7 +403,7 @@ Game_Unit.prototype.tauntMembers = function() {
       action = $gameTemp._tauntAction;
     }
     if (!action.isTauntable()) {
-      return _YEP_Taunt_Game_Unit_aliveMembers.call(this);
+      return Yanfly.Taunt.Game_Unit_aliveMembers.call(this);
     }
     if (action.isPhysical() && this.physicalTauntMembers().length > 0) {
       return this.physicalTauntMembers();
@@ -409,21 +412,21 @@ Game_Unit.prototype.tauntMembers = function() {
     } else if (action.isCertainHit() && this.certainTauntMembers().length > 0) {
       return this.certainTauntMembers();
     }
-    return _YEP_Taunt_Game_Unit_aliveMembers.call(this);
+    return Yanfly.Taunt.Game_Unit_aliveMembers.call(this);
 };
 
 //=============================================================================
 // Game_Action
 //=============================================================================
 
-var _YEP_Taunt_Game_Action_makeTargets =
+Yanfly.Taunt.Game_Action_makeTargets =
     Game_Action.prototype.makeTargets;
 Game_Action.prototype.makeTargets = function() {
     if (this.isValid() && this.isTauntable()) {
       $gameTemp._taunt = true;
       $gameTemp._tauntAction = this;
     }
-    var value = _YEP_Taunt_Game_Action_makeTargets.call(this);
+    var value = Yanfly.Taunt.Game_Action_makeTargets.call(this);
     if (this.isValid() && this.isTauntable()) {
       $gameTemp._taunt = false;
     }
@@ -439,15 +442,52 @@ Game_Action.prototype.isTauntable = function() {
     return true;
 };
 
+Yanfly.Taunt.Game_Action_targetsForOpponents =
+		Game_Action.prototype.targetsForOpponents;
+Game_Action.prototype.targetsForOpponents = function() {
+    var targets = Yanfly.Taunt.Game_Action_targetsForOpponents.call(this);
+		if (this.isValid() && this.isTauntable() && $gameTemp._taunt) {
+			if (this.isForOne() && this._targetIndex >= 0) {
+				targets = this.getTauntTarget(targets);
+			}
+		};
+    return targets;
+};
+
+Game_Action.prototype.getTauntTarget = function(targets) {
+		var unit = this.opponentsUnit();
+		var target = unit.smoothTarget(this._targetIndex);
+		if (this.isPhysical() && unit.physicalTauntMembers().length > 0) {
+			if (!unit.physicalTauntMembers().contains(target)) {
+				var group = unit.physicalTauntMembers();
+				target = group[Math.floor(Math.random()*group.length)];
+				targets = [target];
+			}
+		} else if (this.isMagical() && unit.magicalTauntMembers().length > 0) {
+			if (!unit.magicalTauntMembers().contains(target)) {
+				var group = unit.magicalTauntMembers();
+				target = group[Math.floor(Math.random()*group.length)];
+				targets = [target];
+			}
+		} else if (this.isCertainHit() && unit.certainTauntMembers().length > 0) {
+			if (!unit.certainTauntMembers().contains(target)) {
+				var group = unit.certainTauntMembers();
+				target = group[Math.floor(Math.random()*group.length)];
+				targets = [target];
+			}
+		}
+		return targets;
+};
+
 //=============================================================================
 // Scene_Battle
 //=============================================================================
 
-var _YEP_Taunt_Scene_Battle_selectEnemySelection =
+Yanfly.Taunt.Scene_Battle_selectEnemySelection =
     Scene_Battle.prototype.selectEnemySelection;
 Scene_Battle.prototype.selectEnemySelection = function() {
     $gameTemp._taunt = true;
-    _YEP_Taunt_Scene_Battle_selectEnemySelection.call(this);
+    Yanfly.Taunt.Scene_Battle_selectEnemySelection.call(this);
     $gameTemp._taunt = false;
 };
 

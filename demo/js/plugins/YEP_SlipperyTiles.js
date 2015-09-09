@@ -1,11 +1,14 @@
 //=============================================================================
 // Yanfly Engine Plugins - Slippery Tiles
 // YEP_SlipperyTiles.js
-// Last Updated: 2015.07.16
+// Version: 1.00
 //=============================================================================
 
-if ($imported == undefined) { var $imported = {}; }
-$imported["YEP_SlipperyTiles"] = true;
+var Imported = Imported || {};
+Imported.YEP_SlipperyTiles = true;
+
+var Yanfly = Yanfly || {};
+Yanfly.Slip = Yanfly.Slip || {};
 
 //=============================================================================
  /*:
@@ -20,26 +23,47 @@ $imported["YEP_SlipperyTiles"] = true;
  * @param Slippery Region
  * @desc Any tile marked with this region is a slippery tile
  * regardless of terrain tag. Use 0 to ignore.
- * @default 248
+ * @default 0
  *
  * @help
- *                                                                  .
+ * ============================================================================
+ * Introduction                                                     .
+ * ============================================================================
  *
- * ChangeLog:
- *   2015.07.16 - Completed.
+ * This plugin enables you to set which tiles are slippery tiles through either
+ * regions or notetags. To use regions, change the parameter setting to which
+ * region ID you would like to associate with a slippery tile.
+ *
+ * ============================================================================
+ * Notetags
+ * ============================================================================
+ *
+ * Tileset Notetag:
+ *   <Slippery Tile: x>
+ *   <Slippery Tile: x, x, x>
+ *   Tiles with terrain ID x will be designated as slippery tiles.
  */
 //=============================================================================
 
-var parameters = PluginManager.parameters('YEP_SlipperyTiles');
+//=============================================================================
+// Parameter Variables
+//=============================================================================
+
+Yanfly.Parameters = PluginManager.parameters('YEP_SlipperyTiles');
+Yanfly.Param = Yanfly.Param || {};
+
+Yanfly.Param.SlipRegion = Number(Yanfly.Parameters['Slippery Region']);
+Yanfly.Param.SlipFrame = Number(Yanfly.Parameters['Slippery Frame']);
 
 //=============================================================================
 // DataManager
 //=============================================================================
 
-var _YEP_Slip_Scene_Boot_start = Scene_Boot.prototype.start;
-Scene_Boot.prototype.start = function() {
-	_YEP_Slip_Scene_Boot_start.call(this);
-	DataManager.processSlipNotetags($dataTilesets);
+Yanfly.Slip.DataManager_isDatabaseLoaded = DataManager.isDatabaseLoaded;
+DataManager.isDatabaseLoaded = function() {
+    if (!Yanfly.Slip.DataManager_isDatabaseLoaded.call(this)) return false;
+		this.processSlipNotetags($dataTilesets);
+		return true;
 };
 
 DataManager.processSlipNotetags = function(group) {
@@ -64,11 +88,10 @@ DataManager.processSlipNotetags = function(group) {
 // Game_Map
 //=============================================================================
 
-var _yep_slip_slipRegion = Number(parameters['Slippery Region'] || 248);
 Game_Map.prototype.isSlippery = function(mx, my) {
     if (this.isValid(mx, my)) {
-      if (_yep_slip_slipRegion !== 0 &&
-        this.regionId(mx, my) === _yep_slip_slipRegion) return true;
+      if (Yanfly.Param.SlipRegion !== 0 &&
+        this.regionId(mx, my) === Yanfly.Param.SlipRegion) return true;
       var tagId = this.terrainTag(mx, my);
       var slipTiles = this.tileset().slippery;
       return slipTiles.contains(tagId);
@@ -90,33 +113,33 @@ Game_CharacterBase.prototype.slipperyPose = function() {
     return true;
 };
 
-var _YEP_Slip_Game_CharacterBase_pattern = Game_CharacterBase.prototype.pattern;
-var _yep_slip_slipFrame = Number(parameters['Slippery Frame'] || 2);
+Yanfly.Slip.Game_CharacterBase_pattern = Game_CharacterBase.prototype.pattern;
 Game_CharacterBase.prototype.pattern = function() {
-    if (this.slipperyPose()) return _yep_slip_slipFrame;
-    return _YEP_Slip_Game_CharacterBase_pattern.call(this);
+    if (this.slipperyPose()) return Yanfly.Param.SlipFrame;
+    return Yanfly.Slip.Game_CharacterBase_pattern.call(this);
 };
 
 //=============================================================================
 // Game_Player
 //=============================================================================
 
-var _YEP_Slip_Game_Player_isDashing = Game_Player.prototype.isDashing;
+Yanfly.Slip.Game_Player_isDashing = Game_Player.prototype.isDashing;
 Game_Player.prototype.isDashing = function() {
     if (this.onSlipperyFloor()) return false;
-    return _YEP_Slip_Game_Player_isDashing.call(this);
+    return Yanfly.Slip.Game_Player_isDashing.call(this);
 };
 
-var _YEP_Slip_Game_Player_update = Game_Player.prototype.update;
+Yanfly.Slip.Game_Player_update = Game_Player.prototype.update;
 Game_Player.prototype.update = function(sceneActive) {
-    _YEP_Slip_Game_Player_update.call(this, sceneActive);
+    Yanfly.Slip.Game_Player_update.call(this, sceneActive);
     this.updateSlippery();
 };
 
 Game_Player.prototype.updateSlippery = function() {
     if ($gameMap.isEventRunning()) return;
     if (this.onSlipperyFloor() && !this.isMoving()) {
-      this.moveStraight(this._direction);
+      $gameTemp.clearDestination();
+			this.moveStraight(this._direction);
     }
 };
 

@@ -1,11 +1,14 @@
 //=============================================================================
 // Yanfly Engine Plugins - Party System
 // YEP_PartySystem.js
-// Last Updated: 2015.07.30
+// Version: 1.00
 //=============================================================================
 
-if ($imported == undefined) { var $imported = {}; }
-$imported["YEP_PartySystem"] = true;
+var Imported = Imported || {};
+Imported.YEP_PartySystem = true;
+
+var Yanfly = Yanfly || {};
+Yanfly.Party = Yanfly.Party || {};
 
 //=============================================================================
  /*:
@@ -26,6 +29,7 @@ $imported["YEP_PartySystem"] = true;
  *
  * @param Text Alignment
  * @desc The text alignment for the command window.                 .
+ * left     center     right
  * @default center
  *
  * @param Change Command
@@ -130,23 +134,40 @@ $imported["YEP_PartySystem"] = true;
  *   UnrequireActor 4 5 6 - Player no longer needs actors 4, 5, and 6 in party.
  *                        * Required Actors must be in the party in order for
  *                          the player to be able to exit the party menu.
- *
- * ChangeLog:
- *   2015.07.30 - Combined plugin with Actor Lock.
- *   2015.07.18 - Code efficiency update and added Plugin Command.
- *   2015.07.17 - Completed.
  */
 //=============================================================================
 
-var parameters = PluginManager.parameters('YEP_PartySystem');
+//=============================================================================
+// Parameter Variables
+//=============================================================================
+
+Yanfly.Parameters = PluginManager.parameters('YEP_PartySystem');
+Yanfly.Param = Yanfly.Param || {};
+Yanfly.Icon = Yanfly.Icon || {};
+
+Yanfly.Param.MaxBattleMembers = String(Yanfly.Parameters['Max Battle Members']);
+Yanfly.Param.PartyLockFirst = String(Yanfly.Parameters['Lock First Actor']);
+Yanfly.Param.PartyTextAlign = String(Yanfly.Parameters['Text Alignment']);
+Yanfly.Param.PartyCommand1 = String(Yanfly.Parameters['Change Command']);
+Yanfly.Param.PartyCommand2 = String(Yanfly.Parameters['Remove Command']);
+Yanfly.Param.PartyCommand3 = String(Yanfly.Parameters['Revert Command']);
+Yanfly.Param.PartyCommand4 = String(Yanfly.Parameters['Finish Command']);
+Yanfly.Param.PartyEmptyText = String(Yanfly.Parameters['Empty Text']);
+Yanfly.Param.PartyShowFace = String(Yanfly.Parameters['Actor Face']);
+Yanfly.Param.PartyShowCharacter = String(Yanfly.Parameters['Actor Sprite']);
+Yanfly.Icon.PartyLocked = Number(Yanfly.Parameters['Locked Icon']);
+Yanfly.Icon.PartyRequired = Number(Yanfly.Parameters['Required Icon']);
+Yanfly.Icon.PartyRemove = Number(Yanfly.Parameters['Remove Icon']);
+Yanfly.Param.PartySpriteBufferY = Number(Yanfly.Parameters['Sprite Y Buffer']);
+Yanfly.Param.ColorInParty = Number(Yanfly.Parameters['In Party Text Color']);
 
 //=============================================================================
 // Game_Actor
 //=============================================================================
 
-var _YEP_PARTY_Game_Actor_setup = Game_Actor.prototype.setup;
+Yanfly.Party.Game_Actor_setup = Game_Actor.prototype.setup;
 Game_Actor.prototype.setup = function(actorId) {
-    _YEP_PARTY_Game_Actor_setup.call(this, actorId);
+    Yanfly.Party.Game_Actor_setup.call(this, actorId);
     this.initLocked();
 };
 
@@ -155,20 +176,20 @@ Game_Actor.prototype.initLocked = function() {
     this._required = false;
 };
 
-var _YEP_PARTY_Game_Actor_isFormationChangeOk =
+Yanfly.Party.Game_Actor_isFormationChangeOk =
     Game_Actor.prototype.isFormationChangeOk;
 Game_Actor.prototype.isFormationChangeOk = function() {
     if (this._locked) return false;
-    return _YEP_PARTY_Game_Actor_isFormationChangeOk.call(this);
+    return Yanfly.Party.Game_Actor_isFormationChangeOk.call(this);
 };
 
 //=============================================================================
 // Game_Party
 //=============================================================================
 
-var _YEP_PARTY_Game_Party_initialize = Game_Party.prototype.initialize;
+Yanfly.Party.Game_Party_initialize = Game_Party.prototype.initialize;
 Game_Party.prototype.initialize = function() {
-    _YEP_PARTY_Game_Party_initialize.call(this);
+    Yanfly.Party.Game_Party_initialize.call(this);
     this.initializeBattleMembers();
 };
 
@@ -186,18 +207,16 @@ Game_Party.prototype.battleMembers = function() {
     return battleParty;
 };
 
-var _yep_party_maxMembers = String(parameters['Max Battle Members'] || '4');
 Game_Party.prototype.maxBattleMembers = function() {
-    return Math.max(_yep_party_maxMembers, 1);
+    return Math.max(Yanfly.Param.MaxBattleMembers, 1);
 };
 
-var _yep_party_lockFirst = String(parameters['Lock First Actor'] || 'false');
-var _YEP_PARTY_Game_Party_setupStartingMembers =
+Yanfly.Party.Game_Party_setupStartingMembers =
     Game_Party.prototype.setupStartingMembers;
 Game_Party.prototype.setupStartingMembers = function() {
-    _YEP_PARTY_Game_Party_setupStartingMembers.call(this);
+    Yanfly.Party.Game_Party_setupStartingMembers.call(this);
     this.initializeBattleMembers();
-    if (_yep_party_lockFirst) this.lockActor(this._actors[0]);
+    if (eval(Yanfly.Param.PartyLockFirst)) this.lockActor(this._actors[0]);
 };
 
 Game_Party.prototype.toInitializeBattleMembers = function() {
@@ -205,11 +224,11 @@ Game_Party.prototype.toInitializeBattleMembers = function() {
     return (this._battleMembers.length !== this.maxBattleMembers());
 };
 
-var _YEP_PARTY_Game_Party_setupBattleTestMembers =
+Yanfly.Party.Game_Party_setupBattleTestMembers =
     Game_Party.prototype.setupBattleTestMembers;
 Game_Party.prototype.setupBattleTestMembers = function() {
-    _YEP_PARTY_Game_Party_setupBattleTestMembers.call(this);
-    if (_yep_party_lockFirst) this.lockActor(this._actors[0]);
+    Yanfly.Party.Game_Party_setupBattleTestMembers.call(this);
+    if (Yanfly.Param.PartyLockFirst) this.lockActor(this._actors[0]);
 };
 
 Game_Party.prototype.initializeBattleMembers = function() {
@@ -224,9 +243,9 @@ Game_Party.prototype.initializeBattleMembers = function() {
     if ($gamePlayer) $gamePlayer.refresh();
 };
 
-var _YEP_PARTY_Game_Party_addActor = Game_Party.prototype.addActor;
+Yanfly.Party.Game_Party_addActor = Game_Party.prototype.addActor;
 Game_Party.prototype.addActor = function(actorId) {
-    _YEP_PARTY_Game_Party_addActor.call(this, actorId);
+    Yanfly.Party.Game_Party_addActor.call(this, actorId);
     if (this._battleMembers.contains(actorId)) return;
     if (!this._battleMembers.contains(0)) return;
     var index = this._battleMembers.indexOf(0);
@@ -236,9 +255,9 @@ Game_Party.prototype.addActor = function(actorId) {
     this.rearrangeActors();
 };
 
-var _YEP_PARTY_Game_Party_removeActor = Game_Party.prototype.removeActor;
+Yanfly.Party.Game_Party_removeActor = Game_Party.prototype.removeActor;
 Game_Party.prototype.removeActor = function(actorId) {
-    _YEP_PARTY_Game_Party_removeActor.call(this, actorId);
+    Yanfly.Party.Game_Party_removeActor.call(this, actorId);
     if (!this._battleMembers.contains(actorId)) return;
     var index = this._battleMembers.indexOf(actorId);
     this._battleMembers[index] = 0;
@@ -249,20 +268,26 @@ Game_Party.prototype.removeActor = function(actorId) {
 
 Game_Party.prototype.rearrangeActors = function() {
     if (this._battleMembers === null) this.initializeBattleMembers();
-    var array = [];
+    var battleArray = [];
     for (var i = 0; i < this._battleMembers.length; ++i) {
       var actorId = this._battleMembers[i];
-      if (actorId !== null && $gameActors.actor(actorId)) {
-        array.push(actorId);
-      }
+      if (actorId === null) continue;
+      if ($gameActors.actor(actorId)) battleArray.push(actorId);
     }
+    var reserveArray = [];
     for (var i = 0; i < this._actors.length; ++i) {
       var actorId = this._actors[i];
-      if (!array.contains(actorId) && $gameActors.actor(actorId) !== null) {
-        array.push(actorId)
-      }
+      if (battleArray.contains(actorId)) continue;
+      if ($gameActors.actor(actorId) === null) continue;
+      reserveArray.push(actorId);
     }
-    this._actors = array;
+    reserveArray = this.sortReserveParty(reserveArray);
+    this._actors = battleArray.concat(reserveArray);
+};
+
+Game_Party.prototype.sortReserveParty = function(party) {
+    party.sort(function(a, b) { return a - b; });
+    return party;
 };
 
 Game_Party.prototype.lockActor = function(actorId) {
@@ -274,10 +299,10 @@ Game_Party.prototype.lockActor = function(actorId) {
 // Game_Interpreter
 //=============================================================================
 
-var _YEP_PARTY_Game_Interpreter_pluginCommand =
+Yanfly.Party.Game_Interpreter_pluginCommand =
     Game_Interpreter.prototype.pluginCommand;
 Game_Interpreter.prototype.pluginCommand = function(command, args) {
-    _YEP_PARTY_Game_Interpreter_pluginCommand.call(this, command, args)
+    Yanfly.Party.Game_Interpreter_pluginCommand.call(this, command, args)
     if (command === 'OpenPartyMenu') this.gotoSceneParty();
     if (command === 'LockActor') this.lockActor(args, true);
     if (command === 'UnlockActor') this.lockActor(args, false);
@@ -333,15 +358,10 @@ Window_PartyMenuCommand.prototype.numVisibleRows = function() {
     return 4;
 };
 
-var _yep_party_textAlign = String(parameters['Text Alignment'] || 'center');
 Window_PartyMenuCommand.prototype.itemTextAlign = function() {
-    return _yep_party_textAlign;
+    return Yanfly.Param.PartyTextAlign;
 };
 
-var _yep_party_command1 = String(parameters['Change Command'] || 'Change');
-var _yep_party_command2 = String(parameters['Remove Command'] || 'Remove');
-var _yep_party_command3 = String(parameters['Revert Command'] || 'Revert');
-var _yep_party_command4 = String(parameters['Cancel Command'] || 'Cancel');
 Window_PartyMenuCommand.prototype.makeCommandList = function() {
     this.addChangeCommand();
     this.addRemoveCommand();
@@ -351,22 +371,23 @@ Window_PartyMenuCommand.prototype.makeCommandList = function() {
 };
 
 Window_PartyMenuCommand.prototype.addChangeCommand = function() {
-    this.addCommand(_yep_party_command1, 'change');
+    this.addCommand(Yanfly.Param.PartyCommand1, 'change');
 };
 
 Window_PartyMenuCommand.prototype.addRemoveCommand = function() {
-    this.addCommand(_yep_party_command2, 'remove');
+    this.addCommand(Yanfly.Param.PartyCommand2, 'remove');
 };
 
 Window_PartyMenuCommand.prototype.addRevertCommand = function() {
-    this.addCommand(_yep_party_command3, 'revert');
+    this.addCommand(Yanfly.Param.PartyCommand3, 'revert');
 };
 
 Window_PartyMenuCommand.prototype.addCustomCommand = function() {
 };
 
 Window_PartyMenuCommand.prototype.addCancelCommand = function() {
-    this.addCommand(_yep_party_command4, 'cancel', this.isCancelEnabled());
+    this.addCommand(Yanfly.Param.PartyCommand4, 'cancel',
+      this.isCancelEnabled());
 };
 
 Window_PartyMenuCommand.prototype.inParty = function(actor) {
@@ -386,7 +407,8 @@ Window_PartyMenuCommand.prototype.refuseCancel = function(actorId) {
     if ($gameParty._battleMembers.contains(actorId)) return false;
     if ($gameActors.actor(actorId)._locked) return true;
     if ($gameActors.actor(actorId)._required) return true;
-    return $gameActors.actor(actorId).isFormationChangeOk();
+    if (!$gameActors.actor(actorId).isFormationChangeOk()) return true;
+    return false;
 };
 
 //=============================================================================
@@ -452,25 +474,22 @@ Window_PartySelect.prototype.drawItem = function(index) {
     }
 };
 
-var _yep_party_empty = String(parameters['Empty Text'] || '- Empty -');
 Window_PartySelect.prototype.drawEmpty = function(rect) {
     var color = this.gaugeBackColor();
     this.changePaintOpacity(false);
     this.contents.fillRect(rect.x, rect.y, rect.width, rect.height, color);
     this.changePaintOpacity(true);
     this.resetFontSettings();
-    var text = _yep_party_empty
+    var text = Yanfly.Param.PartyEmptyText
     this.contents.drawText(text, rect.x, rect.y, rect.width,
         rect.height, 'center');
 };
 
-var _yep_party_showface = String(parameters['Actor Face'] || 'true');
-var _yep_party_showchar = String(parameters['Actor Sprite'] || 'true');
 Window_PartySelect.prototype.drawActor = function(rect, actor) {
-    if (eval(_yep_party_showface)) {
+    if (eval(Yanfly.Param.PartyShowFace)) {
       this.drawActorFace(actor, rect.x, rect.y, rect.width, rect.height);
     }
-    if (eval(_yep_party_showchar)) {
+    if (eval(Yanfly.Param.PartyShowCharacter)) {
       var ry = rect.height * 19/20;
       this.drawActorCharacter(actor, rect.x + rect.width / 2, ry);
     }
@@ -479,20 +498,18 @@ Window_PartySelect.prototype.drawActor = function(rect, actor) {
     this.drawRequiredIcon(actor, rect);
 };
 
-var _yep_party_lockIcon = Number(parameters['Locked Icon'] || 0);
 Window_PartySelect.prototype.drawLockedIcon = function(actor, rect) {
     if (!actor._locked) return;
     var ix = rect.x + rect.width - Window_Base._iconWidth - 2;
     var iy = rect.y + rect.height - Window_Base._iconHeight - 2;
-    this.drawIcon(_yep_party_lockIcon, ix, iy)
+    this.drawIcon(Yanfly.Icon.PartyLocked, ix, iy)
 };
 
-var _yep_party_reqIcon = Number(parameters['Required Icon'] || 0);
 Window_PartySelect.prototype.drawRequiredIcon = function(actor, rect) {
     if (!actor._required) return;
     var ix = rect.x + 2;
     var iy = rect.y + rect.height - Window_Base._iconHeight - 2;
-    this.drawIcon(_yep_party_reqIcon, ix, iy)
+    this.drawIcon(Yanfly.Icon.PartyRequired, ix, iy)
 };
 
 Window_PartySelect.prototype.curActor = function() {
@@ -608,8 +625,9 @@ Window_PartyList.prototype.makeItemList = function() {
 };
 
 Window_PartyList.prototype.createActorOrder = function() {
-    for (var i = 0; i < $dataActors.length; ++i) {
-      if ($gameParty._actors.contains(i)) this._data.push(i);
+    for (var i = 0; i < $gameParty._actors.length; ++i) {
+      var actorId = $gameParty._actors[i];
+      if ($gameActors.actor(actorId)) this._data.push(actorId);
     }
 };
 
@@ -634,12 +652,12 @@ Window_PartyList.prototype.drawItem = function(index) {
     this.drawActor(actor, rect);
 };
 
-var _yep_party_removeIcon = Number(parameters['Remove Icon'] || 16);
 Window_PartyList.prototype.drawRemove = function(rect) {
     var ibw = Window_Base._iconWidth + 4;
     rect.width -= this.textPadding();
-    this.drawIcon(_yep_party_removeIcon, rect.x + 2, rect.y + 2);
-    this.drawText(_yep_party_command2, rect.x + ibw, rect.y, rect.width - ibw);
+    this.drawIcon(Yanfly.Icon.PartyRemove, rect.x + 2, rect.y + 2);
+    this.drawText(Yanfly.Param.PartyCommand2, rect.x + ibw, rect.y,
+      rect.width - ibw);
 };
 
 Window_PartyList.prototype.drawActor = function(actor, rect) {
@@ -647,10 +665,9 @@ Window_PartyList.prototype.drawActor = function(actor, rect) {
     this.drawExtra(actor, rect);
 };
 
-var _yep_party_yBuffer = Number(parameters['Sprite Y Buffer'] || 12);
 Window_PartyList.prototype.drawBasic = function(actor, rect) {
     var wx = Window_Base._iconWidth / 2 + this.textPadding() / 2;
-    var wy = rect.y + rect.height + _yep_party_yBuffer
+    var wy = rect.y + rect.height + Yanfly.Param.PartySpriteBufferY
     this.drawActorCharacter(actor, wx, wy);
     this.changeTextColor(this.listColor(actor));
     this.changePaintOpacity(this.actorIsEnabled(actor));
@@ -672,11 +689,11 @@ Window_PartyList.prototype.drawRestrictions = function(actor, rect) {
     var section = this.itemSection();
     var wx = section * 2 - Window_Base._iconWidth - 2;
     if (actor._locked) {
-      this.drawIcon(_yep_party_lockIcon, wx, rect.y);
+      this.drawIcon(Yanfly.Icon.PartyLocked, wx, rect.y);
       wx -= Window_Base._iconWidth;
     }
     if (actor._required) {
-      this.drawIcon(_yep_party_reqIcon, wx, rect.y);
+      this.drawIcon(Yanfly.Icon.PartyRequired, wx, rect.y);
     }
 };
 
@@ -687,17 +704,16 @@ Window_PartyList.prototype.itemSection = function() {
 Window_PartyList.prototype.drawCurrentAndMax = function(current, max, x, y,
                                                    width, color1, color2) {
 		var labelWidth = this.textWidth('HP');
-    var valueWidth = this.textWidth(toGroup(max));
+    var valueWidth = this.textWidth(Yanfly.Util.toGroup(max));
     var slashWidth = this.textWidth('/');
     var x1 = x + width - valueWidth;
     this.changeTextColor(color1);
-    this.drawText(toGroup(current), x1, y, valueWidth, 'right');
+    this.drawText(Yanfly.Util.toGroup(current), x1, y, valueWidth, 'right');
 };
 
-var _yep_party_inPartyColor = Number(parameters['In Party Text Color'] || 6);
 Window_PartyList.prototype.listColor = function(actor) {
     if (actor.isBattleMember()) {
-      return this.textColor(_yep_party_inPartyColor);
+      return this.textColor(Yanfly.Param.ColorInParty);
     }
     return this.normalColor()
 };
@@ -830,6 +846,7 @@ Scene_Party.prototype.onPartyOk = function() {
 Scene_Party.prototype.onPartyCancel = function() {
     this._partyWindow.select(-1);
     this._commandWindow.activate();
+    this._helpWindow.setItem(null);
 };
 
 Scene_Party.prototype.onPartyPageUp = function() {
@@ -897,14 +914,16 @@ Scene_Party.prototype.switchActors = function() {
 };
 
 //=============================================================================
-// Other Functions
+// Utilities
 //=============================================================================
 
-if (typeof toGroup !== 'function'){
-		toGroup = function(inVal) {
+Yanfly.Util = Yanfly.Util || {};
+
+if (!Yanfly.Util.toGroup) {
+		Yanfly.Util.toGroup = function(inVal) {
 				return inVal;
 		}
-}
+};
 
 //=============================================================================
 // End of File

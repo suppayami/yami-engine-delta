@@ -1,11 +1,14 @@
 //=============================================================================
 // Yanfly Engine Plugins - Base Troop Events
 // YEP_BaseTroopEvents.js
-// Last Updated: 2015.07.10
+// Version: 1.00
 //=============================================================================
 
-if ($imported == undefined) { var $imported = {}; }
-$imported["YEP_BaseTroopEvents"] = true;
+var Imported = Imported || {};
+Imported.YEP_BaseTroopEvents = true;
+
+var Yanfly = Yanfly || {};
+Yanfly.BTE = Yanfly.BTE || {};
 
 //=============================================================================
 /*:
@@ -23,38 +26,46 @@ $imported["YEP_BaseTroopEvents"] = true;
  * custom event pages, you can now save yourself some time by drawing all the
  * event pages from a base troop event to occur in every fight. All of the
  * events will be present in every single battle.
- *
- * ChangeLog:
- *   2015.07.10 - Completed.
  */
 //=============================================================================
 
-Array.prototype.extend = function (other_array) {
-    other_array.forEach(function(v) {this.push(v)}, this);
-}
+//=============================================================================
+// Parameter Variables
+//=============================================================================
+
+Yanfly.Parameters = PluginManager.parameters('YEP_BaseTroopEvents');
+Yanfly.Param = Yanfly.Param || {};
+
+Yanfly.Param.BaseTroopID = Number(Yanfly.Parameters['Base Troop ID']);
 
 //=============================================================================
 // DataManager
 //=============================================================================
 
-var _YEP_BTE_Scene_Boot_start = Scene_Boot.prototype.start;
-Scene_Boot.prototype.start = function() {
-	_YEP_BTE_Scene_Boot_start.call(this);
-	DataManager.processBTEPages();
+Yanfly.BTE.DataManager_isDatabaseLoaded = DataManager.isDatabaseLoaded;
+DataManager.isDatabaseLoaded = function() {
+    if (!Yanfly.BTE.DataManager_isDatabaseLoaded.call(this)) return false;
+		this.processBTEPages();
+		return true;
 };
-
-var parameters = PluginManager.parameters('YEP_BaseTroopEvents');
-var _yep_BaseTroopID = Number(parameters['Base Troop ID'] || '1');
 
 DataManager.processBTEPages = function() {
 	for (var n = 1; n < $dataTroops.length; n++) {
-		var base_troop = $dataTroops[_yep_BaseTroopID];
+		var base_troop = $dataTroops[Yanfly.Param.BaseTroopID];
 		var troop = $dataTroops[n];
-		if (n !== _yep_BaseTroopID && _yep_BaseTroopID > 0) {
+		if (n !== Yanfly.Param.BaseTroopID && Yanfly.Param.BaseTroopID > 0) {
 			troop.pages.extend(base_troop.pages);
 		}
 	}
 };
+
+//=============================================================================
+// New Function
+//=============================================================================
+
+Array.prototype.extend = function (other_array) {
+    other_array.forEach(function(v) {this.push(v)}, this);
+}
 
 //=============================================================================
 // End of File

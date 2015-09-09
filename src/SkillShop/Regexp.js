@@ -25,9 +25,14 @@
         VARIABLE_COST: /<buy cost variable (\d+):[ ]*(\d+)>/i,
 
         /**
-         * Switch should be true for buying skill (using game switches)
+         * Variable require for buying skill (using game variables)
          */
-        SWITCH_NEED: /<buy need switch(?:\:)?[ ]*(\d+)>/i
+        VARIABLE_REQUIRE: /<buy require variable (\d+):[ ]*(\d+)>/i,
+
+        /**
+         * Switch require for buying skill
+         */
+        SWITCH_NEED: /<buy require switch (\d+):[ ]*(true|false)>/i
     };
 
     YED.SkillShop.Regexp = Regexp;

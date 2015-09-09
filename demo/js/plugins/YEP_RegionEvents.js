@@ -1,16 +1,19 @@
 //=============================================================================
 // Yanfly Engine Plugins - Region Events
 // YEP_RegionEvents.js
-// Last Updated: 2015.07.18
+// Version: 1.00
 //=============================================================================
 
-if ($imported == undefined) { var $imported = {}; }
-$imported["YEP_RegionEvents"] = true;
+var Imported = Imported || {};
+Imported.YEP_RegionEvents = true;
+
+var Yanfly = Yanfly || {};
+Yanfly.RCE = Yanfly.RCE || {};
 
 //=============================================================================
  /*:
- * @plugindesc Make it so that whenever players step on certain Region ID's,
- * the game will play certain common events.
+ * @plugindesc Make it so that whenever players step on certain Region
+ * ID's, the game will play certain common events.
  * @author Yanfly Engine Plugins
  *
  * @param Region 1
@@ -1295,16 +1298,20 @@ $imported["YEP_RegionEvents"] = true;
  * this plugin's parameters. It will make it so that any tile with that very
  * specific Region ID to trigger an on-Player Touch event using the Common
  * Event ID that you have marked for it.
- *
- * ChangeLog:
- *   2015.07.18 - Completed.
  */
 //=============================================================================
 
-var parameters = PluginManager.parameters('YEP_RegionEvents');
-var regionEvents = {};
-for (var i = 1; i <= 255; ++i) {
-  regionEvents[i] = eval("Number(parameters['Region " + String(i) + "'] || 0)");
+//=============================================================================
+// Parameter Variables
+//=============================================================================
+
+Yanfly.Parameters = PluginManager.parameters('YEP_RegionEvents');
+Yanfly.Param = Yanfly.Param || {};
+
+Yanfly.RCE.RegionEvents = {};
+for (Yanfly.i = 1; Yanfly.i <= 255; ++Yanfly.i) {
+  Yanfly.line = "Number(Yanfly.Parameters['Region " + Yanfly.i + "'] || 0)";
+  Yanfly.RCE.RegionEvents[Yanfly.i] = eval(Yanfly.line);
 };
 
 //=============================================================================
@@ -1317,24 +1324,25 @@ Game_Map.prototype.isRegionEvent = function(mx, my) {
 
 Game_Map.prototype.RegionEventTag = function(mx, my) {
     if (this.regionId(mx, my) <= 0) return false;
-    return regionEvents[this.regionId(mx, my)] > 0;
+    return Yanfly.RCE.RegionEvents[this.regionId(mx, my)] > 0;
 };
 
 //=============================================================================
 // Game_Player
 //=============================================================================
 
-var _YEP_RCE_Game_Player_checkEventTriggerHere =
+Yanfly.RCE.Game_Player_checkEventTriggerHere =
     Game_Player.prototype.checkEventTriggerHere;
 Game_Player.prototype.checkEventTriggerHere = function(triggers) {
     if (!this.canStartLocalEvents()) return;
     this.processRegionEvent();
-    _YEP_RCE_Game_Player_checkEventTriggerHere.call(this, triggers);
+    Yanfly.RCE.Game_Player_checkEventTriggerHere.call(this, triggers);
 };
 
 Game_Player.prototype.processRegionEvent = function() {
     if (!$gameMap.isRegionEvent(this.x, this.y)) return;
-    var commonEventId = regionEvents[$gameMap.regionId(this.x, this.y)];
+    var commonEventId = Yanfly.RCE.RegionEvents[$gameMap.regionId(this.x,
+        this.y)];
     $gameTemp.reserveCommonEvent(commonEventId);
 };
 

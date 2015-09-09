@@ -181,7 +181,7 @@
     };
 
     Window_EnemyBookIndex.prototype.maxItems = function() {
-        return this._list.length;
+        return this._list ? this._list.length : 0;
     };
 
     Window_EnemyBookIndex.prototype.setStatusWindow = function(statusWindow) {

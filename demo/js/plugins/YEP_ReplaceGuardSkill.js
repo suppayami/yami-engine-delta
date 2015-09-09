@@ -1,16 +1,19 @@
 //=============================================================================
 // Yanfly Engine Plugins - Replace Guard Skill
 // YEP_ReplaceGuardSkill.js
-// Last Updated: 2015.07.13
+// Version: 1.00
 //=============================================================================
 
-if ($imported == undefined) { var $imported = {}; }
-$imported["YEP_ReplaceGuardSkill"] = true;
+var Imported = Imported || {};
+Imported.YEP_ReplaceGuardSkill = true;
+
+var Yanfly = Yanfly || {};
+Yanfly.RGS = Yanfly.RGS || {};
 
 //=============================================================================
 /*:
- * @plugindesc Various factors from equipment, class, status effects can now
- * change an actor's default guard command to something else.
+ * @plugindesc Various factors from equipment, class, status effects can
+ * now change an actor's default guard command.
  * @author Yanfly Engine Plugins
  *
  * @param Default Guard
@@ -68,34 +71,37 @@ $imported["YEP_ReplaceGuardSkill"] = true;
  *   If the skill is used to replace "Guard", it will use x as the command
  *   name instead of "Guard". If this notetag isn't present, it will use the
  *   skills name itself as the command text.
- *
- * ChangeLog:
- *   2015.07.16 - Code efficiency update.
- *   2015.07.12 - Completed.
  */
 //=============================================================================
 
-var parameters = PluginManager.parameters('YEP_ReplaceGuardSkill');
-var _yep_rgs_DefaultGuard = Number(parameters['Default Guard'] || 1);
+//=============================================================================
+// Parameter Variables
+//=============================================================================
+
+Yanfly.Parameters = PluginManager.parameters('YEP_ReplaceGuardSkill');
+Yanfly.Param = Yanfly.Param || {};
+
+Yanfly.Param.RGSDefaultGuard = Number(Yanfly.Parameters['Default Guard']);
 
 //=============================================================================
 // DataManager
 //=============================================================================
 
-var _YEP_RGS_Scene_Boot_start = Scene_Boot.prototype.start;
-Scene_Boot.prototype.start = function() {
-	_YEP_RGS_Scene_Boot_start.call(this);
-	DataManager.processRGSNotetags1($dataWeapons);
-  DataManager.processRGSNotetags1($dataArmors);
-  DataManager.processRGSNotetags1($dataStates);
-  DataManager.processRGSNotetags2($dataActors);
-  DataManager.processRGSNotetags2($dataClasses);
-  DataManager.processRGSNotetags3($dataSkills);
+Yanfly.RGS.DataManager_isDatabaseLoaded = DataManager.isDatabaseLoaded;
+DataManager.isDatabaseLoaded = function() {
+    if (!Yanfly.RGS.DataManager_isDatabaseLoaded.call(this)) return false;
+		this.processRGSNotetags1($dataWeapons);
+	  this.processRGSNotetags1($dataArmors);
+	  this.processRGSNotetags1($dataStates);
+	  this.processRGSNotetags2($dataActors);
+	  this.processRGSNotetags2($dataClasses);
+	  this.processRGSNotetags3($dataSkills);
+		return true;
 };
 
 DataManager.processRGSNotetags1 = function(group) {
-  var note1 = /<(?:CLASS|class)[ ](\d+)[ ](?:GUARD_SKILL|guard skil):[ ](\d+)>/i
-  var note2 = /<(?:ACTOR|actor)[ ](\d+)[ ](?:GUARD_SKILL|guard skil):[ ](\d+)>/i
+  var note1 = /<(?:CLASS)[ ](\d+)[ ](?:GUARD SKILL):[ ](\d+)>/i
+  var note2 =	/<(?:ACTOR)[ ](\d+)[ ](?:GUARD SKILL):[ ](\d+)>/i
 	for (var n = 1; n < group.length; n++) {
 		var obj = group[n];
 		var notedata = obj.note.split(/[\r\n]+/);
@@ -105,7 +111,7 @@ DataManager.processRGSNotetags1 = function(group) {
 
 		for (var i = 0; i < notedata.length; i++) {
 			var line = notedata[i];
-			if (line.match(/<(?:GUARD_SKILL|guard skill):[ ](\d+)>/i)) {
+			if (line.match(/<(?:GUARD SKILL):[ ](\d+)>/i)) {
         obj.guardSkillId[0] = parseInt(RegExp.$1);
 			} else if (line.match(note1)) {
         obj.guardSkillId[parseInt(RegExp.$1)] = parseInt(RegExp.$2);
@@ -123,7 +129,7 @@ DataManager.processRGSNotetags2 = function(group) {
 
 		for (var i = 0; i < notedata.length; i++) {
 			var line = notedata[i];
-			if (line.match(/<(?:GUARD_SKILL|guard skill):[ ](\d+)>/i)) {
+			if (line.match(/<(?:GUARD SKILL):[ ](\d+)>/i)) {
         obj.guardSkillId = parseInt(RegExp.$1);
       }
 		}
@@ -139,7 +145,7 @@ DataManager.processRGSNotetags3 = function(group) {
 
 		for (var i = 0; i < notedata.length; i++) {
 			var line = notedata[i];
-			if (line.match(/<(?:COMMAND_TEXT|command text):[ ](.*)>/i)) {
+			if (line.match(/<(?:COMMAND TEXT):[ ](.*)>/i)) {
         obj.commandText = String(RegExp.$1);
       }
 		}
@@ -192,7 +198,7 @@ Game_Actor.prototype.guardSkillId = function() {
     if (this.actor().guardSkillId) return this.actor().guardSkillId;
     if (this.currentClass().guardSkillId) {
       return this.currentClass().guardSkillId; }
-    return _yep_rgs_DefaultGuard;
+    return Yanfly.Param.RGSDefaultGuard;
 };
 
 Game_Actor.prototype.guardCommandText = function() {
@@ -203,10 +209,10 @@ Game_Actor.prototype.guardCommandText = function() {
 // Scene_Battle
 //=============================================================================
 
-var _YEP_RGS_Scene_Battle_commandGuard = Scene_Battle.prototype.commandGuard;
+Yanfly.RGS.Scene_Battle_commandGuard = Scene_Battle.prototype.commandGuard;
 Scene_Battle.prototype.commandGuard = function() {
-    if (BattleManager.actor().guardSkillId() === _yep_rgs_DefaultGuard) {
-      _YEP_RGS_Scene_Battle_commandGuard.call(this);
+    if (BattleManager.actor().guardSkillId() === Yanfly.Param.RGSDefaultGuard) {
+      Yanfly.RGS.Scene_Battle_commandGuard.call(this);
     } else {
       var skill = $dataSkills[BattleManager.actor().guardSkillId()];
       var action = BattleManager.inputtingAction();

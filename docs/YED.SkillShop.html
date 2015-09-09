@@ -210,6 +210,87 @@
             </span>
             <ul class="members itemMembers">
             
+            <span class="subtitle">Members</span>
+            
+                <li data-name="YED.SkillShop.Regexp"><a href="YED.SkillShop.html#.Regexp">Regexp</a></li>
+            
+            </ul>
+            <ul class="typedefs itemMembers">
+            
+            </ul>
+            <ul class="methods itemMembers">
+            
+            </ul>
+            <ul class="events itemMembers">
+            
+            </ul>
+        </li>
+    
+        <li class="item" data-name="YED.SkillShop.Scenes">
+            <span class="title">
+                <a href="YED.SkillShop.Scenes.html">YED.SkillShop.Scenes</a>
+                
+                <span class="static">static</span>
+                
+            </span>
+            <ul class="members itemMembers">
+            
+            </ul>
+            <ul class="typedefs itemMembers">
+            
+            </ul>
+            <ul class="methods itemMembers">
+            
+            </ul>
+            <ul class="events itemMembers">
+            
+            </ul>
+        </li>
+    
+        <li class="item" data-name="YED.SkillShop.Utils">
+            <span class="title">
+                <a href="YED.SkillShop.Utils.html">YED.SkillShop.Utils</a>
+                
+                <span class="static">static</span>
+                
+            </span>
+            <ul class="members itemMembers">
+            
+            <span class="subtitle">Members</span>
+            
+                <li data-name="YED.SkillShop.Utils.Utils.parameters"><a href="YED.SkillShop.Utils.html#.Utils.parameters">Utils.parameters</a></li>
+            
+            </ul>
+            <ul class="typedefs itemMembers">
+            
+            </ul>
+            <ul class="methods itemMembers">
+            
+            <span class="subtitle">Methods</span>
+            
+                <li data-name="YED.SkillShop.Utils.getBuyCostGold"><a href="YED.SkillShop.Utils.html#.getBuyCostGold">getBuyCostGold</a></li>
+            
+                <li data-name="YED.SkillShop.Utils.getBuyCostItems"><a href="YED.SkillShop.Utils.html#.getBuyCostItems">getBuyCostItems</a></li>
+            
+                <li data-name="YED.SkillShop.Utils.processNotetag"><a href="YED.SkillShop.Utils.html#.processNotetag">processNotetag</a></li>
+            
+                <li data-name="YED.SkillShop.Utils.processParameters"><a href="YED.SkillShop.Utils.html#.processParameters">processParameters</a></li>
+            
+            </ul>
+            <ul class="events itemMembers">
+            
+            </ul>
+        </li>
+    
+        <li class="item" data-name="YED.SkillShop.Windows">
+            <span class="title">
+                <a href="YED.SkillShop.Windows.html">YED.SkillShop.Windows</a>
+                
+                <span class="static">static</span>
+                
+            </span>
+            <ul class="members itemMembers">
+            
             </ul>
             <ul class="typedefs itemMembers">
             
@@ -615,7 +696,215 @@
     
     
     
+        <h3 class="subsection-title">Namespaces</h3>
+        
+        <dl>
+            <dt><a href="namespaces.html#YED.SkillShop.Scenes"><a href="YED.SkillShop.Scenes.html">Scenes</a></a></dt>
+            <dd></dd>
+        
+            <dt><a href="namespaces.html#YED.SkillShop.Utils"><a href="YED.SkillShop.Utils.html">Utils</a></a></dt>
+            <dd></dd>
+        
+            <dt><a href="namespaces.html#YED.SkillShop.Windows"><a href="YED.SkillShop.Windows.html">Windows</a></a></dt>
+            <dd></dd>
+        </dl>
     
+    
+    
+        <h3 class="subsection-title">Members</h3>
+        
+        <dl>
+            
+<dt>
+    <div class="nameContainer">
+        <h4 class="name" id=".Regexp"><span class="type-signature static">static,readonly</span>YED.SkillShop.Regexp<span class="type-signature type regexp">RegExp</span> </h4>
+    </div>
+    
+    
+</dt>
+<dd>
+    
+    <div class="description">
+        <p>Enum for RegExp, used to notetags</p>
+    </div>
+    
+    
+    
+<dl class="details">
+    
+        
+        <h5 class="subsection-title">Properties:</h5>
+        
+        <dl>
+
+<table class="props">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
+		
+		<th>Type</th>
+		
+		
+		
+		
+		<th>Default</th>
+		
+		
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+	
+	<tbody>
+	
+	
+        <tr>
+            
+                <td class="name"><code>GOLD_COST</code></td>
+            
+            
+            <td class="type">
+            
+                
+<span class="param-type">RegExp</span>
+
+
+            
+            </td>
+            
+            
+            
+            
+                <td class="default">
+                
+                    /&lt;buy cost gold:[ ]*(\d+)>/i
+                
+                </td>
+            
+            
+            <td class="description last"><p>Gold cost for buying skill</p></td>
+        </tr>
+	
+	
+	
+        <tr>
+            
+                <td class="name"><code>ITEM_COST</code></td>
+            
+            
+            <td class="type">
+            
+                
+<span class="param-type">RegExp</span>
+
+
+            
+            </td>
+            
+            
+            
+            
+                <td class="default">
+                
+                    /&lt;buy cost (.+) (\d+):[ ]*(\d+)>/i
+                
+                </td>
+            
+            
+            <td class="description last"><p>Item/Armor/Weapon cost for buying skill</p></td>
+        </tr>
+	
+	
+	
+        <tr>
+            
+                <td class="name"><code>VARIABLE_COST</code></td>
+            
+            
+            <td class="type">
+            
+                
+<span class="param-type">RegExp</span>
+
+
+            
+            </td>
+            
+            
+            
+            
+                <td class="default">
+                
+                    /&lt;buy cost variable (\d+):[ ]*(\d+)>/i
+                
+                </td>
+            
+            
+            <td class="description last"><p>Variable cost for buying skill (using game variables)</p></td>
+        </tr>
+	
+	
+	
+        <tr>
+            
+                <td class="name"><code>SWITCH_NEED</code></td>
+            
+            
+            <td class="type">
+            
+                
+<span class="param-type">RegExp</span>
+
+
+            
+            </td>
+            
+            
+            
+            
+                <td class="default">
+                
+                    /&lt;buy need switch (\d+):[ ]*(true|false)>/i
+                
+                </td>
+            
+            
+            <td class="description last"><p>Switch should be true for buying skill (using game switches)</p></td>
+        </tr>
+	
+	
+	</tbody>
+</table></dl>
+        
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+    
+    
+</dd>
+
+        </dl>
     
     
     
@@ -634,7 +923,7 @@
         
 
         <footer>
-            Documentation generated by <a target="_blank" href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.1</a> on Sun Aug 16 2015 14:10:33 GMT+0700 (ICT)
+            Documentation generated by <a target="_blank" href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.1</a> on Tue Aug 18 2015 23:10:16 GMT+0700 (ICT)
         </footer>
     </div>
 </div>

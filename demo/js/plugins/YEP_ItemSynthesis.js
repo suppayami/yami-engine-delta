@@ -1,22 +1,25 @@
 //=============================================================================
 // Yanfly Engine Plugins - Item Synthesis
 // YEP_ItemSynthesis.js
-// Last Updated: 2015.07.27
+// Version: 1.00
 //=============================================================================
 
-if ($imported == undefined) { var $imported = {}; }
-$imported["YEP_ItemSynthesis"] = true;
+var Imported = Imported || {};
+Imported.YEP_ItemSynthesis = true;
+
+var Yanfly = Yanfly || {};
+Yanfly.IS = Yanfly.IS || {};
 
 //=============================================================================
  /*:
- * @plugindesc Players can now craft their own items in-game through an item
- * synthesis system.
+ * @plugindesc Players can now craft their own items in-game through an
+ * item synthesis system.
  * @author Yanfly Engine Plugins
  *
  * @param ---General---
  * @default
  *
- * @param Synthensis Command
+ * @param Synthesis Command
  * @desc This is the text used for going to the item synthesis menu.
  * @default Synthesis
  *
@@ -176,34 +179,60 @@ $imported["YEP_ItemSynthesis"] = true;
  *   HideSynthesis          Hides the Synthesis command from the main menu.
  *   EnableSynthesis        Enables the Synthesis command from the main menu.
  *   DisableSynthesis       Disables the Synthesis command from the main menu.
- *
- * ChangeLog:
- *   2015.07.27 - Completed.
  */
 //=============================================================================
 
-var parameters = PluginManager.parameters('YEP_ItemSynthesis');
+//=============================================================================
+// Parameter Variables
+//=============================================================================
 
-var _YEP_IS_Scene_Boot_start = Scene_Boot.prototype.start;
-Scene_Boot.prototype.start = function() {
-	_YEP_IS_Scene_Boot_start.call(this);
-	DataManager.processISNotetags($dataItems);
-  DataManager.processISNotetags($dataWeapons);
-  DataManager.processISNotetags($dataArmors);
+Yanfly.Parameters = PluginManager.parameters('YEP_ItemSynthesis');
+Yanfly.Param = Yanfly.Param || {};
+
+Yanfly.Param.ISShowSynth = String(Yanfly.Parameters['Show Command']);
+Yanfly.Param.ISEnableSynth = String(Yanfly.Parameters['Enable Command']);
+Yanfly.Param.ISSynthCmd = String(Yanfly.Parameters['Synthesis Command']);
+Yanfly.Param.ISAutoPlaceCmd = String(Yanfly.Parameters['Auto Place Command']);
+Yanfly.Param.ISTextAlign = String(Yanfly.Parameters['Text Alignment']);
+Yanfly.Param.ISItemCmd = String(Yanfly.Parameters['Item Command']);
+Yanfly.Param.ISWeaponCmd  = String(Yanfly.Parameters['Weapon Command']);
+Yanfly.Param.ISArmorCmd  = String(Yanfly.Parameters['Armor Command']);
+Yanfly.Param.ISFinishCmd = String(Yanfly.Parameters['Finish Command']);
+Yanfly.Param.ISColRecipes = String(Yanfly.Parameters['Collected Recipes']);
+Yanfly.Param.ISCraftedItems = String(Yanfly.Parameters['Crafted Items']);
+Yanfly.Param.ISCraftedWeapons = String(Yanfly.Parameters['Crafted Weapons']);
+Yanfly.Param.ISCraftedArmors = String(Yanfly.Parameters['Crafted Armors']);
+Yanfly.Param.ISMaskHelpText = String(Yanfly.Parameters['Mask Help Text']);
+Yanfly.Param.ISMaskUnknown = String(Yanfly.Parameters['Mask Unknown']);
+Yanfly.Param.ISMaskText    = String(Yanfly.Parameters['Mask Text']);
+Yanfly.Param.ISMaskItalic  = String(Yanfly.Parameters['Mask Italic']);
+Yanfly.Param.ISQuantitySize = Number(Yanfly.Parameters['Quantity Text Size']);
+Yanfly.Param.ISIngredientsList = String(Yanfly.Parameters['Ingredients Text']);
+Yanfly.Param.ISAmountText = String(Yanfly.Parameters['Amount Text']);
+
+//=============================================================================
+// DataManager
+//=============================================================================
+
+Yanfly.IS.DataManager_isDatabaseLoaded = DataManager.isDatabaseLoaded;
+DataManager.isDatabaseLoaded = function() {
+    if (!Yanfly.IS.DataManager_isDatabaseLoaded.call(this)) return false;
+		this.processISNotetags($dataItems);
+	  this.processISNotetags($dataWeapons);
+	  this.processISNotetags($dataArmors);
+		return true;
 };
 
 DataManager.processISNotetags = function(group) {
-  var note1 = /<(?:ITEM_RECIPE|item recipe):[ ]*(\d+(?:\s*,\s*\d+)*)>/i;
-  var note2 = /<(?:ITEM_RECIPE|item recipe):[ ](\d+)[ ](?:THROUGH|to)[ ](\d+)>/i;
-  var note3 = /<(?:WEAPON_RECIPE|weapon recipe):[ ]*(\d+(?:\s*,\s*\d+)*)>/i;
-  var note4 =
-    /<(?:WEAPON_RECIPE|weapon recipe):[ ](\d+)[ ](?:THROUGH|to)[ ](\d+)>/i;
-  var note5 = /<(?:ARMOR_RECIPE|armor recipe):[ ]*(\d+(?:\s*,\s*\d+)*)>/i;
-  var note6 =
-    /<(?:ARMOR_RECIPE|armor recipe):[ ](\d+)[ ](?:THROUGH|to)[ ](\d+)>/i;
-  var note7 = /<(?:SYNTHESIS_INGREDIENTS|synthesis ingredients)>/i;
-  var note8 = /<\/(?:SYNTHESIS_INGREDIENTS|synthesis ingredients)>/i;
-	var note9 = /<(?:MASK_NAME|mask name):[ ](.*)>/i;
+  var note1 = /<(?:ITEM RECIPE):[ ]*(\d+(?:\s*,\s*\d+)*)>/i;
+  var note2 = /<(?:ITEM RECIPE):[ ](\d+)[ ](?:THROUGH|to)[ ](\d+)>/i;
+  var note3 = /<(?:WEAPON RECIPE):[ ]*(\d+(?:\s*,\s*\d+)*)>/i;
+  var note4 = /<(?:WEAPON RECIPE):[ ](\d+)[ ](?:THROUGH|to)[ ](\d+)>/i;
+  var note5 = /<(?:ARMOR RECIPE):[ ]*(\d+(?:\s*,\s*\d+)*)>/i;
+  var note6 = /<(?:ARMOR RECIPE):[ ](\d+)[ ](?:THROUGH|to)[ ](\d+)>/i;
+  var note7 = /<(?:SYNTHESIS INGREDIENTS)>/i;
+  var note8 = /<\/(?:SYNTHESIS INGREDIENTS)>/i;
+	var note9 = /<(?:MASK NAME):[ ](.*)>/i;
 	for (var n = 1; n < group.length; n++) {
 		var obj = group[n];
 		var notedata = obj.note.split(/[\r\n]+/);
@@ -222,19 +251,22 @@ DataManager.processISNotetags = function(group) {
         var array = JSON.parse('[' + RegExp.$1.match(/\d+/g) + ']');
         obj.recipeItem = obj.recipeItem.concat(array);
       } else if (line.match(note2)) {
-        var range = getRange(parseInt(RegExp.$1), parseInt(RegExp.$2));
+        var range = Yanfly.Util.getRange(parseInt(RegExp.$1),
+          parseInt(RegExp.$2));
         obj.recipeItem = obj.recipeItem.concat(range);
       } else if (line.match(note3)) {
         var array = JSON.parse('[' + RegExp.$1.match(/\d+/g) + ']');
         obj.recipeWeapon = obj.recipeWeapon.concat(array);
       } else if (line.match(note4)) {
-        var range = getRange(parseInt(RegExp.$1), parseInt(RegExp.$2));
+        var range = Yanfly.Util.getRange(parseInt(RegExp.$1),
+          parseInt(RegExp.$2));
         obj.recipeWeapon = obj.recipeWeapon.concat(range);
       } else if (line.match(note5)) {
         var array = JSON.parse('[' + RegExp.$1.match(/\d+/g) + ']');
         obj.recipeArmor = obj.recipeArmor.concat(array);
       } else if (line.match(note6)) {
-        var range = getRange(parseInt(RegExp.$1), parseInt(RegExp.$2));
+        var range = Yanfly.Util.getRange(parseInt(RegExp.$1),
+          parseInt(RegExp.$2));
         obj.recipeArmor = obj.recipeArmor.concat(range);
       } else if (line.match(note7)) {
         gatherIngredients = true;
@@ -278,57 +310,33 @@ DataManager.processISNotetags = function(group) {
 };
 
 
-var _synthesisRecipeCount = 0;
-var _synthesisItemTotal   = 0;
-var _synthesisWeaponTotal = 0;
-var _synthesisArmorTotal  = 0;
+Yanfly.IS.SynthesisRecipeCount = 0;
+Yanfly.IS.SynthesisItemTotal   = 0;
+Yanfly.IS.SynthesisWeaponTotal = 0;
+Yanfly.IS.SynthesisArmorTotal  = 0;
 DataManager.processRecipeCounts = function(obj) {
     if (obj.recipeItem.length > 0 || obj.recipeWeapon.length > 0 ||
     obj.recipeArmor.length > 0) {
-      _synthesisRecipeCount += 1;
-      _synthesisItemTotal += obj.recipeItem.length;
-      _synthesisWeaponTotal += obj.recipeWeapon.length;
-      _synthesisArmorTotal += obj.recipeArmor.length;
+      Yanfly.IS.SynthesisRecipeCount += 1;
+      Yanfly.IS.SynthesisItemTotal += obj.recipeItem.length;
+      Yanfly.IS.SynthesisWeaponTotal += obj.recipeWeapon.length;
+      Yanfly.IS.SynthesisArmorTotal += obj.recipeArmor.length;
     }
-};
-
-//=============================================================================
-// Game_Interpreter
-//=============================================================================
-
-var _YEP_IS_Game_Interpreter_pluginCommand =
-    Game_Interpreter.prototype.pluginCommand;
-Game_Interpreter.prototype.pluginCommand = function(command, args) {
-    _YEP_IS_Game_Interpreter_pluginCommand.call(this, command, args)
-    if (command === 'OpenSynthesis') this.gotoSceneSynthesis();
-		if (command === 'ShowSynthesis') $gameSystem._showSynthesis = true;
-		if (command === 'HideSynthesis') $gameSystem._showSynthesis = false;
-		if (command === 'EnableSynthesis') $gameSystem._enableSynthesis = true;
-		if (command === 'DisableSynthesis') $gameSystem._enableSynthesis = false;
-};
-
-Game_Interpreter.prototype.gotoSceneSynthesis = function() {
-    if (!$gameParty.inBattle()) {
-        SceneManager.push(Scene_Synthesis);
-    }
-    return true;
 };
 
 //=============================================================================
 // Game_System
 //=============================================================================
 
-var _YEP_IS_Game_System_initialize = Game_System.prototype.initialize;
+Yanfly.IS.Game_System_initialize = Game_System.prototype.initialize;
 Game_System.prototype.initialize = function() {
-    _YEP_IS_Game_System_initialize.call(this);
+    Yanfly.IS.Game_System_initialize.call(this);
     this.initSynthesis();
 };
 
-var _yep_is_showSynth = String(parameters['Show Command'] || 'false');
-var _yep_is_enSynth = String(parameters['Enable Command'] || 'false');
 Game_System.prototype.initSynthesis = function() {
-    this._showSynthesis = eval(_yep_is_showSynth);
-    this._enableSynthesis = eval(_yep_is_enSynth);
+    this._showSynthesis = eval(Yanfly.Param.ISShowSynth);
+    this._enableSynthesis = eval(Yanfly.Param.ISEnableSynth);
     this._synthedItems = [];
     this._synthedWeapons = [];
     this._synthedArmors = [];
@@ -392,17 +400,17 @@ Game_System.prototype.addSynth = function(item) {
 };
 
 Game_System.prototype.synthedItems = function() {
-    if (!this._synthedItems) this._synthedItems = [];
+    if (this._synthedItems === undefined) this._synthedItems = [];
     return this._synthedItems;
 };
 
 Game_System.prototype.synthedWeapons = function() {
-    if (!this._synthedWeapons) this._synthedWeapons = [];
+    if (this._synthedWeapons === undefined) this._synthedWeapons = [];
     return this._synthedWeapons;
 };
 
 Game_System.prototype.synthedArmors = function() {
-    if (!this._synthedArmors) this._synthedArmors = [];
+    if (this._synthedArmors === undefined) this._synthedArmors = [];
     return this._synthedArmors;
 };
 
@@ -421,33 +429,56 @@ Game_System.prototype.canSynthesize = function(item, times) {
 
 Game_System.prototype.maxSynthesize = function(item) {
     var maximum = $gameParty.maxItems(item) - $gameParty.numItems(item);
-		maximum = Math.min(maximum, $gameParty.gold() / item.synthCost);
+		if (item.synthCost > 0) {
+      maximum = Math.min(maximum, $gameParty.gold() / item.synthCost);
+    }
 		for (var i = 0; i < item.synthIngredients.length; ++i) {
       var ingredient = item.synthIngredients[i][0];
       var quantity = item.synthIngredients[i][1];
       maximum = Math.min(maximum, $gameParty.numItems(ingredient) / quantity);
     }
-    return Math.max(maximum, 0);
+    return parseInt(Math.max(maximum, 0));
+};
+
+//=============================================================================
+// Game_Interpreter
+//=============================================================================
+
+Yanfly.IS.Game_Interpreter_pluginCommand =
+    Game_Interpreter.prototype.pluginCommand;
+Game_Interpreter.prototype.pluginCommand = function(command, args) {
+    Yanfly.IS.Game_Interpreter_pluginCommand.call(this, command, args)
+    if (command === 'OpenSynthesis') this.gotoSceneSynthesis();
+		if (command === 'ShowSynthesis') $gameSystem._showSynthesis = true;
+		if (command === 'HideSynthesis') $gameSystem._showSynthesis = false;
+		if (command === 'EnableSynthesis') $gameSystem._enableSynthesis = true;
+		if (command === 'DisableSynthesis') $gameSystem._enableSynthesis = false;
+};
+
+Game_Interpreter.prototype.gotoSceneSynthesis = function() {
+    if (!$gameParty.inBattle()) {
+        SceneManager.push(Scene_Synthesis);
+    }
+    return true;
 };
 
 //=============================================================================
 // Window_MenuCommand
 //=============================================================================
 
-var _YEP_IS_Window_MenuCommand_addOriginalCommands =
+Yanfly.IS.Window_MenuCommand_addOriginalCommands =
     Window_MenuCommand.prototype.addOriginalCommands;
 Window_MenuCommand.prototype.addOriginalCommands = function() {
-    _YEP_IS_Window_MenuCommand_addOriginalCommands.call(this);
+    Yanfly.IS.Window_MenuCommand_addOriginalCommands.call(this);
     this.addSynthesisCommand();
 };
 
-var _yep_is_synthName = String(parameters['Synthesis Command'] || 'Synthesis');
-var _yep_is_autoPlace = String(parameters['Auto Place Command'] || 'true');
 Window_MenuCommand.prototype.addSynthesisCommand = function() {
-    if (!eval(_yep_is_autoPlace)) return;
+    if (!eval(Yanfly.Param.ISAutoPlaceCmd)) return;
     if (!$gameSystem.isShowSynthesis()) return;
+		if (this.findSymbol('synthesis') > -1) return;
     if ($gameSystem.totalRecipes() <= 0) return;
-    var text = _yep_is_synthName;
+    var text = Yanfly.Param.ISSynthCmd;
     var enabled = $gameSystem.isEnableSynthesis();
     this.addCommand(text, 'synthesis', enabled);
 };
@@ -475,9 +506,8 @@ Window_SynthesisCommand.prototype.numVisibleRows = function() {
     return 4;
 };
 
-var _yep_is_synthTextAlign = String(parameters['Text Alignment'] || 'center');
 Window_SynthesisCommand.prototype.itemTextAlign = function() {
-    return _yep_is_synthTextAlign;
+    return Yanfly.Param.ISTextAlign;
 };
 
 Window_SynthesisCommand.prototype.makeCommandList = function() {
@@ -486,27 +516,23 @@ Window_SynthesisCommand.prototype.makeCommandList = function() {
     this.addFinishCommand();
 };
 
-var _yep_is_synthItem = String(parameters['Item Command'] || 'Item');
-var _yep_is_synthWep  = String(parameters['Weapon Command'] || 'Weapon');
-var _yep_is_synthArm  = String(parameters['Armor Command'] || 'Armor');
 Window_SynthesisCommand.prototype.addItemCommands = function() {
     if (Scene_Synthesis.availableItems().length > 0) {
-      this.addCommand(_yep_is_synthItem, 'item', true);
+      this.addCommand(Yanfly.Param.ISItemCmd, 'item', true);
     }
     if (Scene_Synthesis.availableWeapons().length > 0) {
-      this.addCommand(_yep_is_synthWep, 'weapon', true);
+      this.addCommand(Yanfly.Param.ISWeaponCmd, 'weapon', true);
     }
     if (Scene_Synthesis.availableArmors().length > 0) {
-      this.addCommand(_yep_is_synthArm, 'armor', true);
+      this.addCommand(Yanfly.Param.ISArmorCmd, 'armor', true);
     }
 };
 
 Window_SynthesisCommand.prototype.addCustomCommand = function() {
 };
 
-var _yep_is_synthDone = String(parameters['Finish Command'] || 'Finish');
 Window_SynthesisCommand.prototype.addFinishCommand = function() {
-    this.addCommand(_yep_is_synthDone, 'cancel', true);
+    this.addCommand(Yanfly.Param.ISFinishCmd, 'cancel', true);
 };
 
 //=============================================================================
@@ -534,78 +560,74 @@ Window_SynthesisStatus.prototype.refresh = function() {
     dy = this.drawCraftedArmors(dy);
 };
 
-var _yep_is_collectedRecipes = String(parameters['Collected Recipes'] ||
-                               'Collected Recipes');
 Window_SynthesisStatus.prototype.drawCollectedRecipes = function(dy) {
-    if (_yep_is_collectedRecipes.length <= 0) return dy;
+    if (Yanfly.Param.ISColRecipes.length <= 0) return dy;
     var dw = this.contents.width;
     this.changeTextColor(this.systemColor());
-    this.drawText(_yep_is_collectedRecipes, 0, dy, dw);
+    this.drawText(Yanfly.Param.ISColRecipes, 0, dy, dw);
     this.changeTextColor(this.normalColor());
-    var value = parseFloat($gameSystem.totalRecipes()) / _synthesisRecipeCount;
+    var value = parseFloat($gameSystem.totalRecipes()) /
+      Yanfly.IS.SynthesisRecipeCount;
     var text = String(parseInt(value * 100)) + '%';
     this.drawText(text, 0, dy, dw, 'right');
     dw -= this.textWidth('100%') + this.standardPadding() * 2;
     var fmt = '%1/%2'
-    text = fmt.format($gameSystem.totalRecipes(), _synthesisRecipeCount);
+    text = fmt.format($gameSystem.totalRecipes(),
+      Yanfly.IS.SynthesisRecipeCount);
     this.drawText(text, 0, dy, dw, 'right');
     return dy + this.lineHeight();
 };
 
-var _yep_is_craftedItems = String(parameters['Crafted Items'] ||
-                           'Crafted Items');
 Window_SynthesisStatus.prototype.drawCraftedItems = function(dy) {
-    if (_yep_is_craftedItems.length <= 0) return dy;
+    if (Yanfly.Param.ISCraftedItems.length <= 0) return dy;
     var dw = this.contents.width;
     this.changeTextColor(this.systemColor());
-    this.drawText(_yep_is_craftedItems, 0, dy, dw);
+    this.drawText(Yanfly.Param.ISCraftedItems, 0, dy, dw);
     this.changeTextColor(this.normalColor());
     var value = parseFloat($gameSystem.synthedItems().length) /
-      _synthesisItemTotal;
+      Yanfly.IS.SynthesisItemTotal;
     var text = String(parseInt(value * 100)) + '%';
     this.drawText(text, 0, dy, dw, 'right');
     dw -= this.textWidth('100%') + this.standardPadding() * 2;
     var fmt = '%1/%2'
-    text = fmt.format($gameSystem.synthedItems().length, _synthesisItemTotal);
+    text = fmt.format($gameSystem.synthedItems().length,
+      Yanfly.IS.SynthesisItemTotal);
     this.drawText(text, 0, dy, dw, 'right');
     return dy + this.lineHeight();
 };
 
-var _yep_is_craftedWeapons = String(parameters['Crafted Weapons'] ||
-                             'Crafted Weapons');
 Window_SynthesisStatus.prototype.drawCraftedWeapons = function(dy) {
-    if (_yep_is_craftedWeapons.length <= 0) return dy;
+    if (Yanfly.Param.ISCraftedWeapons.length <= 0) return dy;
     var dw = this.contents.width;
     this.changeTextColor(this.systemColor());
-    this.drawText(_yep_is_craftedWeapons, 0, dy, dw);
+    this.drawText(Yanfly.Param.ISCraftedWeapons, 0, dy, dw);
     this.changeTextColor(this.normalColor());
     var value = parseFloat($gameSystem.synthedWeapons().length) /
-      _synthesisWeaponTotal;
+      Yanfly.IS.SynthesisWeaponTotal;
     var text = String(parseInt(value * 100)) + '%';
     this.drawText(text, 0, dy, dw, 'right');
     dw -= this.textWidth('100%') + this.standardPadding() * 2;
     var fmt = '%1/%2'
     text = fmt.format($gameSystem.synthedWeapons().length,
-      _synthesisWeaponTotal);
+      Yanfly.IS.SynthesisWeaponTotal);
     this.drawText(text, 0, dy, dw, 'right');
     return dy + this.lineHeight();
 };
 
-var _yep_is_craftedArmors = String(parameters['Crafted Armors'] ||
-                            'Crafted Armors');
 Window_SynthesisStatus.prototype.drawCraftedArmors = function(dy) {
-    if (_yep_is_craftedArmors.length <= 0) return dy;
+    if (Yanfly.Param.ISCraftedArmors.length <= 0) return dy;
     var dw = this.contents.width;
     this.changeTextColor(this.systemColor());
-    this.drawText(_yep_is_craftedArmors, 0, dy, dw);
+    this.drawText(Yanfly.Param.ISCraftedArmors, 0, dy, dw);
     this.changeTextColor(this.normalColor());
     var value = parseFloat($gameSystem.synthedArmors().length) /
-      _synthesisArmorTotal;
+      Yanfly.IS.SynthesisArmorTotal;
     var text = String(parseInt(value * 100)) + '%';
     this.drawText(text, 0, dy, dw, 'right');
     dw -= this.textWidth('100%') + this.standardPadding() * 2;
     var fmt = '%1/%2'
-    text = fmt.format($gameSystem.synthedArmors().length, _synthesisArmorTotal);
+    text = fmt.format($gameSystem.synthedArmors().length,
+      Yanfly.IS.SynthesisArmorTotal);
     this.drawText(text, 0, dy, dw, 'right');
     return dy + this.lineHeight();
 };
@@ -634,10 +656,14 @@ Window_SynthesisList.prototype.windowWidth = function() {
     return Graphics.boxWidth / 2;
 };
 
-var _yep_is_maskHelp = String(parameters['Mask Help Text'] || 'Unknown');
+
 Window_SynthesisList.prototype.updateHelp = function() {
-    if (eval(_yep_is_maskUnknown) && !$gameSystem.hasSynthed(this.item())) {
-      if (this._helpWindow) this._helpWindow.setText(_yep_is_maskHelp);
+    if (this._commandWindow.active) {
+			this._helpWindow.setText('');
+		}	else if (eval(Yanfly.Param.ISMaskUnknown) &&
+    !$gameSystem.hasSynthed(this.item())) {
+      var text = Yanfly.Param.ISMaskHelpText;
+      if (this._helpWindow) this._helpWindow.setText(text);
     } else {
       this.setHelpWindowItem(this.item());
     }
@@ -705,34 +731,30 @@ Window_SynthesisList.prototype.drawItem = function(index) {
     this.drawItemNumber(item, rect.x, rect.y, rect.width);
 };
 
-var _yep_is_maskUnknown = String(parameters['Mask Unknown'] || 'true');
-var _yep_is_maskText    = String(parameters['Mask Text'] || '?');
-var _yep_is_maskItalic  = String(parameters['Mask Italic'] || 'true');
 Window_SynthesisList.prototype.drawItemName = function(item, x, y, width) {
     if (!item) return;
     var iconBoxWidth = Window_Base._iconWidth + 4;
     this.resetTextColor();
     this.drawIcon(item.iconIndex, x + 2, y + 2);
     var text = item.name;
-    if (eval(_yep_is_maskUnknown) && !$gameSystem.hasSynthed(item)) {
-        this.contents.fontItalic = eval(_yep_is_maskItalic);
+    if (eval(Yanfly.Param.ISMaskUnknown) && !$gameSystem.hasSynthed(item)) {
+        this.contents.fontItalic = eval(Yanfly.Param.ISMaskItalic);
 				if (item.maskName !== '') {
 					text = item.maskName;
 				} else {
-					text = maskString(text, _yep_is_maskText);
+					text = Yanfly.Util.maskString(text, Yanfly.Param.ISMaskText);
 				}
     }
     this.drawText(text, x + iconBoxWidth, y, width - iconBoxWidth);
 		this.contents.fontItalic = false;
 };
 
-var _yep_is_qntySize = Number(parameters['Quantity Text Size'] || 28);
 Window_SynthesisList.prototype.drawItemNumber = function(item, wx, wy, ww) {
-    if (eval(_yep_is_maskUnknown) && !$gameSystem.hasSynthed(item)) {
+    if (eval(Yanfly.Param.ISMaskUnknown) && !$gameSystem.hasSynthed(item)) {
         return;
     }
-    var numItems = toGroup($gameParty.numItems(item));
-    this.contents.fontSize = _yep_is_qntySize;
+    var numItems = Yanfly.Util.toGroup($gameParty.numItems(item));
+    this.contents.fontSize = Yanfly.Param.ISQuantitySize;
     this.drawText('\u00d7' + numItems, wx, wy, ww - 2, 'right');
 };
 
@@ -760,11 +782,10 @@ Window_SynthesisIngredients.prototype.refresh = function(item) {
     this.drawItemIngredients(item, this.lineHeight());
 };
 
-var _yep_is_ingrList = String(parameters['Ingredients Text'] || 'Ingredients');
 Window_SynthesisIngredients.prototype.drawItemIngredients = function(item, wy) {
     var ww = this.contents.width;
     this.changeTextColor(this.systemColor());
-    this.drawText(_yep_is_ingrList, 0, 0, ww, 'center');
+    this.drawText(Yanfly.Param.ISIngredientsList, 0, 0, ww, 'center');
     this.changeTextColor(this.normalColor());
     for (var i = 0; i < item.synthIngredients.length; ++i) {
       wy = this.drawItemDetails(i, wy);
@@ -789,8 +810,8 @@ Window_SynthesisIngredients.prototype.drawItemQuantity = function(index, wy) {
     var quantity = this._item.synthIngredients[index][1];
     var ww = this.contents.width;
     this.changeTextColor(this.normalColor());
-    this.contents.fontSize = _yep_is_qntySize;
-    var text = '/' + String(toGroup(quantity));
+    this.contents.fontSize = Yanfly.Param.ISQuantitySize;
+    var text = '/' + String(Yanfly.Util.toGroup(quantity));
     this.drawText(text, 0, wy, ww, 'right');
     if ($gameParty.numItems(ingredient) >= quantity) {
       this.changeTextColor(this.powerUpColor());
@@ -798,7 +819,7 @@ Window_SynthesisIngredients.prototype.drawItemQuantity = function(index, wy) {
       this.changeTextColor(this.powerDownColor());
     }
     ww -= this.textWidth(text);
-		var num = toGroup($gameParty.numItems(ingredient));
+		var num = Yanfly.Util.toGroup($gameParty.numItems(ingredient));
     this.drawText(num, 0, wy, ww, 'right');
 }
 
@@ -917,11 +938,10 @@ Window_SynthesisNumber.prototype.refresh = function() {
 		this.drawIngredients();
 };
 
-var _yep_is_amtText = String(parameters['Amount Text'] || 'Quantity');
 Window_SynthesisNumber.prototype.drawAmountText = function() {
 		this.resetFontSettings();
 		this.changeTextColor(this.systemColor());
-		this.drawText(_yep_is_amtText, 0, 0, this.contents.width);
+		this.drawText(Yanfly.Param.ISAmountText, 0, 0, this.contents.width);
 		this.resetTextColor();
 };
 
@@ -939,7 +959,7 @@ Window_SynthesisNumber.prototype.drawNumber = function() {
     var y = this.itemY();
     var width = this.cursorWidth() - this.textPadding();
     this.resetTextColor();
-    this.drawText(toGroup(this._number), x, y, width, 'right');
+    this.drawText(Yanfly.Util.toGroup(this._number), x, y, width, 'right');
 };
 
 Window_SynthesisNumber.prototype.drawIngredients = function() {
@@ -967,8 +987,8 @@ Window_SynthesisNumber.prototype.drawItemQuantity = function(index, wy) {
     var quantity = this._item.synthIngredients[index][1] * this.number();
     var ww = this.contents.width;
     this.changeTextColor(this.normalColor());
-    this.contents.fontSize = _yep_is_qntySize;
-    var text = '/' + String(toGroup(quantity));
+    this.contents.fontSize = Yanfly.Param.ISQuantitySize;
+    var text = '/' + String(Yanfly.Util.toGroup(quantity));
     this.drawText(text, 0, wy, ww, 'right');
     if ($gameParty.numItems(ingredient) >= quantity) {
       this.changeTextColor(this.powerUpColor());
@@ -976,7 +996,7 @@ Window_SynthesisNumber.prototype.drawItemQuantity = function(index, wy) {
       this.changeTextColor(this.powerDownColor());
     }
     ww -= this.textWidth(text);
-		var num = toGroup($gameParty.numItems(ingredient));
+		var num = Yanfly.Util.toGroup($gameParty.numItems(ingredient));
     this.drawText(num, 0, wy, ww, 'right');
 }
 
@@ -1011,7 +1031,8 @@ Window_SynthesisNumber.prototype.cursorX = function() {
 
 Window_SynthesisNumber.prototype.maxDigits = function() {
     if (this._item) {
-			return String(toGroup($gameSystem.maxSynthesize(this._item))).length;
+      var maxItem = parseInt($gameSystem.maxSynthesize(this._item));
+			return String(Yanfly.Util.toGroup(maxItem)).length;
 		}
 		return 2;
 
@@ -1084,10 +1105,10 @@ Window_SynthesisNumber.prototype.number = function() {
 // Scene_Menu
 //=============================================================================
 
-var _YEP_IS_Scene_Menu_createCommandWindow =
+Yanfly.IS.Scene_Menu_createCommandWindow =
     Scene_Menu.prototype.createCommandWindow;
 Scene_Menu.prototype.createCommandWindow = function() {
-    _YEP_IS_Scene_Menu_createCommandWindow.call(this);
+    Yanfly.IS.Scene_Menu_createCommandWindow.call(this);
     this._commandWindow.setHandler('synthesis',
       this.commandSynthesis.bind(this));
 };
@@ -1326,16 +1347,18 @@ Scene_Synthesis.prototype.currencyUnit = function() {
 };
 
 //=============================================================================
-// New Functions
+// New Function
 //=============================================================================
 
-getRange = function(n, m) {
+Yanfly.Util = Yanfly.Util || {};
+
+Yanfly.Util.getRange = function(n, m) {
     var result = [];
     for (var i = n; i <= m; ++i) result.push(i);
     return result;
 };
 
-maskString = function(str, mask) {
+Yanfly.Util.maskString = function(str, mask) {
     var text = mask;
     if (mask.length === 1) {
       text = Array(str.length + 1).join(mask);
@@ -1345,24 +1368,10 @@ maskString = function(str, mask) {
     }
 };
 
-if (typeof toGroup !== 'function'){
-		toGroup = function(inVal) {
+if (!Yanfly.Util.toGroup) {
+		Yanfly.Util.toGroup = function(inVal) {
 				return inVal;
 		}
-}
-
-Game_CharacterBase.prototype.update = function() {
-    if (this.isJumping()) {
-        this.updateJump();
-    } else if (this.isMoving()) {
-        this.updateMove();
-    }
-
-    if (!this.isMoving()) {
-        this.updateStop();
-    }
-
-    this.updateAnimation();
 };
 
 //=============================================================================

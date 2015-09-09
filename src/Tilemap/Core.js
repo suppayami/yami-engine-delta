@@ -1,237 +1,239 @@
-/* globals PIXI: false */
-// require classes
-var Data = require('./Data');
-var Tileset = require('./Tileset');
-var Layer = require('./Layer');
+/* globals YED: false */
 
-/**
- * The Core object is the bootstrap to load and render tilemap to the screen
- *
- * A tilemap can be created inside a scene with a single statement
- *
- * ```js
- * var tilemap = new YED.Tilemap.Core();
- * this.addChild(tilemap); // add tilemap to scene
- * ```
- *
- * @class
- * @extends PIXI.DisplayObjectContainer
- * @memberof YED.Tilemap
- */
-var Core = function() {
-    PIXI.DisplayObjectContainer.call(this);
+(function() {
+    // Shorten dependencies
+    var Data = YED.Tilemap.Data,
+        Tileset = YED.Tilemap.Tileset,
+        Layer = YED.Tilemap.Layer;
 
-    this._data = null;
-    this._tilesets = [];
-    this._needRefresh = false;
-    this._upperLayers = [];
-    this._lowerLayers = [];
-    this.z = -1;
+    /**
+     * The Core object is the bootstrap to load and render tilemap to the screen
+     *
+     * A tilemap can be created inside a scene with a single statement
+     *
+     * ```js
+     * var tilemap = new YED.Tilemap.Core();
+     * this.addChild(tilemap); // add tilemap to scene
+     * ```
+     *
+     * @class
+     * @extends PIXI.DisplayObjectContainer
+     * @memberof YED.Tilemap
+     */
+    var Core = function() {
+        PIXI.DisplayObjectContainer.call(this);
 
-    this._setup();
-};
+        this._data = null;
+        this._tilesets = [];
+        this._needRefresh = false;
+        this._upperLayers = [];
+        this._lowerLayers = [];
+        this.z = -1;
 
-Core.dataMap = null;
+        this._setup();
+    };
 
-Core.loadMapFile = function() {
-    var filePath = Core.getFilePath();
-    Core.loadFile(filePath);
-};
-
-Core.unloadMap = function() {
     Core.dataMap = null;
-};
 
-Core.loadFile = function(filePath) {
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', filePath);
-    xhr.overrideMimeType('application/json');
+    Core.loadMapFile = function() {
+        var filePath = Core.getFilePath();
+        Core.loadFile(filePath);
+    };
 
-    // on success callback
-    xhr.onreadystatechange = function() {
-        if (xhr.readyState === 4) {
-            if (xhr.status < 400) {
-                Core.dataMap = JSON.parse(xhr.responseText);
-            } else {
-                throw new Error('[YED#Tilemap] Loading error: ' + xhr.responseText);
+    Core.unloadMap = function() {
+        Core.dataMap = null;
+    };
+
+    Core.loadFile = function(filePath) {
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', filePath);
+        xhr.overrideMimeType('application/json');
+
+        // on success callback
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4) {
+                if (xhr.status < 400) {
+                    Core.dataMap = JSON.parse(xhr.responseText);
+                } else {
+                    throw new Error('[YED#Tilemap] Loading error: ' + xhr.responseText);
+                }
             }
+        };
+
+        // set data to null and send request
+        Core.unloadMap();
+        xhr.send();
+    };
+
+    /**
+     * Get file path with filename to the json file for automatically loading
+     *
+     * @return {string} The path and filename to json file
+     * @private
+     */
+    Core.getFilePath = function() {
+        return Core.getPath() + Core.getFilename();
+    };
+
+    /**
+     * Get path to json file
+     *
+     * @return {string} The path to json file
+     * @private
+     */
+    Core.getPath = function() {
+        return './maps/';
+    };
+
+    /**
+     * Get json filename
+     *
+     * @return {string} Filename
+     * @private
+     */
+    Core.getFilename = function() {
+        var id = Core.getMapId();
+        return 'Map' + id + '.json';
+    };
+
+    /**
+     * Get map ID from RMMV framework for search json file
+     *
+     * @return {number} Map ID
+     * @private
+     */
+    Core.getMapId = function() {
+        var isTransferring = $gamePlayer.isTransferring();
+        return isTransferring ? $gamePlayer.newMapId() : $gameMap.mapId();
+    };
+
+    Core.isMapLoaded = function() {
+        return !!Core.dataMap;
+    };
+
+    Core.prototype = Object.create(PIXI.DisplayObjectContainer.prototype);
+    Core.prototype.constructor = Core;
+
+    Object.defineProperties(Core.prototype, {
+        data: {
+            get: function() {
+                return this._data || null;
+            },
+
+            set: function(data) {
+                this._data = data;
+            }
+        },
+
+        tilesets: {
+            get: function() {
+                return this._tilesets || [];
+            },
+
+            set: function(tilesets) {
+                this._tilesets = tilesets;
+            }
+        },
+
+        layers: {
+            get: function() {
+                return this.lowerLayers.concat(this.upperLayers);
+            }
+        },
+
+        upperLayers: {
+            get: function() {
+                return this._upperLayers;
+            }
+        },
+
+        lowerLayers: {
+            get: function() {
+                return this._lowerLayers;
+            }
+        }
+    });
+
+    Core.prototype._setup = function() {
+        this._setupData();
+        this._setupLayers();
+        this._setupTilesets();
+    };
+
+    Core.prototype._setupData = function() {
+        this.data = new Data(Core.dataMap);
+    };
+
+    Core.prototype._setupTilesets = function() {
+        var tilesetsData = this.data.tilesets,
+            i = 0,
+            length = tilesetsData.length,
+            data;
+
+        for (; i < length; i++) {
+            data = tilesetsData[i];
+            this.tilesets.push(new Tileset(data));
         }
     };
 
-    // set data to null and send request
-    Core.unloadMap();
-    xhr.send();
-};
+    Core.prototype._setupLayers = function() {
+        var layersData = this.data.layers,
+            i = 0,
+            length = layersData.length,
+            data,
+            layer;
 
-/**
- * Get file path with filename to the json file for automatically loading
- *
- * @return {string} The path and filename to json file
- * @private
- */
-Core.getFilePath = function() {
-    return Core.getPath() + Core.getFilename();
-};
+        for (; i < length; i++) {
+            data = layersData[i];
+            layer = new Layer(data, this.tilesets,
+                            this.data.tileWidth, this.data.tileHeight);
 
-/**
- * Get path to json file
- *
- * @return {string} The path to json file
- * @private
- */
-Core.getPath = function() {
-    return './maps/';
-};
+            if (layer.isUpperLayer()) {
+                this.upperLayers.push(layer);
+            } else {
+                this.lowerLayers.push(layer);
+            }
 
-/**
- * Get json filename
- *
- * @return {string} Filename
- * @private
- */
-Core.getFilename = function() {
-    var id = Core.getMapId();
-    return 'Map' + id + '.json';
-};
-
-/**
- * Get map ID from RMMV framework for search json file
- *
- * @return {number} Map ID
- * @private
- */
-Core.getMapId = function() {
-    var isTransferring = $gamePlayer.isTransferring();
-    return isTransferring ? $gamePlayer.newMapId() : $gameMap.mapId();
-};
-
-Core.isMapLoaded = function() {
-    return !!Core.dataMap;
-};
-
-Core.prototype = Object.create(PIXI.DisplayObjectContainer.prototype);
-Core.prototype.constructor = Core;
-
-Object.defineProperties(Core.prototype, {
-    data: {
-        get: function() {
-            return this._data || null;
-        },
-
-        set: function(data) {
-            this._data = data;
+            // this.addChild(layer);
+            // this.layers.push(layer);
         }
-    },
+    };
 
-    tilesets: {
-        get: function() {
-            return this._tilesets || [];
-        },
+    Core.prototype.update = function() {
+        this._updateRender();
+    };
 
-        set: function(tilesets) {
-            this._tilesets = tilesets;
+    Core.prototype._updateRender = function() {
+        if (this._needRefresh && ImageManager.isReady()) {
+            this.render();
+            this._needRefresh = false;
         }
-    },
+    };
 
-    layers: {
-        get: function() {
-            return this.lowerLayers.concat(this.upperLayers);
+    Core.prototype.render = function() {
+        var layers = this.layers,
+            i = 0,
+            length = layers.length,
+            layer;
+
+        for (; i < length; i++) {
+            layer = layers[i];
+            layer.renderLayer();
         }
-    },
+    };
 
-    upperLayers: {
-        get: function() {
-            return this._upperLayers;
-        }
-    },
+    Core.prototype.refresh = function() {
+        this._needRefresh = true;
+    };
 
-    lowerLayers: {
-        get: function() {
-            return this._lowerLayers;
-        }
-    }
-});
+    /**
+     * Check if map data exists
+     *
+     * @return {Boolean} Exist flag
+     */
+    Core.prototype.isExist = function() {
+        return this.data.isExist();
+    };
 
-Core.prototype._setup = function() {
-    this._setupData();
-    this._setupLayers();
-    this._setupTilesets();
-};
-
-Core.prototype._setupData = function() {
-    this.data = new Data(Core.dataMap);
-};
-
-Core.prototype._setupTilesets = function() {
-    var tilesetsData = this.data.tilesets,
-        i = 0,
-        length = tilesetsData.length,
-        data;
-
-    for (; i < length; i++) {
-        data = tilesetsData[i];
-        this.tilesets.push(new Tileset(data));
-    }
-};
-
-Core.prototype._setupLayers = function() {
-    var layersData = this.data.layers,
-        i = 0,
-        length = layersData.length,
-        data,
-        layer;
-
-    for (; i < length; i++) {
-        data = layersData[i];
-        layer = new Layer(data, this.tilesets,
-                        this.data.tileWidth, this.data.tileHeight);
-
-        if (layer.isUpperLayer()) {
-            this.upperLayers.push(layer);
-        } else {
-            this.lowerLayers.push(layer);
-        }
-
-        // this.addChild(layer);
-        // this.layers.push(layer);
-    }
-};
-
-Core.prototype.update = function() {
-    this._updateRender();
-};
-
-Core.prototype._updateRender = function() {
-    if (this._needRefresh && ImageManager.isReady()) {
-        this.render();
-        this._needRefresh = false;
-    }
-};
-
-Core.prototype.render = function() {
-    var layers = this.layers,
-        i = 0,
-        length = layers.length,
-        layer;
-
-    for (; i < length; i++) {
-        layer = layers[i];
-        layer.renderLayer();
-    }
-};
-
-Core.prototype.refresh = function() {
-    this._needRefresh = true;
-};
-
-/**
- * Check if map data exists
- *
- * @return {Boolean} Exist flag
- */
-Core.prototype.isExist = function() {
-    return this.data.isExist();
-};
-
-// export
-module.exports = Core;
+    YED.Tilemap.Core = Core;
+}());

@@ -1,11 +1,14 @@
 //=============================================================================
 // Yanfly Engine Plugins - Replace Attack Skill
 // YEP_ReplaceAttackSkill.js
-// Last Updated: 2015.07.16
+// Version: 1.00
 //=============================================================================
 
-if ($imported == undefined) { var $imported = {}; }
-$imported["YEP_ReplaceAttackSkill"] = true;
+var Imported = Imported || {};
+Imported.YEP_ReplaceAttackSkill = true;
+
+var Yanfly = Yanfly || {};
+Yanfly.RAS = Yanfly.RAS || {};
 
 //=============================================================================
 /*:
@@ -68,34 +71,37 @@ $imported["YEP_ReplaceAttackSkill"] = true;
  *   If the skill is used to replace "Attack", it will use x as the command
  *   name instead of "Attack". If this notetag isn't present, it will use the
  *   skills name itself as the command text.
- *
- * ChangeLog:
- *   2015.07.16 - Code efficiency update.
- *   2015.07.12 - Completed.
  */
 //=============================================================================
 
-var parameters = PluginManager.parameters('YEP_ReplaceAttackSkill');
-var _yep_ras_DefaultAttack = Number(parameters['Default Attack'] || 1);
+//=============================================================================
+// Parameter Variables
+//=============================================================================
+
+Yanfly.Parameters = PluginManager.parameters('YEP_ReplaceAttackSkill');
+Yanfly.Param = Yanfly.Param || {};
+
+Yanfly.Param.RASDefaultAttack = Number(Yanfly.Parameters['Default Attack']);
 
 //=============================================================================
 // DataManager
 //=============================================================================
 
-var _YEP_RAS_Scene_Boot_start = Scene_Boot.prototype.start;
-Scene_Boot.prototype.start = function() {
-	_YEP_RAS_Scene_Boot_start.call(this);
-	DataManager.processRASNotetags1($dataWeapons);
-  DataManager.processRASNotetags1($dataArmors);
-  DataManager.processRASNotetags1($dataStates);
-  DataManager.processRASNotetags2($dataActors);
-  DataManager.processRASNotetags2($dataClasses);
-  DataManager.processRASNotetags3($dataSkills);
+Yanfly.RAS.DataManager_isDatabaseLoaded = DataManager.isDatabaseLoaded;
+DataManager.isDatabaseLoaded = function() {
+    if (!Yanfly.RAS.DataManager_isDatabaseLoaded.call(this)) return false;
+		this.processRASNotetags1($dataWeapons);
+	  this.processRASNotetags1($dataArmors);
+	  this.processRASNotetags1($dataStates);
+	  this.processRASNotetags2($dataActors);
+	  this.processRASNotetags2($dataClasses);
+	  this.processRASNotetags3($dataSkills);
+		return true;
 };
 
 DataManager.processRASNotetags1 = function(group) {
-  var note1 = /<(?:CLASS|class)[ ](\d+)[ ](?:ATTACK_SKILL|attack skil):[ ](\d+)>/i
-  var note2 = /<(?:ACTOR|actor)[ ](\d+)[ ](?:ATTACK_SKILL|attack skil):[ ](\d+)>/i
+  var note1 = /<(?:CLASS)[ ](\d+)[ ](?:ATTACK SKILL):[ ](\d+)>/i
+  var note2 = /<(?:ACTOR)[ ](\d+)[ ](?:ATTACK SKILL):[ ](\d+)>/i
 	for (var n = 1; n < group.length; n++) {
 		var obj = group[n];
 		var notedata = obj.note.split(/[\r\n]+/);
@@ -105,7 +111,7 @@ DataManager.processRASNotetags1 = function(group) {
 
 		for (var i = 0; i < notedata.length; i++) {
 			var line = notedata[i];
-			if (line.match(/<(?:ATTACK_SKILL|attack skill):[ ](\d+)>/i)) {
+			if (line.match(/<(?:ATTACK SKILL):[ ](\d+)>/i)) {
         obj.attackSkillId[0] = parseInt(RegExp.$1);
 			} else if (line.match(note1)) {
         obj.attackSkillId[parseInt(RegExp.$1)] = parseInt(RegExp.$2);
@@ -123,7 +129,7 @@ DataManager.processRASNotetags2 = function(group) {
 
 		for (var i = 0; i < notedata.length; i++) {
 			var line = notedata[i];
-			if (line.match(/<(?:ATTACK_SKILL|attack skill):[ ](\d+)>/i)) {
+			if (line.match(/<(?:ATTACK SKILL):[ ](\d+)>/i)) {
         obj.attackSkillId = parseInt(RegExp.$1);
       }
 		}
@@ -139,7 +145,7 @@ DataManager.processRASNotetags3 = function(group) {
 
 		for (var i = 0; i < notedata.length; i++) {
 			var line = notedata[i];
-			if (line.match(/<(?:COMMAND_TEXT|command text):[ ](.*)>/i)) {
+			if (line.match(/<(?:COMMAND TEXT):[ ](.*)>/i)) {
         obj.commandText = String(RegExp.$1);
       }
 		}
@@ -192,7 +198,7 @@ Game_Actor.prototype.attackSkillId = function() {
     if (this.actor().attackSkillId) return this.actor().attackSkillId;
     if (this.currentClass().attackSkillId) {
       return this.currentClass().attackSkillId; }
-    return _yep_ras_DefaultAttack;
+    return Yanfly.Param.RASDefaultAttack;
 };
 
 Game_Actor.prototype.attackCommandText = function() {
@@ -203,10 +209,11 @@ Game_Actor.prototype.attackCommandText = function() {
 // Scene_Battle
 //=============================================================================
 
-var _YEP_RAS_Scene_Battle_commandAttack = Scene_Battle.prototype.commandAttack;
+Yanfly.RAS.Scene_Battle_commandAttack = Scene_Battle.prototype.commandAttack;
 Scene_Battle.prototype.commandAttack = function() {
-    if (BattleManager.actor().attackSkillId() === _yep_ras_DefaultAttack) {
-      _YEP_RAS_Scene_Battle_commandAttack.call(this);
+    if (BattleManager.actor().attackSkillId() ===
+		Yanfly.Param.RASDefaultAttack) {
+      Yanfly.RAS.Scene_Battle_commandAttack.call(this);
     } else {
       var skill = $dataSkills[BattleManager.actor().attackSkillId()];
       var action = BattleManager.inputtingAction();

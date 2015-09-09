@@ -240,7 +240,7 @@
     };
 
     Window_ItemBookIndex.prototype.maxItems = function() {
-        return this._list.length;
+        return this._list ? this._list.length : 0;
     };
 
     Window_ItemBookIndex.prototype.setStatusWindow = function(statusWindow) {

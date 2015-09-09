@@ -6,7 +6,6 @@
  * @author Yami Engine Delta [Dr.Yami]
  *
  * @help
- * Place this under any kind of core plugin.
  * There is no Configuration and Plugin Command.
  *
  * ============================================================================
@@ -71,27 +70,49 @@ YED.RetainStateOnDeath = {};
      * @function processNotetag
      * @memberof YED.RetainStateOnDeath.Utils
      */
-    Utils.processNotetag = function() {
+    Utils.processNotetags = function() {
         var group = $dataStates,    // shorten group name
-            obj,                    // for iterator
-            notedata,               // for iterator
-            line;                   // for iterator
+            obj,
+            notedata,
+            line;
 
         for (var i = 1; i < group.length; i++) {
             obj = group[i];
             notedata = obj.note.split(/[\r\n]+/);
 
-            // add methods
-            obj.isRetainStateOnDeath = Utils.isRetainStateOnDeath;
+            Utils._processMethods.call(this, obj);
 
-            // parse notetag
             for (var n = 0; n < notedata.length; n++) {
                 line = notedata[n];
-
-                if (line.match(Regexp.RETAIN)) {
-                    obj._retainStateOnDeath = true;
-                }
+                Utils._processNotetag.call(this, obj, line);
             }
+        }
+    };
+
+    /**
+     * Add new methods into object.
+     *
+     * @function _processMethods
+     * @memberof YED.RetainStateOnDeath.Utils
+     * @param  {Object} obj Data object
+     * @private
+     */
+    Utils._processMethods = function(obj) {
+        obj.isRetainStateOnDeath = Utils.isRetainStateOnDeath;
+    };
+
+    /**
+     * Process notetag for object.
+     *
+     * @function _processNotetag
+     * @memberof YED.RetainStateOnDeath.Utils
+     * @param  {Object} obj Data object
+     * @param  {String} notetag Notetag
+     * @private
+     */
+    Utils._processNotetag = function(obj, notetag) {
+        if (notetag.match(Regexp.RETAIN)) {
+            obj._retainStateOnDeath = true;
         }
     };
 
@@ -133,7 +154,7 @@ YED.RetainStateOnDeath = {};
     Scene_Boot.prototype.start = function() {
         _Scene_Boot_start.call(this);
 
-        Utils.processNotetag.call(DataManager);
+        Utils.processNotetags.call(DataManager);
     };
 }());
 
