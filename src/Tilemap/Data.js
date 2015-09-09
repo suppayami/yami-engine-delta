@@ -158,7 +158,7 @@
 
         for (i = 0; i < this.width * this.height; i++) {
             this.collision[i] = 0;
-        };
+        }
 
         for (i = 0; i < collisionLayers.length; i++) {
             layer = collisionLayers[i];

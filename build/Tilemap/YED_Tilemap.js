@@ -180,7 +180,7 @@ YED.Tilemap = {};
 
         for (i = 0; i < this.width * this.height; i++) {
             this.collision[i] = 0;
-        };
+        }
 
         for (i = 0; i < collisionLayers.length; i++) {
             layer = collisionLayers[i];
@@ -1103,6 +1103,13 @@ YED.Tilemap = {};
 
     Game_Map.prototype.tilemapRefresh = function() {
         this._yed_tilemap.refresh();
+    };
+
+    Game_Map.prototype.isPassable = function(x, y, d) {
+        var collision = this._yedTilemapData().collision,
+            index = this.width() * y + x;
+
+        return collision[index] === 0;
     };
 
     Tilemap.prototype.refresh = function() {

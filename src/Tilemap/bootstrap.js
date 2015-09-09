@@ -69,6 +69,13 @@
         this._yed_tilemap.refresh();
     };
 
+    Game_Map.prototype.isPassable = function(x, y, d) {
+        var collision = this._yedTilemapData().collision,
+            index = this.width() * y + x;
+
+        return collision[index] === 0;
+    };
+
     Tilemap.prototype.refresh = function() {
         this._needsRepaint = false; // no need to draw default tiles
         $gameMap.tilemapRefresh();
