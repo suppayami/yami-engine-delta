@@ -25,4 +25,5 @@ gulp.task('build', ['lint-engine'], function() {
     gulp.start('build-hospital');
     gulp.start('build-skillshop');
     gulp.start('build-tilemap');
+    gulp.start('build-luna');
 });
