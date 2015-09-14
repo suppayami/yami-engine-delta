@@ -227,7 +227,6 @@ YED.Hospital.Scenes  = {};
     };
 }());
 
-/* globals YED: false */
 
 (function() {
     /**
