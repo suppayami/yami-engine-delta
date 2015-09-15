@@ -11,8 +11,10 @@
     GUI.prototype.initialize = function() {
         Sprite_Base.prototype.initialize.call(this);
 
-        this.bitmap = new Bitmap(Graphics.width, Graphics.height);
-        this._windowskin = null;
+        this._windowskin = null; // for textColor
+        this._value = null;
+
+        this.value = this._getCurrentValue();
     };
 
     /**
@@ -45,6 +47,45 @@
         },
         configurable: true
     });
+
+    /**
+     * The image used as a window skin.
+     *
+     * @property windowskin
+     * @type Bitmap
+     */
+    Object.defineProperty(GUI.prototype, 'value', {
+        get: function() {
+            return this._value;
+        },
+        set: function(value) {
+            if (this._value !== value) {
+                this._value = value;
+                this.refresh();
+            }
+        },
+        configurable: true
+    });
+
+    GUI.prototype.updateTransform = function() {
+        Sprite_Base.prototype.updateTransform.call(this);
+
+        this.updateGUIValue();
+    };
+
+    GUI.prototype.updateGUIValue = function() {
+        var currentValue = this._getCurrentValue();
+
+        this.value = currentValue;
+    };
+
+    GUI.prototype.refresh = function() {
+        // polymorph!
+    };
+
+    GUI.prototype._getCurrentValue = function() {
+        return null;
+    };
 
     GUI.prototype.loadWindowskin = Window_Base.prototype.loadWindowskin;
     GUI.prototype.lineHeight = Window_Base.prototype.lineHeight;

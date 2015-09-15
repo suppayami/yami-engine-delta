@@ -18,3 +18,4 @@ LunaEngine.Core.Sprite = {};
  */
 
 LunaEngine.Battle = {};
+LunaEngine.Battle.Sprite = {};
