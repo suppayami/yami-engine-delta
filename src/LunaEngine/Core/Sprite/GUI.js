@@ -12,9 +12,10 @@
         Sprite_Base.prototype.initialize.call(this);
 
         this._windowskin = null; // for textColor
-        this._value = null;
+    };
 
-        this.value = this._getCurrentValue();
+    GUI.prototype.setupGUI = function() {
+        this.updateGUIParams();
     };
 
     /**
@@ -48,47 +49,33 @@
         configurable: true
     });
 
-    /**
-     * The image used as a window skin.
-     *
-     * @property windowskin
-     * @type Bitmap
-     */
-    Object.defineProperty(GUI.prototype, 'value', {
-        get: function() {
-            return this._value;
-        },
-        set: function(value) {
-            if (this._value !== value) {
-                this._value = value;
-                this.refresh();
-            }
-        },
-        configurable: true
-    });
+    GUI.prototype.update = function() {
+        Sprite_Base.prototype.update.call(this);
 
-    GUI.prototype.attachParameter = function(paramName, attachMethod) {
-
+        this.updateGUIParams();
     };
 
-    GUI.prototype.updateTransform = function() {
-        Sprite_Base.prototype.updateTransform.call(this);
-
-        this.updateGUIValue();
+    GUI.prototype.updateGUIParams = function() {
+        this.updateGUIPosition();
     };
 
-    GUI.prototype.updateGUIValue = function() {
-        var currentValue = this._getCurrentValue();
+    GUI.prototype.updateGUIPosition = function() {
+        var x = this._getX(),
+            y = this._getY();
 
-        this.value = currentValue;
+        this.move(x, y);
     };
 
     GUI.prototype.refresh = function() {
         // polymorph!
     };
 
-    GUI.prototype._getCurrentValue = function() {
-        return null;
+    GUI.prototype._getX = function() {
+        return 0;
+    };
+
+    GUI.prototype._getY = function() {
+        return 0;
     };
 
     GUI.prototype.loadWindowskin = Window_Base.prototype.loadWindowskin;
