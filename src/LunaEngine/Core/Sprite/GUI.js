@@ -67,6 +67,10 @@
         configurable: true
     });
 
+    GUI.prototype.attachParameter = function(paramName, attachMethod) {
+
+    };
+
     GUI.prototype.updateTransform = function() {
         Sprite_Base.prototype.updateTransform.call(this);
 
