@@ -128,23 +128,23 @@
         this.bitmap.drawTextEx(text, 0, 0);
     };
 
-    GUIImage.prototype._getText = function() {
+    GUIText.prototype._getText = function() {
         return "";
     };
 
-    GUIImage.prototype._getFontFace = function() {
+    GUIText.prototype._getFontFace = function() {
         return this.standardFontFace();
     };
 
-    GUIImage.prototype._getFontSize = function() {
+    GUIText.prototype._getFontSize = function() {
         return this.standardFontSize();
     };
 
-    GUIImage.prototype._getTextColor = function() {
+    GUIText.prototype._getTextColor = function() {
         return this.normalColor();
     };
 
-    GUIImage.prototype._getOutlineColor = function() {
+    GUIText.prototype._getOutlineColor = function() {
         return "rgba(0,0,0,0.5)";
     };
 
