@@ -20,17 +20,17 @@ Yanfly.Message = Yanfly.Message || {};
  * @default
  *
  * @param Default Rows
- * @desc This is default amount of rows the message box will have.  .
+ * @desc This is default amount of rows the message box will have.
  * Default: 4
  * @default 4
  *
  * @param Default Width
- * @desc This is default width for the message box in pixels.       .
+ * @desc This is default width for the message box in pixels.
  * Default: Graphics.boxWidth
  * @default Graphics.boxWidth
  *
  * @param Face Indent
- * @desc If using a face graphic, this is how much text indents by. .
+ * @desc If using a face graphic, this is how much text indents by.
  * Default: Window_Base._faceWidth + 24
  * @default Window_Base._faceWidth + 24
  *
@@ -43,14 +43,29 @@ Yanfly.Message = Yanfly.Message || {};
  * @default
  *
  * @param Font Name
- * @desc This is the default font used for the Message Window.      .
+ * @desc This is the default font used for the Message Window.
  * Default: GameFont
  * @default GameFont
  *
  * @param Font Size
- * @desc This is the default font size used for the Message Window. .
+ * @desc This is the default font size used for the Message Window.
  * Default: 28
  * @default 28
+ *
+ * @param Font Size Change
+ * @desc Whenever \{ and \} are used, they adjust by this value.
+ * Default: 12
+ * @default 12
+ *
+ * @param Font Changed Max
+ * @desc This is the maximum size achieved by \{.
+ * Default: 96
+ * @default 96
+ *
+ * @param Font Changed Min
+ * @desc This is the minimum size achieved by \{.
+ * Default: 12
+ * @default 12
  *
  * @param ---Name Box---
  * @default
@@ -72,9 +87,14 @@ Yanfly.Message = Yanfly.Message || {};
  * @default 0
  *
  * @param Name Box Clear
- * @desc Do you wish for the Name Box window to be clear?           .
+ * @desc Do you wish for the Name Box window to be clear?
  * NO - false     YES - true
  * @default false
+ *
+ * @param Name Box Added Text
+ * @desc This text is always added whenever the name box is used.
+ * This can be used to automatically set up colors.
+ * @default \c[6]
  *
  * @help
  * ============================================================================
@@ -82,11 +102,11 @@ Yanfly.Message = Yanfly.Message || {};
  * ============================================================================
  *
  * While RPG Maker MV Ace certainly improved the message system a whole lot, it
- * wouldn't hurt to add in a few more features, such as name windows, converting
- * textcodes to write out the icons and/or names of items, weapons, armours, and
- * more in quicker fashion. This script also gives the developer the ability to
- * adjust the size of the message window during the game, give it a separate
- * font, and to give the player a text fast-forward feature.
+ * wouldn't hurt to add in a few more features, such as name windows,
+ * converting textcodes to write out the icons and/or names of items, weapons,
+ * armours, and* more in quicker fashion. This script also gives the developer
+ * the ability to adjust the size of the message window during the game, give
+ * it a separate font, and to give the player a text fast-forward feature.
  *
  * ============================================================================
  * Text Codes
@@ -95,7 +115,7 @@ Yanfly.Message = Yanfly.Message || {};
  * By using certain text codes in your messages, you can have the game replace
  * them with the following:
  *
- * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
  *
  * Text Code   Function
  *   \V[n]       Replaced by the value of the nth variable.
@@ -115,12 +135,12 @@ Yanfly.Message = Yanfly.Message || {};
  *   \<          Cancel the effect that displays text all at once.
  *   \^          Do not wait for input after displaying text.
  *
- * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
  *
  *  Wait:       Effect:
  *    \w[x]     - Waits x frames (60 frames = 1 second). Message window only.
  *
- * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
  *
  *  NameWindow: Effect:
  *    \n<x>     - Creates a name box with x string. Left side. *Note
@@ -129,28 +149,28 @@ Yanfly.Message = Yanfly.Message || {};
  *
  *              *Note: Works for message window only.
  *
- * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
  *
  *  Position:   Effect:
  *    \px[x]    - Sets x position of text to x.
  *    \py[x]    - Sets y position of text to y.
  *
- * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
  *
  *  Outline:    Effect:
  *   \oc[x]    - Sets outline colour to x.
  *   \ow[x]    - Sets outline width to x.
  *
- * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
  *
  *  Font:       Effect:
  *    \fr       - Resets all font changes.
  *    \fs[x]    - Changes font size to x.
- *    \fn[x]    - Changes font name to x.
+ *    \fn<x>    - Changes font name to x.
  *    \fb       - Toggles font boldness.
  *    \fi       - Toggles font italic.
  *
- * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
  *
  *  Actor:      Effect:
  *    \af[x]    - Shows face of actor x. *Note
@@ -159,7 +179,7 @@ Yanfly.Message = Yanfly.Message || {};
  *
  *              *Note: Works for message window only.
  *
- * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
  *
  *  Party:      Effect:
  *    \pf[x]    - Shows face of party member x. *Note
@@ -168,7 +188,7 @@ Yanfly.Message = Yanfly.Message || {};
  *
  *              *Note: Works for message window only.
  *
- * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
  *
  *  Names:      Effect:
  *    \nc[x]    - Writes out class x's name.
@@ -178,7 +198,7 @@ Yanfly.Message = Yanfly.Message || {};
  *    \ns[x]    - Writes out skill x's name.
  *    \nt[x]    - Writes out state x's name.
  *
- * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
  *
  *  Icon Names: Effect:
  *    \ii[x]    - Writes out item x's name including icon.
@@ -187,11 +207,11 @@ Yanfly.Message = Yanfly.Message || {};
  *    \is[x]    - Writes out skill x's name including icon.
  *    \it[x]    - Writes out state x's name including icon.
  *
- * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
  *
  * And those are the text codes added with this script. Keep in mind that some
- * of these text codes only work for the Message Window. Otherwise, they'll work
- * for help descriptions, actor biographies, and others.
+ * of these text codes only work for the Message Window. Otherwise, they'll
+ * work for help descriptions, actor biographies, and others.
  *
  * ============================================================================
  * Plugin Commands
@@ -226,11 +246,15 @@ Yanfly.Param.MSGFaceIndent = String(Yanfly.Parameters['Face Indent']);
 Yanfly.Param.MSGFastForward = String(Yanfly.Parameters['Fast Forward']);
 Yanfly.Param.MSGFontName = String(Yanfly.Parameters['Font Name']);
 Yanfly.Param.MSGFontSize = Number(Yanfly.Parameters['Font Size']);
+Yanfly.Param.MSGFontSizeChange = String(Yanfly.Parameters['Font Size Change']);
+Yanfly.Param.MSGFontChangeMax = String(Yanfly.Parameters['Font Changed Max']);
+Yanfly.Param.MSGFontChangeMin = String(Yanfly.Parameters['Font Changed Min']);
 Yanfly.Param.MSGNameBoxBufferX = String(Yanfly.Parameters['Name Box Buffer X']);
 Yanfly.Param.MSGNameBoxBufferY = String(Yanfly.Parameters['Name Box Buffer Y']);
 Yanfly.Param.MSGNameBoxPadding = String(Yanfly.Parameters['Name Box Padding']);
 Yanfly.Param.MSGNameBoxColor = Number(Yanfly.Parameters['Name Box Color']);
 Yanfly.Param.MSGNameBoxClear = String(Yanfly.Parameters['Name Box Clear']);
+Yanfly.Param.MSGNameBoxText = String(Yanfly.Parameters['Name Box Added Text']);
 
 //=============================================================================
 // Bitmap
@@ -269,9 +293,8 @@ Yanfly.Message.Game_Interpreter_pluginCommand =
     Game_Interpreter.prototype.pluginCommand;
 Game_Interpreter.prototype.pluginCommand = function(command, args) {
     Yanfly.Message.Game_Interpreter_pluginCommand.call(this, command, args);
-    if (command === 'MessageRows') {
-        $gameSystem._messageRows = args[0];
-    }
+    if (command === 'MessageRows') $gameSystem._messageRows = args[0];
+		if (command === 'MessageWidth') $gameSystem._messageWidth = args[0];
 };
 
 Game_Interpreter.prototype.command101 = function() {
@@ -430,7 +453,7 @@ Window_Base.prototype.escapeIconItem = function(n, database) {
 };
 
 Window_Base.prototype.obtainEscapeString = function(textState) {
-    var arr = /^\[(.*)\]/.exec(textState.text.slice(textState.index));
+    var arr = /^\<(.*)\>/.exec(textState.text.slice(textState.index));
     if (arr) {
         textState.index += arr[0].length;
         return String(arr[0].slice(1, arr[0].length - 1));
@@ -442,7 +465,7 @@ Window_Base.prototype.obtainEscapeString = function(textState) {
 Yanfly.Message.Window_Base_processEscapeCharacter =
 		Window_Base.prototype.processEscapeCharacter;
 Window_Base.prototype.processEscapeCharacter = function(code, textState) {
-    switch (code) {
+		switch (code) {
 		case 'FR':
         this.resetFontSettings();
         break;
@@ -450,7 +473,7 @@ Window_Base.prototype.processEscapeCharacter = function(code, textState) {
         this.contents.fontSize = this.obtainEscapeParam(textState);
         break;
     case 'FN':
-				var name = this.obtainEscapeString(textState)
+				var name = this.obtainEscapeString(textState);
 				this.contents.fontFace = name;
         break;
 		case 'FB':
@@ -464,7 +487,7 @@ Window_Base.prototype.processEscapeCharacter = function(code, textState) {
         this.contents.outlineColor = this.textColor(id);
         break;
 		case 'OW':
-        this.contents.outlineWidth = this.obtainEscapeParam(textState);
+				this.contents.outlineWidth = this.obtainEscapeParam(textState);
         break;
     case 'PX':
         textState.x = this.obtainEscapeParam(textState);
@@ -478,6 +501,16 @@ Window_Base.prototype.processEscapeCharacter = function(code, textState) {
 				code, textState);
       break;
     }
+};
+
+Window_Base.prototype.makeFontBigger = function() {
+		var size = this.contents.fontSize + eval(Yanfly.Param.MSGFontSizeChange);
+		this.contents.fontSize = Math.min(size, Yanfly.Param.MSGFontChangeMax);
+};
+
+Window_Base.prototype.makeFontSmaller = function() {
+	var size = this.contents.fontSize - eval(Yanfly.Param.MSGFontSizeChange);
+	this.contents.fontSize = Math.max(size, Yanfly.Param.MSGFontChangeMin);
 };
 
 //=============================================================================
@@ -565,7 +598,7 @@ Window_NameBox.prototype.update = function() {
 };
 
 Window_NameBox.prototype.refresh = function(text, position) {
-		this._text = text;
+		this._text = Yanfly.Param.MSGNameBoxText + text;
 		this._position = position;
 		this.width = this.windowWidth();
 		this.createContents();

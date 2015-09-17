@@ -584,8 +584,8 @@ Game_Action.prototype.applyItemCriticalRate = function(target) {
 		var b = target;
 		var user = this.subject();
 		var subject = this.subject();
-		var s = $gameSwitches.data;
-		var v = $gameVariables.data;
+		var s = $gameSwitches._data;
+		var v = $gameVariables._data;
 		var rate = 0;
 		eval(item.critRate);
 		return rate;
@@ -620,8 +620,8 @@ function(value, baseDamage, target) {
 	var b = target;
 	var user = this.subject();
 	var subject = this.subject();
-	var s = $gameSwitches.data;
-	var v = $gameVariables.data;
+	var s = $gameSwitches._data;
+	var v = $gameVariables._data;
 	var bonus = user.criticalMultiplierBonus();
 	eval(item.critMult);
 	return value;
@@ -646,8 +646,8 @@ Game_Action.prototype.applyItemFlatCrit = function(value, baseDamage, target) {
 	var b = target;
 	var user = this.subject();
 	var subject = this.subject();
-	var s = $gameSwitches.data;
-	var v = $gameVariables.data;
+	var s = $gameSwitches._data;
+	var v = $gameVariables._data;
 	var bonus = user.flatCriticalBonus();
 	eval(item.flatCrit);
 	return value;

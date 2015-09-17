@@ -12,6 +12,7 @@
         Sprite_Base.prototype.initialize.call(this);
 
         this._windowskin = null; // for textColor
+        this._config = null;
     };
 
     GUI.prototype.setupGUI = function() {
@@ -49,6 +50,19 @@
         configurable: true
     });
 
+    Object.defineProperty(GUI.prototype, 'config', {
+        get: function() {
+            return this._config;
+        },
+        set: function(value) {
+            if (this._config !== value) {
+                this._config = value;
+                this.setupGUI();
+            }
+        },
+        configurable: true
+    });
+
     GUI.prototype.update = function() {
         Sprite_Base.prototype.update.call(this);
 
@@ -57,6 +71,7 @@
 
     GUI.prototype.updateGUIParams = function() {
         this.updateGUIPosition();
+        this.updateGUIColor();
     };
 
     GUI.prototype.updateGUIPosition = function() {
@@ -64,6 +79,12 @@
             y = this._getY();
 
         this.move(x, y);
+    };
+
+    GUI.prototype.updateGUIColor = function() {
+        var colorTone = this._getColorTone();
+
+        this.setColorTone(colorTone);
     };
 
     GUI.prototype.refresh = function() {
@@ -76,6 +97,10 @@
 
     GUI.prototype._getY = function() {
         return 0;
+    };
+
+    GUI.prototype._getColorTone = function() {
+        return [0,0,0,0];
     };
 
     GUI.prototype.loadWindowskin = Window_Base.prototype.loadWindowskin;

@@ -1,6 +1,6 @@
 //=============================================================================
 // Yanfly Engine Plugins - Auto Passive States
-// YEP_Passive YEP_AutoPassiveStates.js
+// YEP_AutoPassiveStates.js
 // Version: 1.00
 //=============================================================================
 
@@ -11,16 +11,25 @@ var Yanfly = Yanfly || {};
 Yanfly.APS = Yanfly.APS || {};
 
 //=============================================================================
-/*:
- * @plugindesc This pluging allows for some states to function as passives
- * for actors, inherent in equips, and enemies.
+ /*:
+ * @plugindesc This pluging allows for some states to function as
+ * passives for actors, enemies, skills, and equips.
  * @author Yanfly Engine Plugins
  *
  * @help
- * Passive states are states that are always active. You can think of them as
- * an extension of traits but with more flexibility.
+ * ============================================================================
+ * Introduction
+ * ============================================================================
  *
- * Actor, Class, Weapon, Armor, Enemy Notetags:
+ * Passive states are states that are automatically active. You can think of
+ * them as an extension of traits but with more flexibility. They will always
+ * be there as long as the actor or enemy has auto passive state notetags.
+ *
+ * ============================================================================
+ * Notetags
+ * ============================================================================
+ *
+ * Actor, Class, Skills, Weapon, Armor, Enemy Notetags:
  *   <Passive State: x>
  *   <Passive State: x, x, x>
  *   This will allow the actor or enemy to have state x as a passive state.
@@ -44,6 +53,7 @@ DataManager.isDatabaseLoaded = function() {
 		this.processAPSNotetags($dataActors);
 		this.processAPSNotetags($dataClasses);
 		this.processAPSNotetags($dataEnemies);
+    this.processAPSNotetags($dataSkills);
 		this.processAPSNotetags($dataWeapons);
 		this.processAPSNotetags($dataArmors);
 		return true;
@@ -51,7 +61,7 @@ DataManager.isDatabaseLoaded = function() {
 
 DataManager.processAPSNotetags = function(group) {
   var note1 = /<(?:PASSIVE STATE):[ ]*(\d+(?:\s*,\s*\d+)*)>/i;
-  var note2 = /<(?:PASSIVE_STATE):[ ](\d+)[ ](?:THROUGH|to)[ ](\d+)>/i;
+  var note2 = /<(?:PASSIVE STATE):[ ](\d+)[ ](?:THROUGH|to)[ ](\d+)>/i;
 	for (var n = 1; n < group.length; n++) {
 		var obj = group[n];
 		var notedata = obj.note.split(/[\r\n]+/);
@@ -76,6 +86,14 @@ DataManager.processAPSNotetags = function(group) {
 // Game_BattlerBase
 //=============================================================================
 
+Yanfly.APS.Game_BattlerBase_states = Game_BattlerBase.prototype.states;
+Game_BattlerBase.prototype.states = function() {
+    var array = Yanfly.APS.Game_BattlerBase_states.call(this);
+    array = array.concat(this.passiveStates());
+    this.sortPassiveStates(array.filter(Yanfly.Util.onlyUnique));
+    return array;
+};
+
 Yanfly.APS.Game_BattlerBase_isStateAffected =
     Game_BattlerBase.prototype.isStateAffected;
 Game_BattlerBase.prototype.isStateAffected = function(stateId) {
@@ -83,74 +101,45 @@ Game_BattlerBase.prototype.isStateAffected = function(stateId) {
     return Yanfly.APS.Game_BattlerBase_isStateAffected.call(this, stateId);
 };
 
-Yanfly.APS.Game_BattlerBase_states = Game_BattlerBase.prototype.states;
-Game_BattlerBase.prototype.states = function() {
-    var states_array = Yanfly.APS.Game_BattlerBase_states.call(this);
-    states_array = states_array.concat(this.passiveStates());
-    return states_array.filter(Yanfly.Util.onlyUnique);
+Game_BattlerBase.prototype.passiveStates = function() {
+    var array = [];
+    for (var i = 0; i < this.passiveStatesRaw().length; ++i) {
+      var state = $dataStates[this.passiveStatesRaw()[i]];
+      if (state) array.push(state);
+    }
+    return array;
+};
+
+Game_BattlerBase.prototype.passiveStatesRaw = function() {
+    var array = [];
+    return array.filter(Yanfly.Util.onlyUnique);
+};
+
+Game_BattlerBase.prototype.getPassiveStateData = function(obj) {
+    if (!obj) return [];
+    if (!obj.passiveStates) return [];
+    var array = [];
+    for (var i = 0; i < obj.passiveStates.length; ++i) {
+      array.push(obj.passiveStates[i]);
+    }
+    return array;
+};
+
+Game_BattlerBase.prototype.sortPassiveStates = function(array) {
+    array.sort(function(a, b) {
+      var p1 = a.priority;
+      var p2 = b.priority;
+      if (p1 !== p2) return p2 - p1;
+      return a - b;
+    });
 };
 
 Game_BattlerBase.prototype.isPassiveStateAffected = function(stateId) {
-    if (this._passivestates == undefined) this._passivestates = [];
-    return this._passivestates.contains(stateId);
-}
-
-Game_BattlerBase.prototype.passiveStates = function() {
-		this._passiveStates = [];
-		if (this.isActor() && this.actor().passiveStates !== undefined) {
-			this.makePassiveStates(this.actor());
-			if (this.currentClass()) this.makePassiveStates(this.currentClass());
-			this.equips().forEach(function(item) {
-				if (item) {
-					this.makePassiveStates(item);
-				}
-	    }, this);
-		} else if (this.isEnemy() && this.enemy().passiveStates !== undefined) {
-			this.makePassiveStates(this.enemy());
-		};
-		return this.constructPassiveStates();
+    return this.passiveStatesRaw().contains(stateId);
 };
-
-Game_BattlerBase.prototype.makePassiveStates = function(obj) {
-		if (!obj) return;
-		if (!obj.passiveStates) return;
-		for (var i = 0; i < obj.passiveStates.length; ++i) {
-			var stateId = obj.passiveStates[i]
-			if ($dataStates[stateId] && !this._passiveStates.contains(stateId)) {
-				this._passiveStates.push(stateId);
-				this._stateTurns[stateId] = 0;
-				this._stateSteps[stateId] = 0;
-			}
-		}
-		this.sortPassiveStates();
-};
-
-Game_BattlerBase.prototype.sortPassiveStates = function() {
-		this._passiveStates.sort(function(a, b) {
-				var p1 = $dataStates[a].priority;
-				var p2 = $dataStates[b].priority;
-				if (p1 !== p2) {
-						return p2 - p1;
-				}
-				return a - b;
-		});
-}
-
-Game_BattlerBase.prototype.constructPassiveStates = function() {
-		var states = [];
-		if (Input.isRepeated('ok')) {
-		}
-		for (var i = 0; i < this._passiveStates.length; ++i) {
-			var stateId = this._passiveStates[i];
-			if ($dataStates[stateId]) {
-				states.push($dataStates[stateId]);
-			}
-		}
-		return states;
-}
 
 //=============================================================================
-// Game_BattlerBase
+// Game_Battler
 //=============================================================================
 
 Yanfly.APS.Game_Battler_isStateAddable = Game_Battler.prototype.isStateAddable;
@@ -166,7 +155,51 @@ Game_Battler.prototype.removeState = function(stateId) {
 };
 
 //=============================================================================
-// New Function
+// Game_Actor
+//=============================================================================
+
+Game_Actor.prototype.passiveStatesRaw = function() {
+    var array = Game_BattlerBase.prototype.passiveStatesRaw.call(this);
+    array = array.concat(this.getPassiveStateData(this.actor()));
+    array = array.concat(this.getPassiveStateData(this.currentClass()));
+    for (var i = 0; i < this.equips().length; ++i) {
+      var equip = this.equips()[i];
+      array = array.concat(this.getPassiveStateData(equip));
+    }
+    for (var i = 0; i < this._skills.length; ++i) {
+      var skill = $dataSkills[this._skills[i]];
+      array = array.concat(this.getPassiveStateData(skill));
+    }
+    return array;
+};
+
+//=============================================================================
+// Game_Enemy
+//=============================================================================
+
+Game_Enemy.prototype.passiveStatesRaw = function() {
+    var array = Game_BattlerBase.prototype.passiveStatesRaw.call(this);
+    array = array.concat(this.getPassiveStateData(this.enemy()));
+    for (var i = 0; i < this.skills().length; ++i) {
+      var skill = this.skills()[i];
+      array = array.concat(this.getPassiveStateData(skill));
+    }
+    return array;
+};
+
+if (!Game_Enemy.prototype.skills) {
+		Game_Enemy.prototype.skills = function() {
+			var skills = []
+			for (var i = 0; i < this.enemy().actions.length; ++i) {
+				var skill = $dataSkills[this.enemy().actions[i].skillId]
+				if (skill) skills.push(skill);
+			}
+			return skills;
+		}
+};
+
+//=============================================================================
+// Utilities
 //=============================================================================
 
 Yanfly.Util = Yanfly.Util || {};

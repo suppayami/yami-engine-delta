@@ -957,8 +957,8 @@ Game_Action.prototype.scaleCertainArmor = function(value, baseDamage, target) {
 		var b = target;
 		var user = this.subject();
 		var subject = this.subject();
-		var s = $gameSwitches.data;
-		var v = $gameVariables.data;
+		var s = $gameSwitches._data;
+		var v = $gameVariables._data;
 		if (armor >= 0) {
 			eval(item.positiveArmorScale);
 		} else {
@@ -976,8 +976,8 @@ Game_Action.prototype.scalePhysicalArmor = function(value, baseDamage, target) {
 		var b = target;
 		var user = this.subject();
 		var subject = this.subject();
-		var s = $gameSwitches.data;
-		var v = $gameVariables.data;
+		var s = $gameSwitches._data;
+		var v = $gameVariables._data;
 		if (armor >= 0) {
 			eval(item.positiveArmorScale);
 		} else {
@@ -995,8 +995,8 @@ Game_Action.prototype.scaleMagicalArmor = function(value, baseDamage, target) {
 		var b = target;
 		var user = this.subject();
 		var subject = this.subject();
-		var s = $gameSwitches.data;
-		var v = $gameVariables.data;
+		var s = $gameSwitches._data;
+		var v = $gameVariables._data;
 		if (armor >= 0) {
 			eval(item.positiveArmorScale);
 		} else {
@@ -1012,8 +1012,8 @@ Game_Action.prototype.getBaseArmor = function(value, baseDamage, target) {
 		var b = target;
 		var user = this.subject();
 		var subject = this.subject();
-		var s = $gameSwitches.data;
-		var v = $gameVariables.data;
+		var s = $gameSwitches._data;
+		var v = $gameVariables._data;
 		armor = eval(item.baseArmorScale);
 		return armor;
 };

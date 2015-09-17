@@ -31,22 +31,23 @@ Yanfly.IUS = Yanfly.IUS || {};
  * @default Slots Available
  *
  * @param Show Slot Upgrades
- * @desc Shows what upgrades applied to slots in info window.       .
+ * @desc Shows what upgrades applied to slots in info window.
  * NO - false     YES - true
  * @default true
  *
  * @param Slot Upgrade Format
- * @desc This is the text format used before a shown slot upgrade.  .
+ * @desc This is the text format used before a shown slot upgrade.
  * %1 - Slot Number    %2 - Item Icon and Name
  * @default \}Slot%1: %2\{
  *
  * @param Default Sound
- * @desc This is the default sound played when using an item upgrade.
+ * @desc This is the default sound played when using an
+ * item upgrade.
  * @default Heal2
  *
  * @help
  * ============================================================================
- * Introduction                                                     .
+ * Introduction
  * ============================================================================
  *
  * This plugin requires YEP_ItemCore.
@@ -67,8 +68,8 @@ Yanfly.IUS = Yanfly.IUS || {};
  *   default amount defined in the database.
  *
  *   <Upgrade Sound: filename>
- *   Changes the upgrade sound played to 'filename'. If this notetag isn't used,
- *   the 'Default Sound' parameter sound will be used instead.
+ *   Changes the upgrade sound played to 'filename'. If this notetag isn't
+ *   used, the 'Default Sound' parameter sound will be used instead.
  *
  *   <Upgrade Effect>
  *    effect
@@ -90,8 +91,8 @@ Yanfly.IUS = Yanfly.IUS || {};
  *   <Upgrade Item Type: string>
  *   This makes it so this item can be used to upgrade the item that matches
  *   either the item type or the item occassion. If none of those work for you,
- *   you can use the following notetag and place an instance for 'string' inside
- *   of the item upgrade types.
+ *   you can use the following notetag and place an instance for 'string'
+ *   inside of the item upgrade types.
  *
  *   <Type: string>
  *   Puts this type into the notebox for items (not weapons nor armors) and it
@@ -137,6 +138,7 @@ Yanfly.IUS = Yanfly.IUS || {};
  *   Reset Prefix          - Resets name prefix to default.
  *   Reset Stat            - Resets 'Stat' back to base stat values. *Note1
  *   Reset Suffix          - Resets name suffix to default.
+ *   Reset Full            - Resets every single aspect about item. *Note3
  *   Slots: x              - Changes the slot consumption cost to x. *Note1
  *   Stat: +x              - Increases 'Stat' by x. *Note1
  *   Stat: -x              - Decreases 'Stat' by x. *Note1
@@ -149,6 +151,25 @@ Yanfly.IUS = Yanfly.IUS || {};
  *
  * Note2: This does not alter boost count nor update the item's name unless
  * it is altered by the effect.
+ *
+ * Note3: Because this effect resets absolutely everything about an item, it
+ * will send the player away from the upgrade menu to reset the standings of
+ * the item.
+ *
+ * ============================================================================
+ * Plugin Commands
+ * ============================================================================
+ *
+ * The following are some Plugin Commands you can use for your game regarding
+ * the upgrade option in the item menu:
+ *
+ * Plugin Command:
+ *   ShowItemUpgrade    - Shows the upgrade option in the item menu.
+ *   HideItemUpgrade    - Hides the upgrade option in the item menu.
+ *   DisableItemUpgrade - Disables the upgrade option in the item menu.
+ *   EnableItemUpgrade  - Enables the upgrade option in the item menu.
+ *
+ * You can use those Plugin Commands at any time to adjust the upgrade option.
  */
 //=============================================================================
 
@@ -285,7 +306,7 @@ ItemManager.initSlotUpgradeNotes = function(item) {
         item.upgradeArmorType = item.upgradeArmorType.concat(range);
       }
     }
-    if (!DataManager.isUpgradeable(item)) item.upgradeSlots = 0;
+    if (!DataManager.isIndependent(item)) item.upgradeSlots = 0;
     if (item.upgradeItemType.length === 0 &&
     item.upgradeWeaponType.length === 0 &&
     item.upgradeArmorType.length === 0) {
@@ -295,7 +316,7 @@ ItemManager.initSlotUpgradeNotes = function(item) {
 };
 
 ItemManager.applyIUSEffects = function(mainItem, effectItem) {
-    if (!DataManager.isUpgradeable(mainItem)) return;
+    if (!DataManager.isIndependent(mainItem)) return;
     this.payIUSEffects(mainItem, effectItem);
     this.checkIUSEffects(mainItem, effectItem);
 };
@@ -320,6 +341,10 @@ ItemManager.checkIUSEffects = function(mainItem, effectItem) {
     for (var i = 0; i < effectItem.upgradeEffect.length; ++i) {
       var line = effectItem.upgradeEffect[i];
       this.processIUSEffect(line, mainItem, effectItem);
+      if (this._fullReset) {
+        mainItem = this._resetItem;
+        this._resetItem = undefined;
+      }
     }
 };
 
@@ -613,6 +638,17 @@ ItemManager.effectIUSResetStat = function(item, stat) {
         item.nameSuffix = '';
         this.updateItemName(item);
         break;
+      case 'FULL':
+        var id = item.id;
+        var item = JsonEx.makeDeepCopy(baseItem);
+        item.id = id;
+        if (DataManager.isItem(baseItem)) $dataItems[id] = item;
+        if (DataManager.isWeapon(baseItem)) $dataWeapons[id] = item;
+        if (DataManager.isArmor(baseItem)) $dataArmors[id] = item;
+        ItemManager.setNewIndependentItem(baseItem, item);
+        this._fullReset = true;
+        this._resetItem = item;
+        break;
     }
 };
 
@@ -676,6 +712,53 @@ ItemManager.effectIUSSuffix = function(item, value) {
 };
 
 //=============================================================================
+// Game_System
+//=============================================================================
+
+Yanfly.IUS.Game_System_initialize = Game_System.prototype.initialize;
+Game_System.prototype.initialize = function() {
+    Yanfly.IUS.Game_System_initialize.call(this);
+    this.initItemUpgradeSlots();
+};
+
+Game_System.prototype.initItemUpgradeSlots = function() {
+    this._itemUpgradeShow = true;
+    this._itemUpgradeEnabled = true;
+};
+
+Game_System.prototype.itemUpgradeShow = function() {
+    if (this._itemUpgradeShow === undefined) this.initItemUpgradeSlots();
+    return this._itemUpgradeShow;
+};
+
+Game_System.prototype.itemUpgradeEnabled = function() {
+    if (this._itemUpgradeEnabled === undefined) this.initItemUpgradeSlots();
+    return this._itemUpgradeEnabled;
+};
+
+//=============================================================================
+// Game_Interpreter
+//=============================================================================
+
+Yanfly.IUS.Game_Interpreter_pluginCommand =
+    Game_Interpreter.prototype.pluginCommand;
+Game_Interpreter.prototype.pluginCommand = function(command, args) {
+    Yanfly.IUS.Game_Interpreter_pluginCommand.call(this, command, args)
+    if (command === 'ShowItemUpgrade') {
+      $gameSystem._itemUpgradeShow = true;
+    }
+    if (command === 'HideItemUpgrade') {
+      $gameSystem._itemUpgradeShow = false;
+    }
+    if (command === 'DisableItemUpgrade') {
+      $gameSystem._itemUpgradeEnabled = false;
+    }
+    if (command === 'EnableItemUpgrade') {
+      $gameSystem._itemUpgradeEnabled = true;
+    }
+};
+
+//=============================================================================
 // Window_ItemInfo
 //=============================================================================
 
@@ -692,7 +775,7 @@ Window_ItemInfo.prototype.drawSlotsInfo = function(dy) {
     var item = this._item;
     var baseItem = DataManager.getBaseItem(item);
     if (!item.slotsApplied) ItemManager.initSlotUpgradeNotes(item);
-    if (!DataManager.isUpgradeable(item)) return dy;
+    if (!DataManager.isIndependent(item)) return dy;
     if (baseItem.upgradeSlots <= 0) return dy;
     if (Yanfly.Param.IUSSlotsText === '') return dy;
     var dx = this.textPadding();
@@ -715,7 +798,7 @@ Window_ItemInfo.prototype.drawSlotUpgradesUsed = function(dy) {
     var item = this._item;
     var baseItem = DataManager.getBaseItem(item);
     if (!item.slotsApplied) ItemManager.initSlotUpgradeNotes(item);
-    if (!DataManager.isUpgradeable(item)) return dy;
+    if (!DataManager.isIndependent(item)) return dy;
     if (baseItem.upgradeSlots <= 0) return dy;
     if (!eval(Yanfly.Param.IUSShowSlots)) return dy;
     if (item.slotsApplied.length <= 0) return dy;
@@ -743,7 +826,9 @@ Window_ItemActionCommand.prototype.addCustomCommandsD = function() {
 
 Window_ItemActionCommand.prototype.addUpgradeCommand = function() {
     if (Yanfly.Param.IUSUpgradeCmd === '') return;
-    var enabled = DataManager.isUpgradeable(this._item);
+    if (!$gameSystem.itemUpgradeShow()) return;
+    var enabled = DataManager.isIndependent(this._item);
+    if (!$gameSystem.itemUpgradeEnabled()) enabled = false;
     var fmt = Yanfly.Param.IUSUpgradeCmd;
     text = '\\i[' + this._item.iconIndex + ']' + this._item.name;
     text = fmt.format(text);
@@ -872,6 +957,7 @@ Scene_Item.prototype.onActionUpgrade = function() {
 Scene_Item.prototype.onUpgradeListOk = function() {
     var effectItem = this._upgradeListWindow.item();
     ItemManager.applyIUSEffects(this.item(), effectItem)
+    if (ItemManager._fullReset) return this.onUpgradeFullReset();
     this._upgradeListWindow.refresh();
     this._upgradeListWindow.activate();
     this._statusWindow.refresh();
@@ -883,6 +969,17 @@ Scene_Item.prototype.onUpgradeListOk = function() {
       index = this._upgradeListWindow.maxItems() - 1;
       this._upgradeListWindow.select(index);
     }
+};
+
+Scene_Item.prototype.onUpgradeFullReset = function() {
+    ItemManager._fullReset = false;
+    this.onUpgradeListCancel();
+    this.onActionCancel();
+    this._upgradeListWindow.refresh();
+    this._infoWindow.refresh();
+    this._itemWindow.refresh();
+    this._itemWindow.updateHelp();
+    this._itemActionWindow.refresh();
 };
 
 Scene_Item.prototype.onUpgradeListCancel = function() {

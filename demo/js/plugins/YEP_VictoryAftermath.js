@@ -12,9 +12,17 @@ Yanfly.VA = Yanfly.VA || {};
 
 //=============================================================================
  /*:
- * @plugindesc Display an informative window after a battle is over instead
- * of message box text stating what the party earned.
+ * @plugindesc Display an informative window after a battle is over
+ * instead of message box text stating what the party earned.
  * @author Yanfly Engine Plugins
+ *
+ * @param ---General---
+ * @default
+ *
+ * @param Victory Order
+ * @desc This is the order the victory sequence will play out.
+ * Separate each part with a space.
+ * @default exp custom drops
  *
  * @param ---BGM---
  * @default
@@ -112,9 +120,36 @@ Yanfly.VA = Yanfly.VA || {};
  * @default 0
  *
  * @help
+ * ============================================================================
+ * Introduction
+ * ============================================================================
+ *
  * This plugin swaps out the victory messages from the default battle system in
  * favor of more informative windows to display. Adjust the parameters to
  * change the settings to fit your game.
+ *
+ * ============================================================================
+ * Victory Aftermath
+ * ============================================================================
+ *
+ * In the parameters, there's a 'Victory Order' parameter. This parameter lets
+ * you choose the order of the steps in the Victory Aftermath.
+ *
+ * The default order is as follows:
+ *           exp         Displays the EXP window.
+ *           custom      Displays any custom plugin extensions.
+ *           drops       Displays the drops window.
+ *
+ * If you switch the order of these steps, add steps, or remove steps from the
+ * 'Victory Order' plugin, the Victory Aftermath will correspond to any changes
+ * you have made.
+ *
+ * ============================================================================
+ * Plugin Commands
+ * ============================================================================
+ *
+ * If you wish to alter the Victory Aftermath sequence a bit, you can use the
+ * following Plugin Commands.
  *
  * Plugin Commands:
  *   DisableVictoryAftermath   - Disables the Victory Aftermath sequence and
@@ -135,6 +170,7 @@ Yanfly.VA = Yanfly.VA || {};
 Yanfly.Parameters = PluginManager.parameters('YEP_VictoryAftermath');
 Yanfly.Param = Yanfly.Param || {};
 
+Yanfly.Param.VAOrder = String(Yanfly.Parameters['Victory Order']);
 Yanfly.Param.VACheerWait = Number(Yanfly.Parameters['Cheer Wait']);
 Yanfly.Param.VABgmName = String(Yanfly.Parameters['Victory BGM']);
 Yanfly.Param.VABgmVol = Number(Yanfly.Parameters['BGM Volume']);
@@ -226,10 +262,6 @@ BattleManager.prepareVictoryInfo = function() {
         actor._expGained = actor.currentExp() - actor._preVictoryExp;
         actor._postVictoryLv = actor._level;
     }, this);
-};
-
-BattleManager.processVictoryStep = function(step) {
-    this._victoryStep = step;
 };
 
 BattleManager.processVictoryFinish = function() {
@@ -641,30 +673,72 @@ Scene_Battle.prototype.update = function() {
     this.updateVictoryAftermath();
 };
 
+Scene_Battle.prototype.processNextVictoryStep = function() {
+    var step = this._victorySteps.shift();
+    if (step) {
+      this.processVictoryStep(step.toUpperCase());
+    } else {
+      this.processVictoryFinish();
+    }
+};
+
+Scene_Battle.prototype.processVictoryStep = function(step) {
+    this._victoryStep = step;
+};
+
+Scene_Battle.prototype.processVictoryFinish = function() {
+    this._victoryTitleWindow.close();
+    BattleManager.processVictoryFinish();
+};
+
 Scene_Battle.prototype.isVictoryStep = function(value) {
-    return BattleManager._victoryStep && BattleManager._victoryStep === value;
+    return this._victoryStep && this._victoryStep === value;
 };
 
 Scene_Battle.prototype.updateVictoryAftermath = function() {
     if (!BattleManager.isVictoryPhase()) return;
     if (!BattleManager.isFinishedVictoryCheer()) return;
     this.activateVictoryStep();
-    if (this.isVictoryStep('exp')) this.updateVictoryExp();
-    if (this.isVictoryStep('drops')) this.updateVictoryDrops();
+    this.updateVictorySteps();
 };
 
 Scene_Battle.prototype.activateVictoryStep = function() {
     if (this._activateVictoryStep) return;
     this._activateVictoryStep = true;
-    BattleManager.processVictoryStep('exp');
+    this.createVictoryTitle();
+    this._victorySteps = this.createVictorySteps();
+    this.createVictorySteps();
+    this.processNextVictoryStep();
+};
+
+Scene_Battle.prototype.createVictorySteps = function() {
+    var steps = Yanfly.Param.VAOrder.split(' ');
+    var array = [];
+    for (var i = 0; i < steps.length; ++i) {
+      var step = steps[i];
+      if (step.toUpperCase() === 'CUSTOM') {
+        array = this.addCustomVictorySteps(array);
+      } else {
+        array.push(step.toUpperCase());
+      }
+    }
+    return array;
+};
+
+Scene_Battle.prototype.addCustomVictorySteps = function(array) {
+    return array;
+};
+
+Scene_Battle.prototype.updateVictorySteps = function() {
+  if (this.isVictoryStep('EXP')) this.updateVictoryExp();
+  if (this.isVictoryStep('DROPS')) this.updateVictoryDrops();
 };
 
 Scene_Battle.prototype.updateVictoryExp = function() {
-    if (!this._victoryTitleWindow) {
-      this.createVictoryTitle();
+    if (!this._victoryExpWindow) {
       this.createVictoryExp();
     } else if (this._victoryExpWindow.isReady()) {
-      if (this.triggerContinue()) this.finishVictoryExp();
+      if (this.victoryTriggerContinue()) this.finishVictoryExp();
     }
 };
 
@@ -677,6 +751,7 @@ Scene_Battle.prototype.createVictoryTitle = function() {
 };
 
 Scene_Battle.prototype.createVictoryExp = function() {
+    this._victoryTitleWindow.refresh(Yanfly.Param.VABattleResults);
     this._victoryExpWindow = new Window_VictoryExp();
     this.addWindow(this._victoryExpWindow);
     this._victoryExpWindow.open();
@@ -685,19 +760,19 @@ Scene_Battle.prototype.createVictoryExp = function() {
 Scene_Battle.prototype.finishVictoryExp = function() {
   SoundManager.playOk();
   this._victoryExpWindow.close();
-  BattleManager.processVictoryStep('drops');
+  this.processNextVictoryStep();
 };
 
 Scene_Battle.prototype.updateVictoryDrops = function() {
     if (!this._victoryDropWindow) {
-      this._victoryTitleWindow.refresh(Yanfly.Param.VABattleDrops);
       this.createVictoryDrop();
     } else if (this._victoryDropWindow.isOpen()) {
-      if (this.triggerContinue()) this.finishVictoryDrop();
+      if (this.victoryTriggerContinue()) this.finishVictoryDrop();
     }
 };
 
 Scene_Battle.prototype.createVictoryDrop = function() {
+  this._victoryTitleWindow.refresh(Yanfly.Param.VABattleDrops);
   this._victoryDropWindow = new Window_VictoryDrop(this._victoryTitleWindow);
   this.addWindow(this._victoryDropWindow);
   this._victoryDropWindow.open();
@@ -707,10 +782,11 @@ Scene_Battle.prototype.createVictoryDrop = function() {
 
 Scene_Battle.prototype.finishVictoryDrop = function() {
     SoundManager.playOk();
-    BattleManager.processVictoryFinish();
+    this._victoryDropWindow.close();
+    this.processNextVictoryStep();
 };
 
-Scene_Battle.prototype.triggerContinue = function() {
+Scene_Battle.prototype.victoryTriggerContinue = function() {
     if (Input.isTriggered('ok') || TouchInput.isTriggered()) return true;
     if (Input.isTriggered('cancel')) return true;
     return false;

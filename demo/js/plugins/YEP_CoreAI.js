@@ -605,10 +605,10 @@ Game_Troop.prototype.aiElementRateKnown = function(target, elementId) {
 
 Game_Troop.prototype.aiRegisterElementRate = function(target, elementId) {
     if (!eval(Yanfly.Param.CoreAIElementTest)) return;
+    var index = target.index();
     if (this._aiKnownElementRates[index] === undefined) {
       this._aiKnownElementRates[index] = [];
     }
-    var index = target.index();
     if (!this._aiKnownElementRates[index].contains(elementId)) {
       this._aiKnownElementRates[index].push(elementId);
     }
@@ -1075,8 +1075,8 @@ AIManager.conditionEval = function(condition) {
     var action = this.action();
     var item = action.item();
     var user = this.battler();
-    var s = $gameSwitches.data;
-    var v = $gameVariables.data;
+    var s = $gameSwitches._data;
+    var v = $gameVariables._data;
     if (!eval(condition)) return false;
     var group = this.getActionGroup();
     this.setProperTarget(group);
@@ -1087,8 +1087,8 @@ AIManager.conditionGroupAlive = function(members, condition) {
     var action = this.action();
     var item = action.item();
     var user = this.battler();
-    var s = $gameSwitches.data;
-    var v = $gameVariables.data;
+    var s = $gameSwitches._data;
+    var v = $gameVariables._data;
     members = members.toUpperCase();
     if (['TROOP', 'TROOPS', 'ENEMY', 'ENEMIES'].contains(members)) {
       members = $gameTroop.aliveMembers();
@@ -1118,8 +1118,8 @@ AIManager.conditionPartyLevel = function(type, condition) {
     var action = this.action();
     var item = action.item();
     var user = this.battler();
-    var s = $gameSwitches.data;
-    var v = $gameVariables.data;
+    var s = $gameSwitches._data;
+    var v = $gameVariables._data;
     if (action.isForFriend()) {
       condition = 'action.friendsUnit()' + condition;
     } else if (action.isForOpponent()) {
@@ -1135,8 +1135,8 @@ AIManager.conditionParamEval = function(paramId, condition) {
     var action = this.action();
     var item = action.item();
     var user = this.battler();
-    var s = $gameSwitches.data;
-    var v = $gameVariables.data;
+    var s = $gameSwitches._data;
+    var v = $gameVariables._data;
     condition = condition.replace(/(\d+)([%％])/g, function() {
       return this.convertIntegerPercent(parseInt(arguments[1]));
     }.bind(this));
@@ -1231,8 +1231,8 @@ AIManager.conditionTurnCount = function(condition) {
     var action = this.action();
     var item = action.item();
     var user = this.battler();
-    var s = $gameSwitches.data;
-    var v = $gameVariables.data;
+    var s = $gameSwitches._data;
+    var v = $gameVariables._data;
     condition = '$gameTroop.turnCount() ' + condition;
     if (!eval(condition)) return false;
     var group = this.getActionGroup();
@@ -1244,8 +1244,8 @@ AIManager.conditionVariable = function(variableId, condition) {
     var action = this.action();
     var item = action.item();
     var user = this.battler();
-    var s = $gameSwitches.data;
-    var v = $gameVariables.data;
+    var s = $gameSwitches._data;
+    var v = $gameVariables._data;
     condition = '$gameVariables.value(' + variableId + ') ' + condition;
     if (!eval(condition)) return false;
     var group = this.getActionGroup();

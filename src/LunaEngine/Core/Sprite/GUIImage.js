@@ -50,12 +50,9 @@
             return this._rect;
         },
         set: function(value) {
-            for (var i = 0; i < value.length; i++) {
-                if (this._rect[i] !== value[i]) {
-                    this._rect = value;
-                    this._refreshGUI();
-                    break;
-                }
+            if (!this._rect.equals(value)) {
+                this._rect = value;
+                this._refreshGUI();
             }
         },
         configurable: true

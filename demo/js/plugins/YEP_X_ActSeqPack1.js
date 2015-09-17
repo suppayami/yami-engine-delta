@@ -12,8 +12,8 @@ Yanfly.ASP1 = Yanfly.ASP1 || {};
 
 //=============================================================================
  /*:
- * @plugindesc (Requires YEP_BattleEngineCore.js) Basic functions are added
- * to the Battle Engine Core's action sequences.
+ * @plugindesc (Requires YEP_BattleEngineCore.js) Basic functions are
+ * added to the Battle Engine Core's action sequences.
  * @author Yanfly Engine Plugins
  *
  * @param Default Volume
@@ -123,17 +123,27 @@ Yanfly.ASP1 = Yanfly.ASP1 || {};
  *   target, targets; These will select the active targets in question.
  *   actors, existing actors; These will select all living actors.
  *   all actors; This will select all actors including dead ones.
+ *   dead actors: This will select only dead actors.
  *   actors not user; This will select all living actors except for the user.
+ *   actor x; This will select the actor in slot x.
  *   enemies, existing enemies; This will select all living enemies.
  *   all enemies; This will select all enemies, even dead.
+ *   dead enemies: This will select only dead enemies.
  *   enemies not user; This will select all enemies except for the user.
- *   actor x; This will select the actor in slot x.
  *   enemy x; This will select the enemy in slot x.
- *   friends; This will select the battler's allies.
- *   opponents; This will select the battler's opponents.
+ *   friends; This will select the battler's alive allies.
+ *   all friends; This will select the all of battler's allies, even dead.
+ *   dead friends; This will select the battler's dead allies.
  *   friends not user; This will select the battler's allies except itself.
- *   everyone, everything; Selects all living actors and enemies.
- *   everyone not user; This will select all living battlers except user.
+ *   friend x: This will select the battler's ally in slot x.
+ *   opponents; This will select the battler's alive opponents.
+ *   all opponents; This will select the all of the battler's opponents.
+ *   dead opponents; This will select the battler's dead opponents.
+ *   opponent x: This will select the battler's opponent in slot x.
+ *   all alive; Selects all living actors and enemies.
+ *   all members; Selects all living and dead actors and enemies.
+ *   all dead; Selects all dead actors and enemies.
+ *   all not user; This will select all living battlers except user.
  *   focus; Selects the active battler and its targets.
  *   not focus; Selects everything but the active battler and its targets.
  *
@@ -166,12 +176,36 @@ Yanfly.ASP1 = Yanfly.ASP1 || {};
  *=============================================================================
  *
  *=============================================================================
- * ACTION EFFECT
+ * ACTION EFFECT: target
  *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
  * Causes the target(s) to take damage/healing from the skill/item and
  * incurs any changes made to the target(s) such as buffs and states.
  *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
  * Usage Example: action effect
+ *=============================================================================
+ *
+ *=============================================================================
+ * ADD stat BUFF: target, (turns), (show)
+ *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ * Affects the target with 'stat' buff. Replace 'stat' with 'hp', 'mp', 'atk',
+ * 'def', 'mat', 'mdf', 'agi', or 'luk'. If you include a number after the
+ * target, it will buff the target by that many turns. Include 'show' and it
+ * will show the target getting the buff applied in the battle log.
+ *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ * Usage Example: add atk buff: user, 3, show
+ *                add def buff: target, 8
+ *=============================================================================
+ *
+ *=============================================================================
+ * ADD stat DEBUFF: target, (turns), (show)
+ *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ * Affects the target with 'stat' debuff. Replace 'stat' with 'hp', 'mp',
+ * 'atk', 'def', 'mat', 'mdf', 'agi', or 'luk'. If you include a number after
+ * the target, it will debuff the target by that many turns. Include 'show' and
+ * it will show the target getting the debuff applied in the battle log.
+ *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ * Usage Example: add atk debuff: user, 3, show
+ *                add def debuff: target, 8
  *=============================================================================
  *
  *=============================================================================
@@ -192,6 +226,17 @@ Yanfly.ASP1 = Yanfly.ASP1 || {};
  * mirrored. Keep in mind that animations played on actors will automatically
  * be mirrored and setting the mirror option will reverse it and have it appear
  * unmirrored.
+ *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ * Usage Example: animation 5: user
+ *                animation 6: target, mirror
+ *=============================================================================
+ *
+ *=============================================================================
+ * ANIMATION WAIT: X
+ *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ * Waits x animaiton frames. Each frame for an animation does not last one game
+ * frame, but instead, several. To make life easier, you can use this to have
+ * the game wait x frames played for the animation.
  *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
  * Usage Example: animation 5: user
  *                animation 6: target, mirror
@@ -469,7 +514,7 @@ Yanfly.ASP1 = Yanfly.ASP1 || {};
  * PERFORM ACTION
  *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
  * Causes actors to step forward and swing their weapon, thrust it, however
- * the motion is determined will be automatically done by the game.
+ * the motion that is determined will be automatically done by the game.
  *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
  * Usage Example: perform action
  *=============================================================================
@@ -499,6 +544,28 @@ Yanfly.ASP1 = Yanfly.ASP1 || {};
  *=============================================================================
  *
  *=============================================================================
+ * REMOVE stat BUFF: target, (show)
+ *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ * Removes the 'stat' buff from target. Replace 'stat' with 'hp', 'mp', 'atk',
+ * 'def', 'mat', 'mdf', 'agi', or 'luk'. Include 'show' and it  will show the
+ * target getting the buff removed in the battle log.
+ *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ * Usage Example: remove atk buff: user, show
+ *                remove def buff: target
+ *=============================================================================
+ *
+ *=============================================================================
+ * REMOVE stat DEBUFF: target, (show)
+ *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ * Removes the 'stat' debuff from target. Replace 'stat' with 'hp', 'mp',
+ * 'atk', 'def', 'mat', 'mdf', 'agi', or 'luk'. Include 'show' and it  will
+ * show the target getting the debuff removed in the battle log.
+ *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ * Usage Example: remove atk debuff: user, show
+ *                remove def debuff: target
+ *=============================================================================
+ *
+ *=============================================================================
  * REMOVE STATE X: target (show)
  * REMOVE STATE X, Y, Z: target (show)
  *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -511,6 +578,7 @@ Yanfly.ASP1 = Yanfly.ASP1 || {};
  *
  *=============================================================================
  * SE: filename, (volume), (pitch), (pan)
+ * SE: PLAY OK
  * SE: PLAY CURSOR
  * SE: PLAY CANCEL
  * SE: PLAY BUZZER
@@ -561,7 +629,7 @@ Yanfly.ASP1 = Yanfly.ASP1 || {};
  * Target(s) gains TP equal to X values. To show the popup, insert 'show'
  * after the target in the action sequence line. Including 'show' is
  * entirely optional. If 'show' is omitted, no popup will be displayed. For
- * TP to actually show popups, an
+ * TP to actually show popups, another plugin is needed to display TP popups.
  *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
  * Usage Example: tp +500: user
  *                tp -variable 5: target
@@ -627,6 +695,14 @@ Yanfly.Param.SoundPan = Number(Yanfly.Parameters['Default Pan']);
 Yanfly.ASP1.BattleManager_processActionSequence =
     BattleManager.processActionSequence;
 BattleManager.processActionSequence = function(actionName, actionArgs) {
+  // ADD X BUFF
+  if (actionName.match(/ADD[ ](.*)[ ]BUFF/i)) {
+    return this.actionAddBuff(actionName, actionArgs);
+  }
+  // ADD X DEBUFF
+  if (actionName.match(/ADD[ ](.*)[ ]DEBUFF/i)) {
+    return this.actionAddDebuff(actionName, actionArgs);
+  }
   // ADD STATE X
   if (actionName.match(/(?:ADD_STATE|ADD STATE)[ ](\d+(?:\s*,\s*\d+)*)/i)) {
     return this.actionAddState(actionName, actionArgs);
@@ -688,6 +764,14 @@ BattleManager.processActionSequence = function(actionName, actionArgs) {
   if (['REFRESH STATUS', 'REFRESH WINDOW'].contains(actionName)) {
     return this.actionRefreshStatus();
   }
+  // REMOVE X BUFF
+  if (actionName.match(/REMOVE[ ](.*)[ ]BUFF/i)) {
+    return this.actionRemoveBuff(actionName, actionArgs);
+  }
+  // REMOVE X DEBUFF
+  if (actionName.match(/REMOVE[ ](.*)[ ]DEBUFF/i)) {
+    return this.actionRemoveDebuff(actionName, actionArgs);
+  }
   // REMOVE STATE X
   if
   (actionName.match(/(?:REMOVE_STATE|REMOVE STATE)[ ](\d+(?:\s*,\s*\d+)*)/i)) {
@@ -705,6 +789,105 @@ BattleManager.processActionSequence = function(actionName, actionArgs) {
     actionName, actionArgs);
 };
 
+BattleManager.getParamId = function(stat) {
+    switch (stat) {
+    case 'HP':
+    case 'MAXHP':
+    case 'MAX HP':
+      return 0;
+      break;
+    case 'MP':
+    case 'MAXMP':
+    case 'MAX MP':
+    case 'SP':
+    case 'MAXSP':
+    case 'MAX SP':
+      return 1;
+      break;
+    case 'ATK':
+    case 'STR':
+      return 2;
+      break;
+    case 'DEF':
+      return 3;
+      break;
+    case 'MAT':
+    case 'INT' || 'SPI':
+      return 4;
+      break;
+    case 'MDF':
+    case 'RES':
+      return 5;
+      break;
+    case 'AGI':
+    case 'SPD':
+      return 6;
+      break;
+    case 'LUK':
+      return 7;
+      break;
+    }
+    return -1;
+};
+
+BattleManager.actionAddBuff = function(actionName, actionArgs) {
+  var targets = this.makeActionTargets(actionArgs[0]);
+  if (targets.length < 1) return false;
+  var show = false;
+  for (var i = 0; i < actionArgs.length; ++i) {
+    var actionArg = actionArgs[i];
+    if (actionArg.toUpperCase() === 'SHOW') show = true;
+  }
+  if (actionName.match(/ADD[ ](.*)[ ]BUFF/i)) {
+    var paramId = this.getParamId(String(RegExp.$1).toUpperCase());
+  } else {
+    return true;
+  }
+  if (actionArgs[1] && parseInt(actionArgs[1]) > 0) {
+    var turns = parseInt(actionArgs[1]);
+  } else {
+    var turns = 5;
+  }
+  if (paramId < 0) return true;
+  var refresh = false;
+  targets.forEach(function(target) {
+    target.addBuff(paramId, turns);
+    if (show) this._logWindow.displayActionResults(this._subject, target);
+    if (target.isActor()) refresh = true;
+  }, this);
+  if (refresh) BattleManager.refreshStatus();
+  return true;
+};
+
+BattleManager.actionAddDebuff = function(actionName, actionArgs) {
+  var targets = this.makeActionTargets(actionArgs[0]);
+  if (targets.length < 1) return false;
+  var show = false;
+  for (var i = 0; i < actionArgs.length; ++i) {
+    var actionArg = actionArgs[i];
+    if (actionArg.toUpperCase() === 'SHOW') show = true;
+  }
+  if (actionName.match(/ADD[ ](.*)[ ]DEBUFF/i)) {
+    var paramId = this.getParamId(String(RegExp.$1).toUpperCase());
+  } else {
+    return true;
+  }
+  if (actionArgs[1] && parseInt(actionArgs[1]) > 0) {
+    var turns = parseInt(actionArgs[1]);
+  } else {
+    var turns = 5;
+  }
+  if (paramId < 0) return true;
+  var refresh = false;
+  targets.forEach(function(target) {
+    target.addDebuff(paramId, turns);
+    if (show) this._logWindow.displayActionResults(this._subject, target);
+    if (target.isActor()) refresh = true;
+  }, this);
+  if (refresh) BattleManager.refreshStatus();
+  return true;
+};
+
 BattleManager.actionAddState = function(actionName, actionArgs) {
   var targets = this.makeActionTargets(actionArgs[0]);
   if (targets.length < 1) return false;
@@ -718,14 +901,17 @@ BattleManager.actionAddState = function(actionName, actionArgs) {
   } else {
     return true;
   }
+  var refresh = false;
   targets.forEach(function(target) {
     for (var i = 0; i < states.length; ++i) {
       stateId = states[i];
       target.addState(stateId);
-      this._logWindow.displayActionResults(this._subject, target);
+      if (show) this._logWindow.displayActionResults(this._subject, target);
+      if (target.isActor()) refresh = true;
     }
   }, this);
-  return false;
+  if (refresh) BattleManager.refreshStatus();
+  return true;
 };
 
 BattleManager.actionAnimation = function(aniId, actionArgs) {
@@ -735,7 +921,7 @@ BattleManager.actionAnimation = function(aniId, actionArgs) {
   var mirror = false;
   if (actionArgs[1] && actionArgs[1].toUpperCase() === 'MIRROR') mirror = true;
   this._logWindow.showNormalAnimation(targets, aniId, mirror);
-  return false;
+  return true;
 };
 
 BattleManager.actionBgmPlay = function(actionArgs) {
@@ -763,7 +949,7 @@ BattleManager.actionBgmPlay = function(actionArgs) {
     };
     AudioManager.playBgm(bgm);
   }
-  return false;
+  return true;
 };
 
 BattleManager.actionBgsPlay = function(actionArgs) {
@@ -791,15 +977,19 @@ BattleManager.actionBgsPlay = function(actionArgs) {
     };
     AudioManager.playBgs(bgs);
   }
-  return false;
+  return true;
 };
 
 BattleManager.actionCollapse = function(actionArgs) {
   var targets = this.makeActionTargets(actionArgs[0]);
   var force = (actionArgs[1].toUpperCase() === 'FORCE');
   targets.forEach(function(target) {
-    if (force) target.die;
+    if (force) {
+      target.removeImmortal();
+      target.addState(target.deathStateId());
+    }
     if (target.isDeathStateAffected()) target.performCollapse();
+
   }, this);
   return false;
 };
@@ -967,6 +1157,7 @@ BattleManager.actionHpModify = function(actionName, actionArgs) {
       if (actionArg.toUpperCase() === 'SHOW') show = true;
     }
     var value;
+    var refresh = false;
     targets.forEach(function(target) {
       target.clearResult();
       value = percent ? (target.mhp * change * 0.01) : change;
@@ -974,9 +1165,11 @@ BattleManager.actionHpModify = function(actionName, actionArgs) {
       if (show) {
         target.startDamagePopup();
         this._logWindow.displayActionResults(this._subject, target);
+        if (target.isActor()) refresh = true;
       }
     }, this);
-    return false;
+    if (refresh) BattleManager.refreshStatus();
+    return true;
 };
 
 BattleManager.actionMePlay = function(actionArgs) {
@@ -997,7 +1190,7 @@ BattleManager.actionMePlay = function(actionArgs) {
     };
     AudioManager.playMe(me);
   }
-  return false;
+  return true;
 };
 
 BattleManager.actionMpModify = function(actionName, actionArgs) {
@@ -1029,6 +1222,7 @@ BattleManager.actionMpModify = function(actionName, actionArgs) {
       if (actionArg.toUpperCase() === 'SHOW') show = true;
     }
     var value;
+    var refresh = false;
     targets.forEach(function(target) {
       target.clearResult();
       value = percent ? (target.mmp * change * 0.01) : change;
@@ -1036,14 +1230,68 @@ BattleManager.actionMpModify = function(actionName, actionArgs) {
       if (show) {
         target.startDamagePopup();
         this._logWindow.displayActionResults(this._subject, target);
+        if (target.isActor()) refresh = true;
       }
     }, this);
-    return false;
+    if (refresh) BattleManager.refreshStatus();
+    return true;
 };
 
 BattleManager.actionRefreshStatus = function() {
     this._statusWindow.refresh();
     return false;
+};
+
+BattleManager.actionRemoveBuff = function(actionName, actionArgs) {
+  var targets = this.makeActionTargets(actionArgs[0]);
+  if (targets.length < 1) return false;
+  var show = false;
+  for (var i = 0; i < actionArgs.length; ++i) {
+    var actionArg = actionArgs[i];
+    if (actionArg.toUpperCase() === 'SHOW') show = true;
+  }
+  if (actionName.match(/REMOVE[ ](.*)[ ]BUFF/i)) {
+    var paramId = this.getParamId(String(RegExp.$1).toUpperCase());
+  } else {
+    return true;
+  }
+  if (paramId < 0) return true;
+  var refresh = false;
+  targets.forEach(function(target) {
+    if (target.isBuffAffected(paramId)) {
+      target.removeBuff(paramId);
+      if (show) this._logWindow.displayActionResults(this._subject, target);
+      if (target.isActor()) refresh = true;
+    }
+  }, this);
+  if (refresh) BattleManager.refreshStatus();
+  return true;
+};
+
+BattleManager.actionRemoveDebuff = function(actionName, actionArgs) {
+  var targets = this.makeActionTargets(actionArgs[0]);
+  if (targets.length < 1) return false;
+  var show = false;
+  for (var i = 0; i < actionArgs.length; ++i) {
+    var actionArg = actionArgs[i];
+    if (actionArg.toUpperCase() === 'SHOW') show = true;
+  }
+  if (actionName.match(/REMOVE[ ](.*)[ ]DEBUFF/i)) {
+    var paramId = this.getParamId(String(RegExp.$1).toUpperCase());
+  } else {
+    return true;
+  }
+  if (paramId < 0) return true;
+  var refresh = false;
+  targets.forEach(function(target) {
+    if (target.isDebuffAffected(paramId)) {
+      target.removeBuff(paramId);
+      if (show) this._logWindow.displayActionResults(this._subject, target);
+      if (target.isActor()) refresh = true;
+    }
+  }, this);
+  if (refresh) BattleManager.refreshStatus();
+  return true;
 };
 
 BattleManager.actionRemoveState = function(actionName, actionArgs) {
@@ -1060,14 +1308,19 @@ BattleManager.actionRemoveState = function(actionName, actionArgs) {
   } else {
     return true;
   }
+  var refresh = false;
   targets.forEach(function(target) {
     for (var i = 0; i < states.length; ++i) {
       stateId = states[i];
-      target.removeState(stateId);
-      this._logWindow.displayActionResults(this._subject, target);
+      if (target.isStateAffected(stateId)) {
+        target.removeState(stateId);
+        if (show) this._logWindow.displayActionResults(this._subject, target);
+        if (target.isActor()) refresh = true;
+      }
     }
   }, this);
-  return false;
+  if (refresh) BattleManager.refreshStatus();
+  return true;
 };
 
 BattleManager.actionSePlay = function(actionArgs) {
@@ -1134,7 +1387,7 @@ BattleManager.actionSePlay = function(actionArgs) {
     };
     AudioManager.playSe(se);
   }
-  return false;
+  return true;
 };
 
 BattleManager.actionTpModify = function(actionName, actionArgs) {
@@ -1166,6 +1419,7 @@ BattleManager.actionTpModify = function(actionName, actionArgs) {
       if (actionArg.toUpperCase() === 'SHOW') show = true;
     }
     var value;
+    var refresh = false;
     targets.forEach(function(target) {
       target.clearResult();
       value = percent ? (target.maxTp() * change * 0.01) : change;
@@ -1173,9 +1427,11 @@ BattleManager.actionTpModify = function(actionName, actionArgs) {
       if (show) {
         target.startDamagePopup();
         this._logWindow.displayActionResults(this._subject, target);
+        if (target.isActor()) refresh = true;
       }
     }, this);
-    return false;
+    if (refresh) BattleManager.refreshStatus();
+    return true;
 };
 
 //=============================================================================
