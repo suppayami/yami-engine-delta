@@ -109,7 +109,7 @@
     };
 
     GUIText.prototype._refreshGUI = function() {
-        var text       = this._text,
+        var text       = this.text,
             lines      = text.split('\n'),
             lineNumber = lines.length,
             width  = 0,

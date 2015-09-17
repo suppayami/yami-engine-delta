@@ -54,7 +54,7 @@
                 if (this._rect[i] !== value[i]) {
                     this._rect = value;
                     this._refreshGUI();
-                    return;
+                    break;
                 }
             }
         },

@@ -21,9 +21,53 @@
         this._faceIndex = 0;
     };
 
-    GUIFace.prototype.drawGUI = function(faceName, faceIndex) {
+    Object.defineProperty(GUIFace.prototype, 'faceName', {
+        get: function() {
+            return this._faceName;
+        },
+        set: function(value) {
+            if (this._faceName !== value) {
+                this._faceName = value;
+                this._refreshGUI();
+            }
+        },
+        configurable: true
+    });
+
+    Object.defineProperty(GUIFace.prototype, 'faceIndex', {
+        get: function() {
+            return this._faceIndex;
+        },
+        set: function(value) {
+            if (this._faceIndex !== value) {
+                this._faceIndex = value;
+                this._refreshGUI();
+            }
+        },
+        configurable: true
+    });
+
+    GUIFace.prototype.updateGUIParams = function() {
+        GUI.prototype.updateGUIParams.call(this);
+
+        this.faceName  = this._getFaceName();
+        this.faceIndex = this._getFaceIndex();
+    };
+
+    GUIFace.prototype._refreshGUI = function() {
+        var faceName  = this.faceName,
+            faceIndex = this.faceIndex;
+
         this.bitmap.clear();
         this.bitmap.drawFace(faceName, faceIndex, 0, 0);
+    };
+
+    GUIFace.prototype._getFaceName = function() {
+        return "";
+    };
+
+    GUIFace.prototype._getFaceIndex = function() {
+        return 0;
     };
 
     LunaEngine.Core.Sprite.GUIFace = GUIFace;

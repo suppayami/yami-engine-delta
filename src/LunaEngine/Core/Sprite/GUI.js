@@ -15,7 +15,7 @@
     };
 
     GUI.prototype.setupGUI = function() {
-        this.updateGUIParams();
+        // this.updateGUIParams();
     };
 
     /**
