@@ -21,7 +21,12 @@
     };
 
     GUI.prototype.attach = function(name, object) {
+        if (!!this._attach[name] && this._attach[name] === object) {
+            return;
+        }
+
         this._attach[name] = object;
+        this.updateGUIParams();
 
         Object.defineProperty(this, name, {
             get: function() {
@@ -99,7 +104,7 @@
         this.setColorTone(colorTone);
     };
 
-    GUI.prototype.refresh = function() {
+    GUI.prototype._refreshGUI = function() {
         // polymorph!
     };
 

@@ -4,7 +4,13 @@ var utils = require('../utils');
 
 var moduleName = 'LunaEngine';
 var fileName   = ['index.js',
-                  'Core/Sprite/GUI.js'];
+                  'Battle/Config.js',
+                  'Core/Sprite/GUI.js',
+                  'Core/Sprite/GUIText.js',
+                  'Core/Sprite/GUIFace.js',
+                  'Core/Sprite/GUIImage.js',
+                  'Battle/GUIBase.js',
+                  'Battle/HUD.js'];
 
 var globs = utils.getGlobs(moduleName, fileName);
 

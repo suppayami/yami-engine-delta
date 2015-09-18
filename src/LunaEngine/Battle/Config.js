@@ -2,7 +2,7 @@
 
 (function() {
     // Status Spritesets
-    var GUIBase = {
+    var HUD = {
         /* Position */
         x: 192,
         y: 444,
@@ -76,7 +76,7 @@
             tone: [0,0,0,0],
 
             /* Basic Properties */
-            text: '{this.actor.name()}'
+            text: '{this.actor.name()}',
 
             fontFace: '{this.standardFontFace()}',
             fontSize: '{this.standardFontSize()}',
@@ -114,7 +114,7 @@
             tone: [0,0,0,0],
 
             /* Basic Properties */
-            text: 'HP: {this.actor.hp} / {this.actor.mhp}'
+            text: 'HP: {this.actor.hp} / {this.actor.mhp}',
 
             fontFace: '{this.standardFontFace()}',
             fontSize: '{this.standardFontSize()}',
@@ -140,7 +140,7 @@
             tone: [0,0,0,0],
 
             /* Basic Properties */
-            text: 'MP: {this.actor.mp} / {this.actor.mmp}'
+            text: 'MP: {this.actor.mp} / {this.actor.mmp}',
 
             fontFace: '{this.standardFontFace()}',
             fontSize: '{this.standardFontSize()}',
@@ -155,6 +155,6 @@
         } // spriteMPNumber
     };
 
-    LunaEngine.Battle.Config.GUIBase = GUIBase;
+    LunaEngine.Battle.Config.HUD = HUD;
     LunaEngine.Battle.Config.GUISprites = GUISprites;
 }());
