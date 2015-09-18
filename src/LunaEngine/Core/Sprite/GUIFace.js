@@ -63,11 +63,11 @@
     };
 
     GUIFace.prototype._getFaceName = function() {
-        return "";
+        return this.config.faceName || "";
     };
 
     GUIFace.prototype._getFaceIndex = function() {
-        return 0;
+        return this.config.faceIndex || 0;
     };
 
     LunaEngine.Core.Sprite.GUIFace = GUIFace;

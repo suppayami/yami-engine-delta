@@ -11,7 +11,15 @@
         width:  624,
         height: 180,
         grid:   4,
-        direction: 'horizontal'
+        direction: 'horizontal',
+
+        /* Background */
+        background: {
+            type:  'window', // 'window' or 'image'
+            image: 'Window'  // Windowskin or path to image
+                             // image should be full path
+                             // Example: img/system/BG.png
+        }
     };
 
     // Status Elements

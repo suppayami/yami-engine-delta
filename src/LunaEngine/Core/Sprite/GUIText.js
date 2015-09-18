@@ -129,23 +129,23 @@
     };
 
     GUIText.prototype._getText = function() {
-        return "";
+        return this.config.text || "";
     };
 
     GUIText.prototype._getFontFace = function() {
-        return this.standardFontFace();
+        return this.config.fontFace || this.standardFontFace();
     };
 
     GUIText.prototype._getFontSize = function() {
-        return this.standardFontSize();
+        return this.config.fontSize || this.standardFontSize();
     };
 
     GUIText.prototype._getTextColor = function() {
-        return this.normalColor();
+        return this.config.textColor || this.normalColor();
     };
 
     GUIText.prototype._getOutlineColor = function() {
-        return "rgba(0,0,0,0.5)";
+        return this.config.outlineColor || "rgba(0,0,0,0.5)";
     };
 
     LunaEngine.Core.Sprite.GUIText = GUIText;

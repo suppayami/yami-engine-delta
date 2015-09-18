@@ -76,15 +76,15 @@
     };
 
     GUIImage.prototype._getPath = function() {
-        return "";
+        return this.config.imagePath || "";
     };
 
     GUIImage.prototype._getHue = function() {
-        return 0;
+        return this.config.hue || 0;
     };
 
     GUIImage.prototype._getRect = function() {
-        return [0,0,0,0];
+        return this.config.rect || [0,0,0,0];
     };
 
     LunaEngine.Core.Sprite.GUIImage = GUIImage;

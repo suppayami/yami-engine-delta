@@ -12,11 +12,23 @@
         Sprite_Base.prototype.initialize.call(this);
 
         this._windowskin = null; // for textColor
-        this._config = null;
+        this._config = {};
+        this._attach = {};
     };
 
     GUI.prototype.setupGUI = function() {
-        // this.updateGUIParams();
+        this.updateGUIParams();
+    };
+
+    GUI.prototype.attach = function(name, object) {
+        this._attach[name] = object;
+
+        Object.defineProperty(this, name, {
+            get: function() {
+                return this._attach[name];
+            },
+            configurable: true
+        });
     };
 
     /**
@@ -92,15 +104,15 @@
     };
 
     GUI.prototype._getX = function() {
-        return 0;
+        return this.config.x || 0;
     };
 
     GUI.prototype._getY = function() {
-        return 0;
+        return this.config.y || 0;
     };
 
     GUI.prototype._getColorTone = function() {
-        return [0,0,0,0];
+        return this.config.tone || [0,0,0,0];
     };
 
     GUI.prototype.loadWindowskin = Window_Base.prototype.loadWindowskin;
