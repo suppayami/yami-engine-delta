@@ -18,7 +18,7 @@ LunaEngine.Core.Sprite = {};
  */
 
 LunaEngine.Battle = {};
-LunaEngine.Battle.Sprite = {};
+LunaEngine.Battle.Config = {};
 
 /* globals LunaEngine: false */
 
@@ -197,6 +197,8 @@ LunaEngine.Battle.Sprite = {};
         this._windowskin = null; // for textColor
         this._config = {};
         this._attach = {};
+
+        this.loadWindowskin();
     };
 
     GUI.prototype.setupGUI = function() {
@@ -370,13 +372,13 @@ LunaEngine.Battle.Sprite = {};
     GUIText.prototype.initialize = function() {
         GUI.prototype.initialize.call(this);
 
+        this.bitmap = new Bitmap(1,1);
+
         this._text = "";
         this._fontFace = this.standardFontFace();
         this._fontSize = this.standardFontSize();
         this._textColor = this.normalColor();
         this._outlineColor = "rgba(0,0,0,0.5)";
-
-        this.bitmap = new Bitmap(1,1);
     };
 
     Object.defineProperty(GUIText.prototype, 'text', {
@@ -422,7 +424,7 @@ LunaEngine.Battle.Sprite = {};
         configurable: true
     });
 
-    Object.defineProperty(GUIText.prototype, 'textColor', {
+    Object.defineProperty(GUIText.prototype, 'color', {
         get: function() {
             return this._textColor;
         },
@@ -460,7 +462,7 @@ LunaEngine.Battle.Sprite = {};
         this.fontFace = this._getFontFace();
         this.fontSize = this._getFontSize();
 
-        this.textColor = this._getTextColor();
+        this.color = this._getTextColor();
         this.outlineColor = this._getOutlineColor();
     };
 
@@ -481,7 +483,8 @@ LunaEngine.Battle.Sprite = {};
 
         this.bitmap.clear();
         this.bitmap.resize(width, height);
-        this.bitmap.drawTextEx(text, 0, 0);
+        this.setFrame(0,0,width,height);
+        this.drawTextEx(text, 0, 0);
     };
 
     GUIText.prototype._getText = function() {
@@ -568,7 +571,7 @@ LunaEngine.Battle.Sprite = {};
             faceIndex = this.faceIndex;
 
         this.bitmap.clear();
-        this.bitmap.drawFace(faceName, faceIndex, 0, 0);
+        this.drawFace(faceName, faceIndex, 0, 0);
     };
 
     GUIFace.prototype._getFaceName = function() {
@@ -836,7 +839,7 @@ LunaEngine.Battle.Sprite = {};
         }
     };
 
-    HUD.prototype.updateActors = function() {
+    HUD.prototype.updatePosition = function() {
         var spriteset;
 
         for (var i = 0; i < this._guiSpritesets.length; i++) {

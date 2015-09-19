@@ -14,13 +14,13 @@
     GUIText.prototype.initialize = function() {
         GUI.prototype.initialize.call(this);
 
+        this.bitmap = new Bitmap(1,1);
+
         this._text = "";
         this._fontFace = this.standardFontFace();
         this._fontSize = this.standardFontSize();
         this._textColor = this.normalColor();
         this._outlineColor = "rgba(0,0,0,0.5)";
-
-        this.bitmap = new Bitmap(1,1);
     };
 
     Object.defineProperty(GUIText.prototype, 'text', {
@@ -66,7 +66,7 @@
         configurable: true
     });
 
-    Object.defineProperty(GUIText.prototype, 'textColor', {
+    Object.defineProperty(GUIText.prototype, 'color', {
         get: function() {
             return this._textColor;
         },
@@ -104,7 +104,7 @@
         this.fontFace = this._getFontFace();
         this.fontSize = this._getFontSize();
 
-        this.textColor = this._getTextColor();
+        this.color = this._getTextColor();
         this.outlineColor = this._getOutlineColor();
     };
 
@@ -125,7 +125,8 @@
 
         this.bitmap.clear();
         this.bitmap.resize(width, height);
-        this.bitmap.drawTextEx(text, 0, 0);
+        this.setFrame(0,0,width,height);
+        this.drawTextEx(text, 0, 0);
     };
 
     GUIText.prototype._getText = function() {

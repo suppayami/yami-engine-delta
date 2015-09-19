@@ -59,7 +59,7 @@
             faceIndex = this.faceIndex;
 
         this.bitmap.clear();
-        this.bitmap.drawFace(faceName, faceIndex, 0, 0);
+        this.drawFace(faceName, faceIndex, 0, 0);
     };
 
     GUIFace.prototype._getFaceName = function() {

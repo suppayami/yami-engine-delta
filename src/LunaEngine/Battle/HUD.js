@@ -59,7 +59,7 @@
         }
     };
 
-    HUD.prototype.updateActors = function() {
+    HUD.prototype.updatePosition = function() {
         var spriteset;
 
         for (var i = 0; i < this._guiSpritesets.length; i++) {

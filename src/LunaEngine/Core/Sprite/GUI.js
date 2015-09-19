@@ -14,6 +14,8 @@
         this._windowskin = null; // for textColor
         this._config = {};
         this._attach = {};
+
+        this.loadWindowskin();
     };
 
     GUI.prototype.setupGUI = function() {
