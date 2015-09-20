@@ -26,8 +26,8 @@ LunaEngine.Battle.Config = {};
     // Status Spritesets
     var HUD = {
         /* Position */
-        x: 192,
-        y: 444,
+        x: 208,
+        y: 460,
 
         /* Grid and size */
         width:  624,
@@ -100,10 +100,10 @@ LunaEngine.Battle.Config = {};
             /* Basic Properties */
             text: '{this.actor.name()}',
 
-            fontFace: '{this.standardFontFace()}',
-            fontSize: '{this.standardFontSize()}',
+            fontFace: 'GameFont',
+            fontSize: '24',
 
-            textColor: '{this.normalColor()}',
+            textColor: '#ffffff',
             outlineColor: 'rgba(0,0,0,0.5)',
 
             /* Conditional Properties */
@@ -138,10 +138,10 @@ LunaEngine.Battle.Config = {};
             /* Basic Properties */
             text: 'HP: {this.actor.hp} / {this.actor.mhp}',
 
-            fontFace: '{this.standardFontFace()}',
-            fontSize: '{this.standardFontSize()}',
+            fontFace: 'GameFont',
+            fontSize: '16',
 
-            textColor: '{this.normalColor()}',
+            textColor: '#ffffff',
             outlineColor: 'rgba(0,0,0,0.5)',
 
             /* Conditional Properties */
@@ -164,10 +164,10 @@ LunaEngine.Battle.Config = {};
             /* Basic Properties */
             text: 'MP: {this.actor.mp} / {this.actor.mmp}',
 
-            fontFace: '{this.standardFontFace()}',
-            fontSize: '{this.standardFontSize()}',
+            fontFace: 'GameFont',
+            fontSize: '16',
 
-            textColor: '{this.normalColor()}',
+            textColor: '#ffffff',
             outlineColor: 'rgba(0,0,0,0.5)',
 
             /* Conditional Properties */
@@ -197,6 +197,7 @@ LunaEngine.Battle.Config = {};
         this._windowskin = null; // for textColor
         this._config = {};
         this._attach = {};
+        this._select = false;
 
         this.loadWindowskin();
     };
@@ -219,6 +220,49 @@ LunaEngine.Battle.Config = {};
             },
             configurable: true
         });
+    };
+
+    GUI.prototype.select = function() {
+        this._select = true;
+    };
+
+    GUI.prototype.deselect = function() {
+        this._select = false;
+    };
+
+    GUI.prototype._setupConfig = function(config) {
+        var result = JSON.parse(JSON.stringify(config));
+
+        for (var key in result) {
+            if (typeof result[key] === 'string') {
+                result[key] = this._evalConfig(result[key]);
+            }
+        }
+
+        return result;
+    };
+
+    GUI.prototype._evalConfig = function(string) {
+        var matches,
+            evals,
+            thisEval;
+
+        thisEval = function(s) { return eval(s); };
+        thisEval = thisEval.bind(this);
+
+        matches = string.match(/\{[^{}]+\}/g);
+
+        if (!matches) {
+            return string;
+        }
+
+        evals = matches.map(thisEval);
+
+        for (var i = 0; i < matches.length; i++) {
+            string = string.replace(matches[i], evals[i]);
+        }
+
+        return string;
     };
 
     /**
@@ -257,10 +301,8 @@ LunaEngine.Battle.Config = {};
             return this._config;
         },
         set: function(value) {
-            if (this._config !== value) {
-                this._config = value;
-                this.setupGUI();
-            }
+            this._config = this._setupConfig(value);
+            this.setupGUI();
         },
         configurable: true
     });
@@ -289,6 +331,10 @@ LunaEngine.Battle.Config = {};
         this.setColorTone(colorTone);
     };
 
+    GUI.prototype.refresh = function() {
+        this._refreshGUI();
+    };
+
     GUI.prototype._refreshGUI = function() {
         // polymorph!
     };
@@ -305,12 +351,16 @@ LunaEngine.Battle.Config = {};
         return this.config.tone || [0,0,0,0];
     };
 
+    GUI.prototype.isSelectingActor = function() {
+        return this._select;
+    };
+
     GUI.prototype.loadWindowskin = Window_Base.prototype.loadWindowskin;
     GUI.prototype.lineHeight = Window_Base.prototype.lineHeight;
     GUI.prototype.standardFontFace = Window_Base.prototype.standardFontFace;
     GUI.prototype.standardFontSize = Window_Base.prototype.standardFontSize;
     GUI.prototype.textPadding = Window_Base.prototype.textPadding;
-    GUI.prototype.resetFontSettings = Window_Base.prototype.resetFontSettings;
+    GUI.prototype.resetFontSettings = function() {};
     GUI.prototype.resetTextColor = Window_Base.prototype.resetTextColor;
     GUI.prototype.textColor = Window_Base.prototype.textColor;
     GUI.prototype.normalColor = Window_Base.prototype.normalColor;
@@ -375,10 +425,10 @@ LunaEngine.Battle.Config = {};
         this.bitmap = new Bitmap(1,1);
 
         this._text = "";
-        this._fontFace = this.standardFontFace();
-        this._fontSize = this.standardFontSize();
-        this._textColor = this.normalColor();
-        this._outlineColor = "rgba(0,0,0,0.5)";
+        this._fontFace = "";
+        this._fontSize = 0;
+        this._textColor = "";
+        this._outlineColor = "";
     };
 
     Object.defineProperty(GUIText.prototype, 'text', {
@@ -458,12 +508,6 @@ LunaEngine.Battle.Config = {};
         GUI.prototype.updateGUIParams.call(this);
 
         this.text = this._getText();
-
-        this.fontFace = this._getFontFace();
-        this.fontSize = this._getFontSize();
-
-        this.color = this._getTextColor();
-        this.outlineColor = this._getOutlineColor();
     };
 
     GUIText.prototype._refreshGUI = function() {
@@ -479,16 +523,15 @@ LunaEngine.Battle.Config = {};
             }
         }
 
+        width = width + this.textPadding() * 2;
         height = this.lineHeight() * lineNumber;
 
-        this.bitmap.clear();
-        this.bitmap.resize(width, height);
-        this.setFrame(0,0,width,height);
-        this.drawTextEx(text, 0, 0);
+        this.bitmap = new Bitmap(width, height);
+        this.drawTextEx(text, this.textPadding(), 0);
     };
 
     GUIText.prototype._getText = function() {
-        return this.config.text || "";
+        return this.config.text || "Test";
     };
 
     GUIText.prototype._getFontFace = function() {
@@ -505,6 +548,18 @@ LunaEngine.Battle.Config = {};
 
     GUIText.prototype._getOutlineColor = function() {
         return this.config.outlineColor || "rgba(0,0,0,0.5)";
+    };
+
+    GUIText.prototype.resetFontSettings = function() {
+        this.contents.fontFace = this._getFontFace();
+        this.contents.fontSize = this._getFontSize();
+
+        this.contents.textColor = this._getTextColor();
+        this.contents.outlineColor = this._getOutlineColor();
+    };
+
+    GUIText.prototype.textPadding = function() {
+        return 2;
     };
 
     LunaEngine.Core.Sprite.GUIText = GUIText;
@@ -531,6 +586,15 @@ LunaEngine.Battle.Config = {};
 
         this._faceName = "";
         this._faceIndex = 0;
+    };
+
+    GUIFace.prototype.setupGUI = function() {
+        GUI.prototype.setupGUI.call(this);
+
+        this.faceName  = this._getFaceName();
+        this.faceIndex = this._getFaceIndex();
+
+        ImageManager.loadFace(this.faceName);
     };
 
     Object.defineProperty(GUIFace.prototype, 'faceName', {
@@ -596,7 +660,15 @@ LunaEngine.Battle.Config = {};
 
         this._path = "";
         this._hue  = 0;
-        this._rect = [0,0,0,0];
+    };
+
+    GUIImage.prototype.setupGUI = function() {
+        GUI.prototype.setupGUI.call(this);
+
+        this.path = this._getPath();
+        this.hue  = this._getHue();
+
+        ImageManager.loadNormalBitmap(this.path, this.hue);
     };
 
     GUIImage.prototype = Object.create(GUI.prototype);
@@ -632,34 +704,18 @@ LunaEngine.Battle.Config = {};
         configurable: true
     });
 
-    Object.defineProperty(GUIImage.prototype, 'rect', {
-        get: function() {
-            return this._rect;
-        },
-        set: function(value) {
-            if (!this._rect.equals(value)) {
-                this._rect = value;
-                this._refreshGUI();
-            }
-        },
-        configurable: true
-    });
-
     GUIImage.prototype.updateGUIParams = function() {
         GUI.prototype.updateGUIParams.call(this);
 
         this.path = this._getPath();
         this.hue  = this._getHue();
-        this.rect = this._getRect();
     };
 
     GUIImage.prototype._refreshGUI = function() {
         var path = this._path,
-            hue  = this._hue,
-            rect = this._rect;
+            hue  = this._hue;
 
         this.bitmap = ImageManager.loadNormalBitmap(path, hue);
-        this.setFrame(rect[0], rect[1], rect[2], rect[3]);
     };
 
     GUIImage.prototype._getPath = function() {
@@ -668,10 +724,6 @@ LunaEngine.Battle.Config = {};
 
     GUIImage.prototype._getHue = function() {
         return this.config.hue || 0;
-    };
-
-    GUIImage.prototype._getRect = function() {
-        return this.config.rect || [0,0,0,0];
     };
 
     LunaEngine.Core.Sprite.GUIImage = GUIImage;
@@ -729,6 +781,33 @@ LunaEngine.Battle.Config = {};
         this._createSprites();
     };
 
+    GUIBase.prototype.refresh = function() {
+        var sprite;
+
+        for (var i = 0; i < this._guiSprites.length; i++) {
+            sprite = this._guiSprites[i];
+            sprite.refresh();
+        }
+    };
+
+    GUIBase.prototype.select = function() {
+        var sprite;
+
+        for (var i = 0; i < this._guiSprites.length; i++) {
+            sprite = this._guiSprites[i];
+            sprite.select();
+        }
+    };
+
+    GUIBase.prototype.deselect = function() {
+        var sprite;
+
+        for (var i = 0; i < this._guiSprites.length; i++) {
+            sprite = this._guiSprites[i];
+            sprite.deselect();
+        }
+    };
+
     GUIBase.prototype.onActorChange = function() {
         var sprite;
 
@@ -754,6 +833,8 @@ LunaEngine.Battle.Config = {};
 
             this._guiSprites.push(sprite);
             this.addChild(sprite);
+
+            sprite.setupGUI();
         }
     };
 
@@ -796,6 +877,7 @@ LunaEngine.Battle.Config = {};
         Sprite.prototype.initialize.call(this);
 
         this._guiSpritesets = [];
+        this._actor = null;
         this.setupGUI();
     };
 
@@ -817,11 +899,25 @@ LunaEngine.Battle.Config = {};
         }
     };
 
+    HUD.prototype.select = function(actor) {
+        this._actor = actor;
+    };
+
+    HUD.prototype.refresh = function() {
+        var spriteset;
+
+        for (var i = 0; i < this._guiSpritesets.length; i++) {
+            spriteset = this._guiSpritesets[i];
+            spriteset.refresh();
+        }
+    };
+
     HUD.prototype.update = function() {
         Sprite.prototype.update.call(this);
 
         this.updateActors();
         this.updatePosition();
+        this.updateSelecting();
     };
 
     HUD.prototype.updateActors = function() {
@@ -842,11 +938,27 @@ LunaEngine.Battle.Config = {};
     HUD.prototype.updatePosition = function() {
         var spriteset;
 
+        this.x = this._getX();
+        this.y = this._getY();
+
         for (var i = 0; i < this._guiSpritesets.length; i++) {
             spriteset = this._guiSpritesets[i];
 
             spriteset.x = this._getGUIX(i);
             spriteset.y = this._getGUIY(i);
+        }
+    };
+
+    HUD.prototype.updateSelecting = function() {
+        var spriteset;
+
+        for (var i = 0; i < this._guiSpritesets.length; i++) {
+            spriteset = this._guiSpritesets[i];
+            spriteset.deselect();
+
+            if (spriteset.actor === this._actor) {
+                spriteset.select();
+            }
         }
     };
 
@@ -879,4 +991,66 @@ LunaEngine.Battle.Config = {};
     };
 
     LunaEngine.Battle.HUD = HUD;
+}());
+
+/* globals LunaEngine: false */
+
+(function() {
+    // dependencies
+    var HUD = LunaEngine.Battle.HUD;
+
+    // alias
+    var _Scene_Battle_createDisplayObjects = Scene_Battle.prototype.createDisplayObjects,
+        _Scene_Battle_start = Scene_Battle.prototype.start,
+        _Scene_Battle_stop = Scene_Battle.prototype.stop,
+        _Scene_Battle_updateStatusWindow = Scene_Battle.prototype.updateStatusWindow;
+
+    Scene_Battle.prototype.createDisplayObjects = function() {
+        _Scene_Battle_createDisplayObjects.call(this);
+        this._createBattleLuna();
+    };
+
+    Scene_Battle.prototype._createBattleLuna = function() {
+        this._lunaHUD = new HUD();
+        this.addWindow(this._lunaHUD);
+    };
+
+    Scene_Battle.prototype.start = function() {
+        _Scene_Battle_start.call(this);
+        this._setupLuna();
+    };
+
+    Scene_Battle.prototype._setupLuna = function() {
+        this._lunaHUD.refresh();
+        this._statusWindow.y = 999;
+    };
+
+    Scene_Battle.prototype.stop = function() {
+        _Scene_Battle_stop.call(this);
+        this._lunaHUD.visible = false;
+    };
+
+    Scene_Battle.prototype.updateStatusWindow = function() {
+        _Scene_Battle_updateStatusWindow.call(this);
+
+        if ($gameMessage.isBusy()) {
+            this._lunaHUD.visible = false;
+        } else if (this.isActive() && !this._messageWindow.isClosing()) {
+            this._lunaHUD.visible = this._statusWindow.isOpen();
+        }
+
+        this._updateLuna();
+    };
+
+    Scene_Battle.prototype._updateLuna = function() {
+        this._updateSelectingActor();
+    };
+
+    Scene_Battle.prototype._updateSelectingActor = function() {
+        if (this._actorWindow.active) {
+            this._lunaHUD.select(this._actorWindow.actor());
+        }
+
+        this._lunaHUD.select(BattleManager.actor());
+    }
 }());

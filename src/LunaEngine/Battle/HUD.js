@@ -16,6 +16,7 @@
         Sprite.prototype.initialize.call(this);
 
         this._guiSpritesets = [];
+        this._actor = null;
         this.setupGUI();
     };
 
@@ -37,11 +38,25 @@
         }
     };
 
+    HUD.prototype.select = function(actor) {
+        this._actor = actor;
+    };
+
+    HUD.prototype.refresh = function() {
+        var spriteset;
+
+        for (var i = 0; i < this._guiSpritesets.length; i++) {
+            spriteset = this._guiSpritesets[i];
+            spriteset.refresh();
+        }
+    };
+
     HUD.prototype.update = function() {
         Sprite.prototype.update.call(this);
 
         this.updateActors();
         this.updatePosition();
+        this.updateSelecting();
     };
 
     HUD.prototype.updateActors = function() {
@@ -62,11 +77,27 @@
     HUD.prototype.updatePosition = function() {
         var spriteset;
 
+        this.x = this._getX();
+        this.y = this._getY();
+
         for (var i = 0; i < this._guiSpritesets.length; i++) {
             spriteset = this._guiSpritesets[i];
 
             spriteset.x = this._getGUIX(i);
             spriteset.y = this._getGUIY(i);
+        }
+    };
+
+    HUD.prototype.updateSelecting = function() {
+        var spriteset;
+
+        for (var i = 0; i < this._guiSpritesets.length; i++) {
+            spriteset = this._guiSpritesets[i];
+            spriteset.deselect();
+
+            if (spriteset.actor === this._actor) {
+                spriteset.select();
+            }
         }
     };
 

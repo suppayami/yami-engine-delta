@@ -4,8 +4,8 @@
     // Status Spritesets
     var HUD = {
         /* Position */
-        x: 192,
-        y: 444,
+        x: 208,
+        y: 460,
 
         /* Grid and size */
         width:  624,
@@ -78,10 +78,10 @@
             /* Basic Properties */
             text: '{this.actor.name()}',
 
-            fontFace: '{this.standardFontFace()}',
-            fontSize: '{this.standardFontSize()}',
+            fontFace: 'GameFont',
+            fontSize: '24',
 
-            textColor: '{this.normalColor()}',
+            textColor: '#ffffff',
             outlineColor: 'rgba(0,0,0,0.5)',
 
             /* Conditional Properties */
@@ -116,10 +116,10 @@
             /* Basic Properties */
             text: 'HP: {this.actor.hp} / {this.actor.mhp}',
 
-            fontFace: '{this.standardFontFace()}',
-            fontSize: '{this.standardFontSize()}',
+            fontFace: 'GameFont',
+            fontSize: '16',
 
-            textColor: '{this.normalColor()}',
+            textColor: '#ffffff',
             outlineColor: 'rgba(0,0,0,0.5)',
 
             /* Conditional Properties */
@@ -142,10 +142,10 @@
             /* Basic Properties */
             text: 'MP: {this.actor.mp} / {this.actor.mmp}',
 
-            fontFace: '{this.standardFontFace()}',
-            fontSize: '{this.standardFontSize()}',
+            fontFace: 'GameFont',
+            fontSize: '16',
 
-            textColor: '{this.normalColor()}',
+            textColor: '#ffffff',
             outlineColor: 'rgba(0,0,0,0.5)',
 
             /* Conditional Properties */

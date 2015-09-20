@@ -14,6 +14,7 @@
         this._windowskin = null; // for textColor
         this._config = {};
         this._attach = {};
+        this._select = false;
 
         this.loadWindowskin();
     };
@@ -36,6 +37,49 @@
             },
             configurable: true
         });
+    };
+
+    GUI.prototype.select = function() {
+        this._select = true;
+    };
+
+    GUI.prototype.deselect = function() {
+        this._select = false;
+    };
+
+    GUI.prototype._setupConfig = function(config) {
+        var result = JSON.parse(JSON.stringify(config));
+
+        for (var key in result) {
+            if (typeof result[key] === 'string') {
+                result[key] = this._evalConfig(result[key]);
+            }
+        }
+
+        return result;
+    };
+
+    GUI.prototype._evalConfig = function(string) {
+        var matches,
+            evals,
+            thisEval;
+
+        thisEval = function(s) { return eval(s); };
+        thisEval = thisEval.bind(this);
+
+        matches = string.match(/\{[^{}]+\}/g);
+
+        if (!matches) {
+            return string;
+        }
+
+        evals = matches.map(thisEval);
+
+        for (var i = 0; i < matches.length; i++) {
+            string = string.replace(matches[i], evals[i]);
+        }
+
+        return string;
     };
 
     /**
@@ -74,10 +118,8 @@
             return this._config;
         },
         set: function(value) {
-            if (this._config !== value) {
-                this._config = value;
-                this.setupGUI();
-            }
+            this._config = this._setupConfig(value);
+            this.setupGUI();
         },
         configurable: true
     });
@@ -106,6 +148,10 @@
         this.setColorTone(colorTone);
     };
 
+    GUI.prototype.refresh = function() {
+        this._refreshGUI();
+    };
+
     GUI.prototype._refreshGUI = function() {
         // polymorph!
     };
@@ -122,12 +168,16 @@
         return this.config.tone || [0,0,0,0];
     };
 
+    GUI.prototype.isSelectingActor = function() {
+        return this._select;
+    };
+
     GUI.prototype.loadWindowskin = Window_Base.prototype.loadWindowskin;
     GUI.prototype.lineHeight = Window_Base.prototype.lineHeight;
     GUI.prototype.standardFontFace = Window_Base.prototype.standardFontFace;
     GUI.prototype.standardFontSize = Window_Base.prototype.standardFontSize;
     GUI.prototype.textPadding = Window_Base.prototype.textPadding;
-    GUI.prototype.resetFontSettings = Window_Base.prototype.resetFontSettings;
+    GUI.prototype.resetFontSettings = function() {};
     GUI.prototype.resetTextColor = Window_Base.prototype.resetTextColor;
     GUI.prototype.textColor = Window_Base.prototype.textColor;
     GUI.prototype.normalColor = Window_Base.prototype.normalColor;

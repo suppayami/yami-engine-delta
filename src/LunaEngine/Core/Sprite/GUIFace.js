@@ -21,6 +21,15 @@
         this._faceIndex = 0;
     };
 
+    GUIFace.prototype.setupGUI = function() {
+        GUI.prototype.setupGUI.call(this);
+
+        this.faceName  = this._getFaceName();
+        this.faceIndex = this._getFaceIndex();
+
+        ImageManager.loadFace(this.faceName);
+    };
+
     Object.defineProperty(GUIFace.prototype, 'faceName', {
         get: function() {
             return this._faceName;

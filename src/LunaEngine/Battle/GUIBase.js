@@ -50,6 +50,33 @@
         this._createSprites();
     };
 
+    GUIBase.prototype.refresh = function() {
+        var sprite;
+
+        for (var i = 0; i < this._guiSprites.length; i++) {
+            sprite = this._guiSprites[i];
+            sprite.refresh();
+        }
+    };
+
+    GUIBase.prototype.select = function() {
+        var sprite;
+
+        for (var i = 0; i < this._guiSprites.length; i++) {
+            sprite = this._guiSprites[i];
+            sprite.select();
+        }
+    };
+
+    GUIBase.prototype.deselect = function() {
+        var sprite;
+
+        for (var i = 0; i < this._guiSprites.length; i++) {
+            sprite = this._guiSprites[i];
+            sprite.deselect();
+        }
+    };
+
     GUIBase.prototype.onActorChange = function() {
         var sprite;
 
@@ -75,6 +102,8 @@
 
             this._guiSprites.push(sprite);
             this.addChild(sprite);
+
+            sprite.setupGUI();
         }
     };
 

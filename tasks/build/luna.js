@@ -10,7 +10,8 @@ var fileName   = ['index.js',
                   'Core/Sprite/GUIFace.js',
                   'Core/Sprite/GUIImage.js',
                   'Battle/GUIBase.js',
-                  'Battle/HUD.js'];
+                  'Battle/HUD.js',
+                  'Battle/bootstrap.js'];
 
 var globs = utils.getGlobs(moduleName, fileName);
 

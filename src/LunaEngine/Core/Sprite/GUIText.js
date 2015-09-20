@@ -17,10 +17,10 @@
         this.bitmap = new Bitmap(1,1);
 
         this._text = "";
-        this._fontFace = this.standardFontFace();
-        this._fontSize = this.standardFontSize();
-        this._textColor = this.normalColor();
-        this._outlineColor = "rgba(0,0,0,0.5)";
+        this._fontFace = "";
+        this._fontSize = 0;
+        this._textColor = "";
+        this._outlineColor = "";
     };
 
     Object.defineProperty(GUIText.prototype, 'text', {
@@ -100,12 +100,6 @@
         GUI.prototype.updateGUIParams.call(this);
 
         this.text = this._getText();
-
-        this.fontFace = this._getFontFace();
-        this.fontSize = this._getFontSize();
-
-        this.color = this._getTextColor();
-        this.outlineColor = this._getOutlineColor();
     };
 
     GUIText.prototype._refreshGUI = function() {
@@ -121,16 +115,15 @@
             }
         }
 
+        width = width + this.textPadding() * 2;
         height = this.lineHeight() * lineNumber;
 
-        this.bitmap.clear();
-        this.bitmap.resize(width, height);
-        this.setFrame(0,0,width,height);
-        this.drawTextEx(text, 0, 0);
+        this.bitmap = new Bitmap(width, height);
+        this.drawTextEx(text, this.textPadding(), 0);
     };
 
     GUIText.prototype._getText = function() {
-        return this.config.text || "";
+        return this.config.text || "Test";
     };
 
     GUIText.prototype._getFontFace = function() {
@@ -147,6 +140,18 @@
 
     GUIText.prototype._getOutlineColor = function() {
         return this.config.outlineColor || "rgba(0,0,0,0.5)";
+    };
+
+    GUIText.prototype.resetFontSettings = function() {
+        this.contents.fontFace = this._getFontFace();
+        this.contents.fontSize = this._getFontSize();
+
+        this.contents.textColor = this._getTextColor();
+        this.contents.outlineColor = this._getOutlineColor();
+    };
+
+    GUIText.prototype.textPadding = function() {
+        return 2;
     };
 
     LunaEngine.Core.Sprite.GUIText = GUIText;

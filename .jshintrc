@@ -40,11 +40,13 @@
         "Game_Party"        :   false,
         "Game_Interpreter"  :   false,
         "Game_Map"          :   false,
+        "Sprite_Base"       :   false,
         "Window_Base"       :   false,
         "Window_Selectable" :   false,
         "Window_Command"    :   false,
         "Window_Gold"       :   false,
         "Window_Help"       :   false,
-        "Scene_MenuBase"    :   false
+        "Scene_MenuBase"    :   false,
+        "Scene_Battle"      :   false
     }
 }
