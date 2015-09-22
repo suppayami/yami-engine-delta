@@ -2,13 +2,58 @@
 
 (function() {
     // dependencies
-    var HUD = LunaEngine.Battle.HUD;
+    var HUD = LunaEngine.Battle.HUD,
+        HUDConfig = LunaEngine.Battle.Config.HUD;
 
     // alias
-    var _Scene_Battle_createDisplayObjects = Scene_Battle.prototype.createDisplayObjects,
+    var _Game_Battler_initMembers = Game_Battler.prototype.initMembers,
+        _Game_Battler_clearAnimations = Game_Battler.prototype.clearAnimations,
+        _Game_Battler_startAnimation = Game_Battler.prototype.startAnimation,
+        _Window_BattleActor_maxCols = Window_BattleActor.prototype.maxCols,
+        _Scene_Battle_createDisplayObjects = Scene_Battle.prototype.createDisplayObjects,
         _Scene_Battle_start = Scene_Battle.prototype.start,
         _Scene_Battle_stop = Scene_Battle.prototype.stop,
         _Scene_Battle_updateStatusWindow = Scene_Battle.prototype.updateStatusWindow;
+
+    Game_Battler.prototype.initMembers = function() {
+        _Game_Battler_initMembers.call(this);
+
+        this._lunaAnimations = [];
+    };
+
+    Game_Battler.prototype.clearAnimations = function() {
+        _Game_Battler_clearAnimations.call(this);
+
+        this._lunaAnimations = [];
+    };
+
+    Game_Battler.prototype.isLunaAnimationRequested = function() {
+        return this._lunaAnimations.length > 0;
+    };
+
+    Game_Battler.prototype.startAnimation = function(animationId, mirror, delay) {
+        _Game_Battler_startAnimation.call(this, animationId, mirror, delay);
+
+        this.startLunaAnimation(animationId, mirror, delay);
+    };
+
+    Game_Battler.prototype.startLunaAnimation = function(animationId, mirror, delay) {
+        var data = { animationId: animationId, mirror: mirror, delay: delay };
+
+        this._lunaAnimations.push(data);
+    };
+
+    Game_Battler.prototype.shiftLunaAnimation = function() {
+        return this._lunaAnimations.shift();
+    };
+
+    Window_BattleActor.prototype.maxCols = function() {
+        if (HUDConfig.direction === 'horizontal') {
+            return $gameParty.battleMembers().length;
+        }
+
+        return _Window_BattleActor_maxCols.call(this);
+    };
 
     Scene_Battle.prototype.createDisplayObjects = function() {
         _Scene_Battle_createDisplayObjects.call(this);
@@ -27,7 +72,8 @@
 
     Scene_Battle.prototype._setupLuna = function() {
         this._lunaHUD.refresh();
-        this._statusWindow.y = 999;
+        this._statusWindow.y = 9999;
+        this._actorWindow.y  = 9999;
     };
 
     Scene_Battle.prototype.stop = function() {

@@ -156,6 +156,7 @@
         Sprite_Base.prototype.update.call(this);
 
         this.updateGUIParams();
+        this.updateAnimation();
     };
 
     GUI.prototype.updateGUIParams = function() {
@@ -167,13 +168,33 @@
         var x = this._getX(),
             y = this._getY();
 
-        this.move(x, y);
+        if (this.x !== x || this.y !== y) {
+            this.move(x, y);
+        }
     };
 
     GUI.prototype.updateGUIColor = function() {
         var colorTone = this._getColorTone();
 
         this.setColorTone(colorTone);
+    };
+
+    GUI.prototype.updateAnimation = function() {
+        if (!this.actor || !this._isShowAnimation()) {
+            return;
+        }
+
+        this.setupAnimation();
+    };
+
+    GUI.prototype.setupAnimation = function() {
+        while (this.actor.isLunaAnimationRequested()) {
+            var data = this.actor.shiftLunaAnimation();
+            var animation = $dataAnimations[data.animationId];
+            var mirror = data.mirror;
+            var delay = animation.position === 3 ? 0 : data.delay;
+            this.startAnimation(animation, mirror, delay);
+        }
     };
 
     GUI.prototype.refresh = function() {
@@ -198,6 +219,10 @@
 
     GUI.prototype._getConditions = function() {
         return this._config.conditional; // avoid infinite loops
+    };
+
+    GUI.prototype._isShowAnimation = function() {
+        return !!this._config.showAnimation;
     };
 
     GUI.prototype.isSelectingActor = function() {

@@ -9,6 +9,7 @@ var fileName   = ['index.js',
                   'Core/Sprite/GUIText.js',
                   'Core/Sprite/GUIFace.js',
                   'Core/Sprite/GUIImage.js',
+                  'Core/Sprite/GUIGauge.js',
                   'Battle/GUIBase.js',
                   'Battle/HUD.js',
                   'Battle/bootstrap.js'];

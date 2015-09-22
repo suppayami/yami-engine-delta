@@ -89,11 +89,11 @@
 
         this.text = this._getText();
 
-        // this.fontFace = this._getFontFace();
-        // this.fontSize = this._getFontSize();
+        this.fontFace = this._getFontFace();
+        this.fontSize = this._getFontSize();
 
-        // this.color = this._getTextColor();
-        // this.outlineColor = this._getOutlineColor();
+        this.color = this._getTextColor();
+        this.outlineColor = this._getOutlineColor();
     };
 
     GUIText.prototype._refreshGUI = function() {

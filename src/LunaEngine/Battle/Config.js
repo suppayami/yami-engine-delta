@@ -4,7 +4,7 @@
     // Status Spritesets
     var HUD = {
         /* Position */
-        x: 208,
+        x: 200,
         y: 460,
 
         /* Grid and size */
@@ -12,14 +12,6 @@
         height: 180,
         grid:   4,
         direction: 'horizontal',
-
-        /* Background */
-        background: {
-            type:  'window', // 'window' or 'image'
-            image: 'Window'  // Windowskin or path to image
-                             // image should be full path
-                             // Example: img/system/BG.png
-        }
     };
 
     // Status Elements
@@ -42,16 +34,16 @@
             /* Conditional Properties */
             conditional: [
                 {
-                    condition: 'this.actor.isDead()',
+                    condition: 'this.actor.hpRate() < 0.5',
                     properties: {
-                        tone: [0,0,0,255]
+                        tone: [96,0,0,0]
                     }
                 },
 
                 {
-                    condition: 'this.actor.hpRate() < 0.5',
+                    condition: 'this.actor.isDead()',
                     properties: {
-                        tone: [96,0,0,0]
+                        tone: [0,0,0,255]
                     }
                 },
 
@@ -87,20 +79,51 @@
             /* Conditional Properties */
             conditional: [
                 {
-                    condition: 'this.actor.isDead()',
-                    properties: {
-                        textColor: '{this.deathColor()}'
-                    }
-                },
-
-                {
                     condition: 'this.actor.hpRate() < 0.5',
                     properties: {
                         textColor: '{this.crisisColor()}'
                     }
+                },
+
+                {
+                    condition: 'this.actor.isDead()',
+                    properties: {
+                        textColor: '{this.deathColor()}'
+                    }
                 }
             ]
         }, // spriteName
+
+        spriteHPGauge: {
+            /* GUI Type */
+            class: 'GUIGauge',
+
+            /* Position */
+            x: 0,
+            y: 100,
+
+            /* Color */
+            tone: [0,0,0,0],
+
+            /* Basic Properties */
+            width:  140,
+            height: 6,
+
+            rate: 'this.actor.hpRate()',
+
+            color1: '{this.hpGaugeColor1()}',
+            color2: '{this.hpGaugeColor2()}',
+
+            backColor:    '#000000',
+            outlineColor: 'rgba(0,0,0,0.5)',
+
+            direction: 'horizontal',
+
+            /* Conditional Properties */
+            conditional: [
+
+            ]
+        }, // spriteHPGauge
 
         spriteHPNumber: {
             /* GUI Type */
@@ -127,6 +150,37 @@
 
             ]
         }, // spriteHPNumber
+
+        spriteMPGauge: {
+            /* GUI Type */
+            class: 'GUIGauge',
+
+            /* Position */
+            x: 0,
+            y: 136,
+
+            /* Color */
+            tone: [0,0,0,0],
+
+            /* Basic Properties */
+            width:  140,
+            height: 6,
+
+            rate: 'this.actor.mpRate()',
+
+            color1: '{this.mpGaugeColor1()}',
+            color2: '{this.mpGaugeColor2()}',
+
+            backColor:    '#000000',
+            outlineColor: 'rgba(0,0,0,0.5)',
+
+            direction: 'horizontal',
+
+            /* Conditional Properties */
+            conditional: [
+
+            ]
+        }, // spriteHPGauge
 
         spriteMPNumber: {
             /* GUI Type */

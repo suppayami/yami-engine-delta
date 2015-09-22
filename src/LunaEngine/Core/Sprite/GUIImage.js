@@ -68,7 +68,7 @@
     };
 
     GUIImage.prototype._getPath = function() {
-        return this.config.imagePath || "";
+        return this._evalConfig(this.config.imagePath) || "";
     };
 
     GUIImage.prototype._getHue = function() {

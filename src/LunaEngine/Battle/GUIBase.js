@@ -1,7 +1,8 @@
 /* globals LunaEngine: false */
 
 (function() {
-    var GUIText = LunaEngine.Core.Sprite.GUIText,
+    var SpriteClasses = LunaEngine.Core.Sprite,
+        GUIText = LunaEngine.Core.Sprite.GUIText,
         GUIFace = LunaEngine.Core.Sprite.GUIFace,
         GUIImage = LunaEngine.Core.Sprite.GUIImage;
 
@@ -110,18 +111,7 @@
     GUIBase.prototype._getSpriteClass = function(config) {
         var Class;
 
-        switch (config.class) {
-        case 'GUIText':
-            Class = GUIText;
-            break;
-        case 'GUIFace':
-            Class = GUIFace;
-            break;
-        case 'GUIImage':
-            Class = GUIImage;
-            break;
-        }
-
+        Class = SpriteClasses[config.class];
         return Class;
     };
 
