@@ -1,0 +1,7 @@
+NOTE
+
+1. GUI Eval Config:
+   Setup to catch all methods so that will only check the values before doing matching/replacing
+
+2. Conditions:
+   Make an array to check if the conditions are changed.

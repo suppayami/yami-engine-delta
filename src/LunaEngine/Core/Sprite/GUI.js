@@ -64,6 +64,10 @@
             evals,
             thisEval;
 
+        if (!string) {
+            return "";
+        }
+
         thisEval = function(s) { return eval(s); };
         thisEval = thisEval.bind(this);
 
@@ -80,6 +84,30 @@
         }
 
         return string;
+    };
+
+    GUI.prototype._evalCondition = function(config) {
+        var result = JSON.parse(JSON.stringify(config)),
+            conditionals = result.conditional,
+            cond;
+
+        if (!conditionals) {
+            return result;
+        }
+
+        for (var i = 0; i < conditionals.length; i++) {
+            cond = conditionals[i];
+
+            if (!eval(cond.condition)) {
+                continue;
+            }
+
+            for (var key in cond.properties) {
+                result[key] = cond.properties[key];
+            }
+        }
+
+        return result;
     };
 
     /**
@@ -115,10 +143,10 @@
 
     Object.defineProperty(GUI.prototype, 'config', {
         get: function() {
-            return this._config;
+            return this._evalCondition(this._config);
         },
         set: function(value) {
-            this._config = this._setupConfig(value);
+            this._config = value;
             this.setupGUI();
         },
         configurable: true
@@ -166,6 +194,10 @@
 
     GUI.prototype._getColorTone = function() {
         return this.config.tone || [0,0,0,0];
+    };
+
+    GUI.prototype._getConditions = function() {
+        return this._config.conditional; // avoid infinite loops
     };
 
     GUI.prototype.isSelectingActor = function() {

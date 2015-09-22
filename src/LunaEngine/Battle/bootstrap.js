@@ -52,10 +52,10 @@
     };
 
     Scene_Battle.prototype._updateSelectingActor = function() {
+        this._lunaHUD.select(BattleManager.actor());
+
         if (this._actorWindow.active) {
             this._lunaHUD.select(this._actorWindow.actor());
         }
-
-        this._lunaHUD.select(BattleManager.actor());
-    }
+    };
 }());

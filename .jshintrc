@@ -9,6 +9,7 @@
     "nonbsp"        : true,
     "unused"        : true,
     "node"          : true,
+    "evil"          : true,
 
     // Custom Globals
     "globals"       : {

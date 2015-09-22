@@ -247,6 +247,10 @@ LunaEngine.Battle.Config = {};
             evals,
             thisEval;
 
+        if (!string) {
+            return "";
+        }
+
         thisEval = function(s) { return eval(s); };
         thisEval = thisEval.bind(this);
 
@@ -263,6 +267,30 @@ LunaEngine.Battle.Config = {};
         }
 
         return string;
+    };
+
+    GUI.prototype._evalCondition = function(config) {
+        var result = JSON.parse(JSON.stringify(config)),
+            conditionals = result.conditional,
+            cond;
+
+        if (!conditionals) {
+            return result;
+        }
+
+        for (var i = 0; i < conditionals.length; i++) {
+            cond = conditionals[i];
+
+            if (!eval(cond.condition)) {
+                continue;
+            }
+
+            for (var key in cond.properties) {
+                result[key] = cond.properties[key];
+            }
+        }
+
+        return result;
     };
 
     /**
@@ -298,10 +326,10 @@ LunaEngine.Battle.Config = {};
 
     Object.defineProperty(GUI.prototype, 'config', {
         get: function() {
-            return this._config;
+            return this._evalCondition(this._config);
         },
         set: function(value) {
-            this._config = this._setupConfig(value);
+            this._config = value;
             this.setupGUI();
         },
         configurable: true
@@ -349,6 +377,10 @@ LunaEngine.Battle.Config = {};
 
     GUI.prototype._getColorTone = function() {
         return this.config.tone || [0,0,0,0];
+    };
+
+    GUI.prototype._getConditions = function() {
+        return this._config.conditional; // avoid infinite loops
     };
 
     GUI.prototype.isSelectingActor = function() {
@@ -425,10 +457,6 @@ LunaEngine.Battle.Config = {};
         this.bitmap = new Bitmap(1,1);
 
         this._text = "";
-        this._fontFace = "";
-        this._fontSize = 0;
-        this._textColor = "";
-        this._outlineColor = "";
     };
 
     Object.defineProperty(GUIText.prototype, 'text', {
@@ -446,13 +474,11 @@ LunaEngine.Battle.Config = {};
 
     Object.defineProperty(GUIText.prototype, 'fontFace', {
         get: function() {
-            return this._fontFace;
+            return this.contents.fontFace;
         },
         set: function(value) {
-            if (this._fontFace !== value) {
+            if (this.contents.fontFace !== value) {
                 this.contents.fontFace = value;
-
-                this._fontFace = value;
                 this._refreshGUI();
             }
         },
@@ -461,13 +487,11 @@ LunaEngine.Battle.Config = {};
 
     Object.defineProperty(GUIText.prototype, 'fontSize', {
         get: function() {
-            return this._fontSize;
+            return this.contents.fontSize;
         },
         set: function(value) {
-            if (this._fontSize !== value) {
+            if (this.contents.fontSize !== value) {
                 this.contents.fontSize = value;
-
-                this._fontSize = value;
                 this._refreshGUI();
             }
         },
@@ -476,13 +500,11 @@ LunaEngine.Battle.Config = {};
 
     Object.defineProperty(GUIText.prototype, 'color', {
         get: function() {
-            return this._textColor;
+            return this.contents.textColor;
         },
         set: function(value) {
-            if (this._textColor !== value) {
+            if (this.contents.textColor !== value) {
                 this.contents.textColor = value;
-
-                this._textColor = value;
                 this._refreshGUI();
             }
         },
@@ -494,10 +516,8 @@ LunaEngine.Battle.Config = {};
             return this._outlineColor;
         },
         set: function(value) {
-            if (this._outlineColor !== value) {
+            if (this.contents.outlineColor !== value) {
                 this.contents.outlineColor = value;
-
-                this._outlineColor = value;
                 this._refreshGUI();
             }
         },
@@ -508,6 +528,12 @@ LunaEngine.Battle.Config = {};
         GUI.prototype.updateGUIParams.call(this);
 
         this.text = this._getText();
+
+        // this.fontFace = this._getFontFace();
+        // this.fontSize = this._getFontSize();
+
+        // this.color = this._getTextColor();
+        // this.outlineColor = this._getOutlineColor();
     };
 
     GUIText.prototype._refreshGUI = function() {
@@ -531,23 +557,23 @@ LunaEngine.Battle.Config = {};
     };
 
     GUIText.prototype._getText = function() {
-        return this.config.text || "Test";
+        return this._evalConfig(this.config.text) || "Test";
     };
 
     GUIText.prototype._getFontFace = function() {
-        return this.config.fontFace || this.standardFontFace();
+        return this._evalConfig(this.config.fontFace) || this.standardFontFace();
     };
 
     GUIText.prototype._getFontSize = function() {
-        return this.config.fontSize || this.standardFontSize();
+        return this._evalConfig(this.config.fontSize) || this.standardFontSize();
     };
 
     GUIText.prototype._getTextColor = function() {
-        return this.config.textColor || this.normalColor();
+        return this._evalConfig(this.config.textColor) || this.normalColor();
     };
 
     GUIText.prototype._getOutlineColor = function() {
-        return this.config.outlineColor || "rgba(0,0,0,0.5)";
+        return this._evalConfig(this.config.outlineColor) || "rgba(0,0,0,0.5)";
     };
 
     GUIText.prototype.resetFontSettings = function() {
@@ -639,11 +665,11 @@ LunaEngine.Battle.Config = {};
     };
 
     GUIFace.prototype._getFaceName = function() {
-        return this.config.faceName || "";
+        return this._evalConfig(this.config.faceName) || "";
     };
 
     GUIFace.prototype._getFaceIndex = function() {
-        return this.config.faceIndex || 0;
+        return this._evalConfig(this.config.faceIndex) || 0;
     };
 
     LunaEngine.Core.Sprite.GUIFace = GUIFace;
@@ -1047,10 +1073,10 @@ LunaEngine.Battle.Config = {};
     };
 
     Scene_Battle.prototype._updateSelectingActor = function() {
+        this._lunaHUD.select(BattleManager.actor());
+
         if (this._actorWindow.active) {
             this._lunaHUD.select(this._actorWindow.actor());
         }
-
-        this._lunaHUD.select(BattleManager.actor());
-    }
+    };
 }());
