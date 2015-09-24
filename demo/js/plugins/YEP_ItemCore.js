@@ -45,17 +45,17 @@ Yanfly.Item = Yanfly.Item || {};
  * @default 5
  *
  * @param Name Format
- * @desc How item names will be ordered and structured.             .
+ * @desc How item names will be ordered and structured.
  * %1 - Prefix, %2 - Base Name, %3 - Suffix, %4 Boost
  * @default %1%2%3%4
  *
  * @param Name Spacing
- * @desc Place a space between name prefixes and suffixes?          .
+ * @desc Place a space between name prefixes and suffixes?
  * NO - false     YES - true
  * @default true
  *
  * @param Boost Format
- * @desc This is the text format for a boosted independent item.    .
+ * @desc This is the text format for a boosted independent item.
  * %1 - Boost Amount
  * @default (+%1)
  *
@@ -63,22 +63,22 @@ Yanfly.Item = Yanfly.Item || {};
  * @default
  *
  * @param Updated Scene Item
- * @desc Enabling this will change Scene Item's visual appearance.  .
+ * @desc Enabling this will change Scene Item's visual appearance.
  * NO - false     YES - true (recommended)
  * @default true
  *
  * @param Icon Size
- * @desc This will be the width and height of the icon to be drawn. .
+ * @desc This will be the width and height of the icon to be drawn.
  * This is normally 4x the default Icon Width and Icon Height.
  * @default 128
  *
  * @param Font Size
- * @desc This changes the font size for description items.          .
+ * @desc This changes the font size for description items.
  * Default: 28
  * @default 20
  *
  * @param Command Alignment
- * @desc This is the text alignment for the command windows.        .
+ * @desc This is the text alignment for the command windows.
  * left     center     right
  * @default center
  *
@@ -107,18 +107,18 @@ Yanfly.Item = Yanfly.Item || {};
  * @default 4
  *
  * @param Use Command
- * @desc Command text for using the selected item.                  .
+ * @desc Command text for using the selected item.
  * %1 - Item Icon and Name
  * @default Use %1
  *
  * @param Carry Format
- * @desc This is the visual  text format in for independent item ID.
+ * @desc This is the visual text format in for independent item ID.
  * %1 - Item Index     %2 - Maximum
  * @default %1/%2
  *
  * @help
  * ============================================================================
- * Introduction                                                     .
+ * Introduction
  * ============================================================================
  *
  * This plugin makes a couple of main changes to your game and the way items
@@ -150,12 +150,14 @@ Yanfly.Item = Yanfly.Item || {};
  * value to 0. If you wish for all of your items to not have a variance value,
  * you can set the parameter to 0.
  *
+ * Note: During battle test, independent items are disabled.
+ *
  * ============================================================================
  * Notetags
  * ============================================================================
  *
- * If you are using independent items, items that aren't gained through the shop
- * can have a random variance applied to its stats.
+ * If you are using independent items, items that aren't gained through the
+ * shop can have a random variance applied to its stats.
  *
  * Item, Weapon, Armor Notetag
  *   <Random Variance: x>
@@ -190,10 +192,10 @@ Yanfly.Item = Yanfly.Item || {};
  *
  * Event Page Conditions and Conditional Branches:
  *   Checking to see if an item exists in the party's inventory will differ if
- * the item can be independent. Instead, the condition can be fulfilled if there
- * is an item, even when upgraded, that has the selected item as the base item.
- * This means your Long Sword (+1) will fulfill the condition of having the
- * target Long Sword item in the event editor.
+ * the item can be independent. Instead, the condition can be fulfilled if
+ * there is an item, even when upgraded, that has the selected item as the base
+ * item. This means your Long Sword (+1) will fulfill the condition of having
+ * the target Long Sword item in the event editor.
  *
  * Actor Has X Equip:
  *   Just like the previous condition, this condition will be fulfilled if the
@@ -202,11 +204,11 @@ Yanfly.Item = Yanfly.Item || {};
  * a Long Sword item equipped.
  *
  * Change Equipment:
- *   If the target equipment is independent, the game will first check to see if
- * the actor has an item equipped with the matching base item. If not, the game
- * will then check to see if the party has a matching base item in the inventory
- * first and use that. If not, then the game will create a new stock version of
- * the item and equip that to the actor.
+ *   If the target equipment is independent, the game will first check to see
+ * if the actor has an item equipped with the matching base item. If not, the
+ * game will then check to see if the party has a matching base item in the
+ * inventory first and use that. If not, then the game will create a new stock
+ * version of the item and equip that to the actor.
  *
  * ============================================================================
  * Item Name System
@@ -302,36 +304,36 @@ Yanfly.Item.DataManager_createGameObjects =
     DataManager.createGameObjects;
 DataManager.createGameObjects = function() {
     Yanfly.Item.DataManager_createGameObjects.call(this);
-    this.createUpgradeObjects();
+    this.createIndependentObjects();
 };
 
-DataManager.createUpgradeObjects = function() {
-    DataManager.createUpgradeGroups();
-    this.loadUpgradeItems();
+DataManager.createIndependentObjects = function() {
+    DataManager.createIndependentGroups();
+    this.loadIndependentItems();
 };
 
-DataManager.loadUpgradeItems = function() {
+DataManager.loadIndependentItems = function() {
     if (Yanfly.Param.ItemMaxItems > 0) {
       var difItems = $dataItems.length - DataManager._baseItemsLength;
       $dataItems.splice(DataManager._baseItemsLength, difItems);
-      this.setUpgradeLength($dataItems);
-      $dataItems = $dataItems.concat(this._upgradeItems);
+      this.setIndependentLength($dataItems);
+      $dataItems = $dataItems.concat(this._independentItems);
     }
     if (Yanfly.Param.ItemMaxWeapons > 0) {
       var difWeapons = $dataWeapons.length - DataManager._baseWeaponsLength;
       $dataWeapons.splice(DataManager._baseWeaponsLength, difWeapons);
-      this.setUpgradeLength($dataWeapons);
-      $dataWeapons = $dataWeapons.concat(this._upgradeWeapons);
+      this.setIndependentLength($dataWeapons);
+      $dataWeapons = $dataWeapons.concat(this._independentWeapons);
     }
     if (Yanfly.Param.ItemMaxArmors > 0) {
       var difArmors = $dataArmors.length - DataManager._baseArmorsLength;
       $dataArmors.splice(DataManager._baseArmorsLength, difArmors);
-      this.setUpgradeLength($dataArmors);
-      $dataArmors = $dataArmors.concat(this._upgradeArmors);
+      this.setIndependentLength($dataArmors);
+      $dataArmors = $dataArmors.concat(this._independentArmors);
     }
 };
 
-DataManager.setUpgradeLength = function(group) {
+DataManager.setIndependentLength = function(group) {
     for (;;) {
       if (group.length > Yanfly.Param.ItemStartingId) break;
       group.push(null);
@@ -341,9 +343,9 @@ DataManager.setUpgradeLength = function(group) {
 Yanfly.Item.DataManager_makeSaveContents = DataManager.makeSaveContents;
 DataManager.makeSaveContents = function() {
     var contents = Yanfly.Item.DataManager_makeSaveContents.call(this);
-    contents.items = this._upgradeItems;
-    contents.weapons = this._upgradeWeapons;
-    contents.armors = this._upgradeArmors;
+    contents.items = this._independentItems;
+    contents.weapons = this._independentWeapons;
+    contents.armors = this._independentArmors;
     return contents;
 };
 
@@ -351,20 +353,21 @@ Yanfly.Item.DataManager_extractSaveContents =
     DataManager.extractSaveContents;
 DataManager.extractSaveContents = function(contents) {
     Yanfly.Item.DataManager_extractSaveContents.call(this, contents);
-    this._upgradeItems = contents.items || [];
-    this._upgradeWeapons = contents.weapons || [];
-    this._upgradeArmors = contents.armors || [];
-    this.loadUpgradeItems();
+    this._independentItems = contents.items || [];
+    this._independentWeapons = contents.weapons || [];
+    this._independentArmors = contents.armors || [];
+    this.loadIndependentItems();
 };
 
-DataManager.createUpgradeGroups = function() {
-    this._upgradeItems = [];
-    this._upgradeWeapons = [];
-    this._upgradeArmors = [];
+DataManager.createIndependentGroups = function() {
+    this._independentItems = [];
+    this._independentWeapons = [];
+    this._independentArmors = [];
 };
 
-DataManager.isUpgradeable = function(item) {
+DataManager.isIndependent = function(item) {
     if (!item) return false;
+    if (DataManager.isBattleTest()) return false;
     if (DataManager.isItem(item)) return Yanfly.Param.ItemMaxItems > 0;
     if (DataManager.isWeapon(item)) return Yanfly.Param.ItemMaxWeapons > 0;
     if (DataManager.isArmor(item)) return Yanfly.Param.ItemMaxArmors > 0;
@@ -374,7 +377,7 @@ DataManager.isUpgradeable = function(item) {
 DataManager.registerNewItem = function(item) {
     if (!this.isNewItemValid(item)) return item;
     var newItem = JsonEx.makeDeepCopy(item);
-    this.addNewUpgradeItem(item, newItem);
+    this.addNewIndependentItem(item, newItem);
     return newItem;
 };
 
@@ -384,17 +387,17 @@ DataManager.isNewItemValid = function(item) {
     return item.id === this.getDatabase(item).indexOf(item);
 };
 
-DataManager.addNewUpgradeItem = function(baseItem, newItem) {
+DataManager.addNewIndependentItem = function(baseItem, newItem) {
     newItem.id = this.getDatabase(baseItem).length;
-    ItemManager.setNewUpgradeItem(baseItem, newItem);
-    ItemManager.customizeNewUpgradeItem(baseItem, newItem);
+    ItemManager.setNewIndependentItem(baseItem, newItem);
+    ItemManager.customizeNewIndependentItem(baseItem, newItem);
     this.getDatabase(baseItem).push(newItem);
     this.getContainer(baseItem).push(newItem);
 };
 
-DataManager.removeUpgradeItem = function(item) {
+DataManager.removeIndependentItem = function(item) {
     if (!item) return;
-    if (this.upgradeItemIsUsed(item)) return;
+    if (this.independentItemIsUsed(item)) return;
     var container = this.getContainer(item);
     var database = this.getDatabase(item);
     var index = container.indexOf(item);
@@ -403,7 +406,7 @@ DataManager.removeUpgradeItem = function(item) {
     database[index] = null;
 };
 
-DataManager.upgradeItemIsUsed = function(item) {
+DataManager.independentItemIsUsed = function(item) {
     if ($gameParty.numItems(item) > 0) return false;
     for (var i = 0; i < $dataActors.length; ++i) {
       var actor = $gameActors.actor(i);
@@ -423,14 +426,14 @@ DataManager.getDatabase = function(item) {
 
 DataManager.getContainer = function(item) {
     if (!item) return [];
-    if (DataManager.isItem(item)) return this._upgradeItems;
-    if (DataManager.isWeapon(item)) return this._upgradeWeapons;
-    if (DataManager.isArmor(item)) return this._upgradeArmors;
+    if (DataManager.isItem(item)) return this._independentItems;
+    if (DataManager.isWeapon(item)) return this._independentWeapons;
+    if (DataManager.isArmor(item)) return this._independentArmors;
     return [];
 };
 
 DataManager.getBaseItem = function(item) {
-    if (!this.isUpgradeable(item)) return item;
+    if (!this.isIndependent(item)) return item;
     if (!item.baseItemId) return item;
     var baseItemId = item.baseItemId;
     var baseItem = this.getDatabase(item)[baseItemId];
@@ -445,7 +448,7 @@ function ItemManager() {
     throw new Error('This is a static class');
 };
 
-ItemManager.setNewUpgradeItem = function(baseItem, newItem) {
+ItemManager.setNewIndependentItem = function(baseItem, newItem) {
     newItem.baseItemId = baseItem.id;
     newItem.baseItemName = baseItem.name;
     newItem.baseItemPrice = baseItem.price;
@@ -457,7 +460,7 @@ ItemManager.setNewUpgradeItem = function(baseItem, newItem) {
     newItem.note = '';
 };
 
-ItemManager.customizeNewUpgradeItem = function(baseItem, newItem) {
+ItemManager.customizeNewIndependentItem = function(baseItem, newItem) {
     this.randomizeInitialItem(baseItem, newItem);
     this.updateItemName(newItem);
 };
@@ -563,22 +566,22 @@ ItemManager.increaseItemBoostCount = function(item, value) {
 //=============================================================================
 
 Game_Temp.prototype.enableVarianceStock = function() {
-    this._upgradeStock = true;
+    this._independentStock = true;
 };
 
 Game_Temp.prototype.disableVarianceStock = function() {
-    this._upgradeStock = false;
+    this._independentStock = false;
 };
 
 Game_Temp.prototype.varianceStock = function() {
-    return this._upgradeStock;
+    return this._independentStock;
 };
 
 //=============================================================================
 // Game_Actor
 //=============================================================================
 
-Game_Actor.prototype.initUpgradeableEquips = function(equips) {
+Game_Actor.prototype.initIndependentEquips = function(equips) {
     var slots = this.equipSlots();
     var maxSlots = slots.length;
     this._equips = [];
@@ -597,7 +600,7 @@ Game_Actor.prototype.initUpgradeableEquips = function(equips) {
         } else {
           var item = $dataArmors[itemId];
         }
-        if (DataManager.isUpgradeable(item)) {
+        if (DataManager.isIndependent(item)) {
           item = $gameParty.getMatchingBaseItem(item);
         }
         this.changeEquip(j, item);
@@ -620,7 +623,7 @@ Game_Actor.prototype.hasArmor = function(armor) {
 };
 
 Game_Actor.prototype.hasBaseItem = function(baseItem) {
-    if (!DataManager.isUpgradeable(baseItem)) return false;
+    if (!DataManager.isIndependent(baseItem)) return false;
     var type = (DataManager.isWeapon(baseItem)) ? 'weapon' : 'armor';
     for (var i = 0; i < this.equips().length; ++i) {
       var equip = this.equips()[i];
@@ -644,7 +647,7 @@ Game_Actor.prototype.changeEquipById = function(etypeId, itemId) {
       } else {
         var baseItem = $dataWeapons[itemId];
       }
-      if (DataManager.isUpgradeable(baseItem)) {
+      if (DataManager.isIndependent(baseItem)) {
         if (this.hasBaseItem(baseItem)) return;
         var item = $gameParty.getMatchingBaseItem(baseItem);
         if (item === null) {
@@ -679,21 +682,21 @@ Game_Party.prototype.initActorEquips = function() {
       if (actor) {
         var baseActor = $dataActors[i];
         actor.clearEquipments();
-        actor.initUpgradeableEquips(baseActor.equips);
+        actor.initIndependentEquips(baseActor.equips);
       }
     }
 };
 
 Yanfly.Item.Game_Party_gainItem = Game_Party.prototype.gainItem;
 Game_Party.prototype.gainItem = function(item, amount, includeEquip) {
-    if (DataManager.isUpgradeable(item)) {
-      this.gainUpgradeItem(item, amount, includeEquip);
+    if (DataManager.isIndependent(item)) {
+      this.gainIndependentItem(item, amount, includeEquip);
     } else {
       Yanfly.Item.Game_Party_gainItem.call(this, item, amount, includeEquip);
     }
 };
 
-Game_Party.prototype.gainUpgradeItem = function(item, amount, includeEquip) {
+Game_Party.prototype.gainIndependentItem = function(item, amount, includeEquip) {
     if (amount > 0) {
       for (var i = 0; i < amount; ++i) {
         var newItem = DataManager.registerNewItem(item);
@@ -703,7 +706,7 @@ Game_Party.prototype.gainUpgradeItem = function(item, amount, includeEquip) {
       amount = Math.abs(amount);
       for (var i = 0; i < amount; ++i) {
         if (item.baseItemId) {
-          this.removeUpgradeItem(item);
+          this.removeIndependentItem(item);
         } else {
           this.removeBaseItem(item, includeEquip);
         }
@@ -711,14 +714,14 @@ Game_Party.prototype.gainUpgradeItem = function(item, amount, includeEquip) {
     }
 };
 
-Game_Party.prototype.getItemUpgradeTypeMax = function(item) {
+Game_Party.prototype.getIndependentItemTypeMax = function(item) {
     if (!item) return 0;
     if (DataManager.isItem(item)) return Yanfly.Param.ItemMaxItems;
     if (DataManager.isWeapon(item)) return Yanfly.Param.ItemMaxWeapons;
     if (DataManager.isArmor(item)) return Yanfly.Param.ItemMaxArmors;
 };
 
-Game_Party.prototype.getItemUpgradeTypeCur = function(item) {
+Game_Party.prototype.getIndependentItemTypeCur = function(item) {
     if (!item) return 0;
     if (DataManager.isItem(item)) return this.items().length;
     if (DataManager.isWeapon(item)) return this.weapons().length;
@@ -733,7 +736,7 @@ Game_Party.prototype.registerNewItem = function(baseItem, newItem) {
     }
 };
 
-Game_Party.prototype.removeUpgradeItem = function(item) {
+Game_Party.prototype.removeIndependentItem = function(item) {
     var container = this.itemContainer(item);
     container[item.id] = 0;
     if (container[item.id] <= 0) delete container[item.id];
@@ -764,25 +767,25 @@ Game_Party.prototype.getMatchingBaseItem = function(baseItem) {
 Yanfly.Item.Game_Party_items = Game_Party.prototype.items;
 Game_Party.prototype.items = function() {
     var results = Yanfly.Item.Game_Party_items.call(this);
-    results.sort(this.upgradeItemSort);
+    results.sort(this.independentItemSort);
     return results;
 };
 
 Yanfly.Item.Game_Party_weapons = Game_Party.prototype.weapons;
 Game_Party.prototype.weapons = function() {
     var results = Yanfly.Item.Game_Party_weapons.call(this);
-    results.sort(this.upgradeItemSort);
+    results.sort(this.independentItemSort);
     return results;
 };
 
 Yanfly.Item.Game_Party_armors = Game_Party.prototype.armors;
 Game_Party.prototype.armors = function() {
     var results = Yanfly.Item.Game_Party_armors.call(this);
-    results.sort(this.upgradeItemSort);
+    results.sort(this.independentItemSort);
     return results;
 };
 
-Game_Party.prototype.upgradeItemSort = function(a, b) {
+Game_Party.prototype.independentItemSort = function(a, b) {
     if (a.baseItemId < b.baseItemId) return -1;
     if (a.baseItemId > b.baseItemId) return 1;
     if (a.id < b.id) return -1;
@@ -792,13 +795,13 @@ Game_Party.prototype.upgradeItemSort = function(a, b) {
 
 Yanfly.Item.Game_Party_maxItems = Game_Party.prototype.maxItems;
 Game_Party.prototype.maxItems = function(item) {
-    if (DataManager.isUpgradeable(item)) return 1;
+    if (DataManager.isIndependent(item)) return 1;
     return Yanfly.Item.Game_Party_maxItems.call(this, item);
 };
 
 Yanfly.Item.Game_Party_hasItem = Game_Party.prototype.hasItem;
 Game_Party.prototype.hasItem = function(item, includeEquip) {
-    if (DataManager.isUpgradeable(item)) {
+    if (DataManager.isIndependent(item)) {
       var result = this.getMatchingBaseItem(item);
       if (result !== null) return true;
     }
@@ -808,7 +811,7 @@ Game_Party.prototype.hasItem = function(item, includeEquip) {
 Yanfly.Item.Game_Party_isAnyMemberEquipped =
     Game_Party.prototype.isAnyMemberEquipped;
 Game_Party.prototype.isAnyMemberEquipped = function(item) {
-    if (DataManager.isUpgradeable(item)) {
+    if (DataManager.isIndependent(item)) {
       for (var i = 0; i < this.members().length; ++i) {
         var actor = this.members()[i];
         if (!actor) continue;
@@ -837,7 +840,7 @@ Game_Interpreter.prototype.pluginCommand = function(command, args) {
 Yanfly.Item.Window_ItemList_drawItemNumber =
     Window_ItemList.prototype.drawItemNumber;
 Window_ItemList.prototype.drawItemNumber = function(item, dx, dy, dw) {
-    if (DataManager.isUpgradeable(item)) {
+    if (DataManager.isIndependent(item)) {
       this.drawItemCarryNumber(item, dx, dy, dw);
       return;
     }
@@ -853,7 +856,7 @@ Window_ItemList.prototype.drawItemCarryNumber = function(item, dx, dy, dw) {
       var index = $gameParty.armors().indexOf(item);
     }
     index += 1;
-    var max = $gameParty.getItemUpgradeTypeMax(item);
+    var max = $gameParty.getIndependentItemTypeMax(item);
     var fmt = Yanfly.Param.ItemCarryFmt;
     var text = fmt.format(index, max);
     if (Yanfly.Param.ItemQuantitySize) {
@@ -888,9 +891,9 @@ Window_EquipItem.prototype.includes = function(item) {
 
 Yanfly.Item.Window_ShopBuy_isEnabled = Window_ShopBuy.prototype.isEnabled;
 Window_ShopBuy.prototype.isEnabled = function(item) {
-    if (DataManager.isUpgradeable(item)) {
-      var typeMax = $gameParty.getItemUpgradeTypeMax(item);
-      var typeCur = $gameParty.getItemUpgradeTypeCur(item);
+    if (DataManager.isIndependent(item)) {
+      var typeMax = $gameParty.getIndependentItemTypeMax(item);
+      var typeCur = $gameParty.getIndependentItemTypeCur(item);
       if (typeCur >= typeMax) return false;
     }
     return Yanfly.Item.Window_ShopBuy_isEnabled.call(this, item);
@@ -920,8 +923,8 @@ Scene_Shop.prototype.doBuy = function(number) {
 Yanfly.Item.Scene_Shop_doSell = Scene_Shop.prototype.doSell;
 Scene_Shop.prototype.doSell = function(number) {
     Yanfly.Item.Scene_Shop_doSell.call(this, number);
-    if (!DataManager.isUpgradeable(this._item)) return;
-    DataManager.removeUpgradeItem(this._item);
+    if (!DataManager.isIndependent(this._item)) return;
+    DataManager.removeIndependentItem(this._item);
 };
 
 //=============================================================================
@@ -1481,7 +1484,7 @@ Scene_Item.prototype.onActionCancel = function() {
 Yanfly.Item.Scene_Item_applyItem = Scene_Item.prototype.applyItem;
 Scene_Item.prototype.applyItem = function() {
     Yanfly.Item.Scene_Item_applyItem.call(this);
-    if (DataManager.isUpgradeable(this.item())) this.onActorCancel();
+    if (DataManager.isIndependent(this.item())) this.onActorCancel();
 };
 
 //=============================================================================

@@ -20,7 +20,7 @@ Yanfly.Equip = Yanfly.Equip || {};
  * @default
  *
  * @param Text Align
- * @desc How to align the text for the command window.              .
+ * @desc How to align the text for the command window.
  * left     center     right
  * @default center
  *
@@ -34,8 +34,8 @@ Yanfly.Equip = Yanfly.Equip || {};
  * @default Remove
  *
  * @param Remove Icon
- * @desc The icon used to display next to the "Remove" command in the
- * equip item list.
+ * @desc The icon used to display next to the "Remove" command in
+ * the equip item list.
  * @default 16
  *
  * @param Empty Text
@@ -51,18 +51,18 @@ Yanfly.Equip = Yanfly.Equip || {};
  * @default
  *
  * @param Non-Removable Types
- * @desc These types must always have an item equipped and cannot be
- * empty. Separate the type ID's by a space.
+ * @desc These types must always have an item equipped and cannot
+ * be empty. Separate the type ID's by a space.
  * @default 1
  *
  * @param Non-Optimized Types
- * @desc These types will be ignored when the actor optimizes equips.
- * Separate the type ID's by a space.
+ * @desc These types will be ignored when the actor optimizes
+ * equips. Separate the type ID's by a space.
  * @default 5
  *
  * @help
  * ============================================================================
- * Introduction                                                     .
+ * Introduction
  * ============================================================================
  *
  * This plugin alters various aspects regarding equipment handling. The changes
@@ -84,11 +84,11 @@ Yanfly.Equip = Yanfly.Equip || {};
  *
  * 3. Equipment Rulings
  * Now, certain equipment types can or cannot be removed. For example, this
- * plugin can set it so that the Weapon slot must always have something equipped
- * and that the player cannot manually leave it empty (the game, on the other
- * hand, can achieve this through events). In addition to that, optimizing
- * equipment can be restricted for certain equipment types, which are better off
- * being decided manually (such as accessories).
+ * plugin can set it so that the Weapon slot must always have something
+ * equipped and that the player cannot manually leave it empty (the game, on
+ * the other hand, can achieve this through events). In addition to that,
+ * optimizing equipment can be restricted for certain equipment types, which
+ * are better off being decided manually (such as accessories).
  *
  * 4. Parameter Control
  * Equipment parameters can now to be adjusted through notetags to have a large
@@ -133,6 +133,10 @@ Yanfly.Equip = Yanfly.Equip || {};
  *   "luk" to alter that specific stat. This allows the piece of equipment
  *   to go past the editor's default limitation so long as the maximum value
  *   allows for it. Changes made here alter the base parameters.
+ *
+ * ============================================================================
+ * Lunatic Mode - Custom Parameters
+ * ============================================================================
  *
  *   <Custom Parameters>  Example: <Custom Parameters>
  *    code                          atk = $gameVariables.value(1);
@@ -294,6 +298,39 @@ DataManager.processEquipNotetags2 = function(group) {
 // Game_Actor
 //=============================================================================
 
+Game_Actor.prototype.initEquips = function(equips) {
+    var array = [];
+    for (var i = 0; i < equips.length; ++i) {
+      var equipId = equips[i];
+      if (equipId <= 0) continue;
+      var equipType = $dataSystem.equipTypes[i + 1];
+      if (equipType === $dataSystem.equipTypes[1] ||
+      (i === 1 && this.isDualWield())) {
+        var equip = $dataWeapons[equipId];
+      } else {
+        var equip = $dataArmors[equipId];
+      }
+      array.push(equip);
+    }
+    var slots = this.equipSlots();
+    var maxSlots = slots.length;
+    this._equips = [];
+    for (var i = 0; i < maxSlots; ++i) {
+      this._equips[i] = new Game_Item();
+    }
+    for (var i = 0; i < array.length; ++i) {
+      var equip = array[i];
+      if (!equip) continue;
+      var etypeId = equip.etypeId;
+      if (!slots.contains(etypeId)) continue;
+      var slotId = slots.indexOf(etypeId);
+      if (this._equips[slotId].isWeapon() && this.isDualWield()) slotId += 1;
+      this._equips[slotId].setObject(equip);
+    }
+    this.releaseUnequippableItems(true);
+    this.refresh();
+};
+
 Game_Actor.prototype.equipSlots = function() {
     var slots = this.currentClass().equipSlots.slice();
     if (slots.length >= 2 && this.isDualWield()) slots[1] = 1;
@@ -379,8 +416,8 @@ Game_Actor.prototype.evalParamPlus = function(item, paramId) {
     var all = 0;
     var a = this;
     var user = this;
-    var s = $gameSwitches.data;
-    var v = $gameVariables.data;
+    var s = $gameSwitches._data;
+    var v = $gameVariables._data;
     eval(item.parameterEval);
     switch (paramId) {
       case 0:
@@ -513,11 +550,21 @@ Window_EquipItem.prototype.maxCols = function() {
 
 Yanfly.Equip.Window_EquipItem_includes = Window_EquipItem.prototype.includes;
 Window_EquipItem.prototype.includes = function(item) {
-    if (item === null && this._actor) {
+    if (item === null && this._actor && this._data.length > 0) {
       var typeId = this._actor.equipSlots()[this._slotId];
       if (Yanfly.Param.EquipNonRemove.contains(typeId)) return false;
     }
     return Yanfly.Equip.Window_EquipItem_includes.call(this, item);
+};
+
+Yanfly.Equip.Window_EquipItem_isEnabled =
+    Window_EquipItem.prototype.isEnabled;
+Window_EquipItem.prototype.isEnabled = function(item) {
+    if (item === null && this._actor) {
+      var typeId = this._actor.equipSlots()[this._slotId];
+      if (Yanfly.Param.EquipNonRemove.contains(typeId)) return false;
+    }
+    return Yanfly.Equip.Window_EquipItem_isEnabled.call(this, item);
 };
 
 Yanfly.Equip.Window_EquipItem_drawItem = Window_EquipItem.prototype.drawItem;
@@ -531,6 +578,7 @@ Window_EquipItem.prototype.drawItem = function(index) {
 };
 
 Window_EquipItem.prototype.drawRemoveEquip = function(index) {
+    if (!this.isEnabled(null)) return;
     var rect = this.itemRect(index);
     rect.width -= this.textPadding();
     this.changePaintOpacity(true);

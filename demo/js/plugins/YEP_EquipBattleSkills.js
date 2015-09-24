@@ -62,8 +62,7 @@ Yanfly.EBS = Yanfly.EBS || {};
  * the skill menu. In addition to being able to do that, equipped skills can
  * also add bonuses such as stat stats and/or passive states.
  *
- * Note: If you are using YEP_AutoPassiveStates.js, place this plugin below that
- * plugin to ensure compatibility.
+ * Note: During battle testing, equip skill slots will be disabled.
  *
  * ============================================================================
  * Notetags
@@ -242,6 +241,19 @@ DataManager.processEBSNotetags3 = function(group) {
 };
 
 //=============================================================================
+// Game_Battler
+//=============================================================================
+
+Yanfly.EBS.Game_Battler_states = Game_Battler.prototype.states;
+Game_Battler.prototype.states = function() {
+    var states_array = Yanfly.EBS.Game_Battler_states.call(this);
+    if (this.isActor()) {
+      states_array = states_array.concat(this.equipSkillStates());
+    }
+    return states_array.filter(Yanfly.Util.onlyUnique);
+};
+
+//=============================================================================
 // Game_Actor
 //=============================================================================
 
@@ -311,7 +323,7 @@ Game_Actor.prototype.learnSkill = function(skillId) {
 
 Yanfly.EBS.Game_Actor_skills = Game_Actor.prototype.skills;
 Game_Actor.prototype.skills = function() {
-    if ($gameParty.inBattle()) {
+    if ($gameParty.inBattle() && !DataManager.isBattleTest()) {
       return this.battleSkills();
     } else {
       return Yanfly.EBS.Game_Actor_skills.call(this);
@@ -386,13 +398,6 @@ Yanfly.EBS.Game_Actor_isStateAffected =
 Game_Actor.prototype.isStateAffected = function(stateId) {
     if (this.equipSkillStates().contains($dataStates[stateId])) return true;
     return Yanfly.EBS.Game_Actor_isStateAffected.call(this, stateId);
-};
-
-Yanfly.EBS.Game_Actor_states = Game_Actor.prototype.states;
-Game_Actor.prototype.states = function() {
-    var states_array = Yanfly.EBS.Game_Actor_states.call(this);
-    states_array = states_array.concat(this.equipSkillStates());
-    return states_array.filter(Yanfly.Util.onlyUnique);
 };
 
 Yanfly.EBS.Game_Actor_isStateAddable = Game_Actor.prototype.isStateAddable;
@@ -493,9 +498,15 @@ Window_SkillList.prototype.isBattleSkillEnabled = function(item) {
 // Window_ActorCommand
 //=============================================================================
 
+Yanfly.EBS.Window_ActorCommand_addSkillCommands =
+    Window_ActorCommand.prototype.addSkillCommands;
 Window_ActorCommand.prototype.addSkillCommands = function() {
-    var name = TextManager.skill;
-    this.addCommand(name, 'skill', true, 'battleSkills');
+    if (DataManager.isBattleTest()) {
+      Yanfly.EBS.Window_ActorCommand_addSkillCommands.call(this);
+    } else {
+      var name = TextManager.skill;
+      this.addCommand(name, 'skill', true, 'battleSkills');
+    }
 };
 
 //=============================================================================

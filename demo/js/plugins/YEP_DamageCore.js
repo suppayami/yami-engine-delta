@@ -846,8 +846,8 @@ Game_Action.prototype.makeDamageValue = function(target, critical) {
     var a = this.subject();
     var b = target;
     var user = this.subject();
-    var s = $gameSwitches.data;
-    var v = $gameVariables.data;
+    var s = $gameSwitches._data;
+    var v = $gameVariables._data;
     var baseDamage = this.evalDamageFormula(target);
     var value = baseDamage;
     eval(Yanfly.DMG.DamageFlow);
@@ -861,8 +861,8 @@ Game_Action.prototype.evalDamageFormula = function(target) {
         var b = target;
         var user = this.subject();
         var subject = this.subject();
-        var s = $gameSwitches.data;
-        var v = $gameVariables.data;
+        var s = $gameSwitches._data;
+        var v = $gameVariables._data;
         var sign = ([3, 4].contains(item.damage.type) ? -1 : 1);
         var value = 0;
         if (item.damage.custom) {

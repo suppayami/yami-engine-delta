@@ -20,12 +20,12 @@ Yanfly.BEC = Yanfly.BEC || {};
  * @default
  *
  * @param Action Speed
- * @desc This is the formula used for an action's base speed.       .
+ * @desc This is the formula used for an action's base speed.
  * Default: agi + Math.randomInt(Math.floor(5 + agi / 4))
  * @default agi
  *
  * @param Immortal State ID
- * @desc This is the state ID of the immortal state in the database.
+ * @desc The state ID of the immortal state in the database.
  * Default: 3
  * @default 3
  *
@@ -33,64 +33,64 @@ Yanfly.BEC = Yanfly.BEC || {};
  * @default
  *
  * @param Animation Base Delay
- * @desc This sets the base delay in between animations.           .
+ * @desc This sets the base delay in between animations.
  * Default: 8
  * @default 0
  *
  * @param Animation Next Delay
- * @desc This sets the sequential delay in between animations.     .
+ * @desc This sets the sequential delay in between animations.
  * Default: 12
  * @default 0
  *
  * @param Certain Hit Animation
- * @desc Default animation to play for certain hit skills.          .
+ * @desc Default animation to play for certain hit skills.
  * Use 0 if you wish for no animation.
  * @default 120
  *
  * @param Physical Animation
- * @desc Default animation to play for physical skills.             .
+ * @desc Default animation to play for physical skills.
  * Use 0 if you wish for no animation.
  * @default 52
  *
  * @param Magical Animation
- * @desc Default animation to play for magical skills.              .
+ * @desc Default animation to play for magical skills.
  * Use 0 if you wish for no animation.
  * @default 51
  *
  * @param Enemy Attack Animation
- * @desc This is the default attack animation played by enemies.    .
+ * @desc This is the default attack animation played by enemies.
  * Default: 0
  * @default 39
  *
  * @param Reflect Animation
- * @desc This is the animation used when magic attacks are reflected.
+ * @desc The animation used when magic attacks are reflected.
  * @default 42
  *
  * @param ---Sideview---
  * @default
  *
  * @param Home Position X
- * @desc This formula determines the actor's home X position.       .
+ * @desc This formula determines the actor's home X position.
  * Default: 600 + index * 32
  * @default Graphics.boxWidth - 216 + index * 32
  *
  * @param Home Position Y
- * @desc This formula determines the actor's home Y position.       .
+ * @desc This formula determines the actor's home Y position.
  * Default: 280 + index * 48
  * @default Graphics.boxHeight - 344 + index * 48
  *
  * @param Default X Anchor
- * @desc Default value used for your sprites's X Anchor.            .
+ * @desc Default value used for your sprites's X Anchor.
  * Default: 0.5
  * @default 0.5
  *
  * @param Default Y Anchor
- * @desc Default value used for your sprites's Y Anchor.            .
+ * @desc Default value used for your sprites's Y Anchor.
  * Default: 1.0
  * @default 1.0
  *
  * @param Step Distance
- * @desc This is the distance a unit steps forward for actions.     .
+ * @desc This is the distance a unit steps forward for actions.
  * Default: 48
  * @default 48
  *
@@ -103,12 +103,12 @@ Yanfly.BEC = Yanfly.BEC || {};
  * @default
  *
  * @param Popup Duration
- * @desc Adjusts how many frames a popup will stay visible for.     .
+ * @desc Adjusts how many frames a popup will stay visible for.
  * Default: 90
  * @default 128
  *
  * @param Newest Popup Bottom
- * @desc Places the newest popup at the bottom of a group.          .
+ * @desc Places the newest popup at the bottom of a group.
  * NO - false     YES - true
  * @default true
  *
@@ -118,12 +118,12 @@ Yanfly.BEC = Yanfly.BEC || {};
  * @default 0.9
  *
  * @param Critical Popup
- * @desc Adjusts the popup's flashing color for critical hits.      .
+ * @desc Adjusts the popup's flashing color for critical hits.
  * Default: 255, 0, 0, 160
  * @default 255, 0, 0, 160
  *
  * @param Critical Duration
- * @desc How many frames the flashing will remain for a critical.   .
+ * @desc How many frames the flashing will remain for a critical.
  * Default: 60
  * @default 60
  *
@@ -131,7 +131,7 @@ Yanfly.BEC = Yanfly.BEC || {};
  * @default
  *
  * @param Lower Windows
- * @desc Places the skill and item windows at the screen's bottom.  .
+ * @desc Places the skill and item windows at the screen's bottom.
  * OFF - false     ON - true
  * @default true
  *
@@ -146,7 +146,7 @@ Yanfly.BEC = Yanfly.BEC || {};
  * @default 4
  *
  * @param Command Alignment
- * @desc Sets the text alignment for the Party/Actor Commands.      .
+ * @desc Sets the text alignment for the Party/Actor Commands.
  * Default: left
  * @default center
  *
@@ -164,17 +164,17 @@ Yanfly.BEC = Yanfly.BEC || {};
  * @default true
  *
  * @param Show Enemy Name
- * @desc Show enemy names with Visual Enemy Select.                 .
+ * @desc Show enemy names with Visual Enemy Select.
  * OFF - false     ON - true
  * @default true
  *
  * @param Enemy Font Size
- * @desc Changes the font size used to display enemy names.         .
+ * @desc Changes the font size used to display enemy names.
  * Default: 28
  * @default 20
  *
  * @param Enemy Auto Select
- * @desc Changes what enemy is automatically selected at first.     .
+ * @desc Changes what enemy is automatically selected at first.
  * LEFT - 0     RIGHT - this.furthestRight()
  * @default this.furthestRight()
  *
@@ -182,87 +182,87 @@ Yanfly.BEC = Yanfly.BEC || {};
  * @default
  *
  * @param Show Emerge Text
- * @desc Shows the battle start text for enemies appearing.         .
+ * @desc Shows the battle start text for enemies appearing.
  * OFF - false     ON - true
  * @default false
  *
  * @param Show Pre-Emptive Text
- * @desc Shows the text for getting a pre-emptive attack.           .
+ * @desc Shows the text for getting a pre-emptive attack.
  * OFF - false     ON - true
  * @default true
  *
  * @param Show Surprise Text
- * @desc Shows the text for getting a surprise attack.              .
+ * @desc Shows the text for getting a surprise attack.
  * OFF - false     ON - true
  * @default true
  *
  * @param Optimize Speed
- * @desc Cuts out log base line process to optimize the battle speed.
+ * @desc Cuts log base line process to optimize the battle speed.
  * OFF - false     ON - true
  * @default true
  *
  * @param Show Action Text
- * @desc Displays the full action text or a simplified version of it.
+ * @desc Displays full action text or a simplified version of it.
  * SIMPLE - false     FULL - true
  * @default false
  *
  * @param Show State Text
- * @desc Shows all text regarding states.                           .
+ * @desc Shows all text regarding states.
  * OFF - false     ON - true
  * @default false
  *
  * @param Show Buff Text
- * @desc Shows all text regarding buffs.                            .
+ * @desc Shows all text regarding buffs.
  * OFF - false     ON - true
  * @default false
  *
  * @param Show Counter Text
- * @desc Shows text regarding counter attacks.                      .
+ * @desc Shows text regarding counter attacks.
  * OFF - false     ON - true
  * @default true
  *
  * @param Show Reflect Text
- * @desc Shows text regarding reflected spells.                     .
+ * @desc Shows text regarding reflected spells.
  * OFF - false     ON - true
  * @default true
  *
  * @param Show Substitute Text
- * @desc Shows text regarding substituted damage.                   .
+ * @desc Shows text regarding substituted damage.
  * OFF - false     ON - true
  * @default true
  *
  * @param Show Fail Text
- * @desc Shows text regarding failed attacks.                       .
+ * @desc Shows text regarding failed attacks.
  * OFF - false     ON - true
  * @default false
  *
  * @param Show Critical Text
- * @desc Shows text regarding critical hits.                        .
+ * @desc Shows text regarding critical hits.
  * OFF - false     ON - true
  * @default false
  *
  * @param Show Miss Text
- * @desc Shows text regarding missed attacks.                       .
+ * @desc Shows text regarding missed attacks.
  * OFF - false     ON - true
  * @default false
  *
  * @param Show Evasion Text
- * @desc Shows text regarding evaded attacks.                       .
+ * @desc Shows text regarding evaded attacks.
  * OFF - false     ON - true
  * @default false
  *
  * @param Show HP Text
- * @desc Shows text regarding HP damage or heals.                   .
+ * @desc Shows text regarding HP damage or heals.
  * OFF - false     ON - true
  * @default false
  *
  * @param Show MP Text
- * @desc Shows text regarding MP damage or heals.                   .
+ * @desc Shows text regarding MP damage or heals.
  * OFF - false     ON - true
  * @default false
  *
  * @param Show TP Text
- * @desc Shows text regarding TP damage or heals.                   .
+ * @desc Shows text regarding TP damage or heals.
  * OFF - false     ON - true
  * @default false
  *
@@ -338,8 +338,8 @@ Yanfly.BEC = Yanfly.BEC || {};
  * or not the enemy party is still alive. With proper placing of the action
  * sequence tags, you can make the skill's common event occur in the middle of
  * an action, too. However, keep in mind if you force an action in the middle
- * of another action, it the remainder of the former action's sequence list
- * will become null and void in favor of the new forced action.
+ * of another action, the remainder of the former action's sequence list will
+ * become null and void in favor of the new forced action.
  *
  * ============================================================================
  * Casting Animations
@@ -353,7 +353,7 @@ Yanfly.BEC = Yanfly.BEC || {};
  * Skill Notetag:
  *   <Cast Animation: x>
  *   Sets the skill's cast animation to animation ID x. Setting x to zero will
- *   cause the skill to not have any animaiton at all.
+ *   cause the skill to not have any animaton at all.
  *
  * ============================================================================
  * Sideview Actions
@@ -497,9 +497,11 @@ DataManager.isDatabaseLoaded = function() {
 };
 
 DataManager.processMELODYNotetags = function(group) {
-	for (var n = 1; n < group.length; n++) {
+  for (var n = 1; n < group.length; n++) {
 		var obj = group[n];
-		var notedata = obj.note.split(/[\r\n]+/);
+    if (obj.actionsMade) continue;
+    obj.actionsMade = true;
+    var notedata = obj.note.split(/[\r\n]+/);
 
     var actionType = 0;
 		this.setDefaultActions(obj);
@@ -528,7 +530,7 @@ DataManager.processMELODYNotetags = function(group) {
         var actionType = 0;
       } else if (line.match(/<(?:FINISH ACTION|finish)>/i)) {
         actionType = 5;
-        obj.followActions = [];
+        obj.finishActions = [];
       } else if (line.match(/<\/(?:FINISH ACTION|finish)>/i)) {
         var actionType = 0;
       } else {
@@ -565,6 +567,7 @@ Yanfly.BEC.DefaultActionFinish =[
 		['WAIT FOR NEW LINE'],
 		['CLEAR BATTLE LOG'],
 		['PERFORM FINISH'],
+    ['WAIT FOR MOVEMENT'],
 		['ACTION COMMON EVENT'],
 ];
 DataManager.setDefaultActions = function(obj) {
@@ -1033,6 +1036,7 @@ BattleManager.updateActionTargetList = function() {
 
 BattleManager.startAction = function() {
     var subject = this._subject;
+    subject.onAllActionsEnd();
     var action = subject.currentAction();
     this._action = action;
 		var targets = action.makeTargets();
@@ -1056,7 +1060,7 @@ BattleManager.processActionSequence = function(actionName, actionArgs) {
 		}
     // ACTION ANIMATION
 		if (actionName === 'ACTION ANIMATION') {
-			return this.actionActionAnimation();
+			return this.actionActionAnimation(actionArgs);
 		}
     // ACTION EFFECT
 		if (actionName === 'ACTION COMMON EVENT') {
@@ -1064,7 +1068,7 @@ BattleManager.processActionSequence = function(actionName, actionArgs) {
 		}
     // ACTION EFFECT
 		if (actionName === 'ACTION EFFECT') {
-      return this.actionActionEffect();
+      return this.actionActionEffect(actionArgs);
 		}
 		// ANI WAIT: frames
 	  if (['ANI WAIT', 'ANIWAIT', 'ANIMATION WAIT'].contains(actionName)) {
@@ -1144,6 +1148,9 @@ BattleManager.makeActionTargets = function(string) {
     if (['ACTORS ALL', 'ALL ACTORS', 'PARTY'].contains(string)) {
       return $gameParty.battleMembers();
     }
+    if (['DEAD ACTORS', 'DEAD ACTOR'].contains(string)) {
+      return $gameParty.deadMembers();
+    }
     if (['ACTORS NOT USER', 'ACTORS NOT SUBJECT'].contains(string)) {
       targets = $gameParty.aliveMembers();
       var index = targets.indexOf(this._subject);
@@ -1159,6 +1166,9 @@ BattleManager.makeActionTargets = function(string) {
     }
     if (['ENEMIES ALL', 'ALL ENEMIES'].contains(string)) {
       return $gameTroop.members();
+    }
+    if (['DEAD ENEMIES', 'DEAD ENEMY'].contains(string)) {
+      return $gameTroop.deadMembers();
     }
     if (['ENEMIES NOT USER', 'ENEMIES NOT SUBJECT', 'TROOP NOT USER',
     'TROOP NOT SUBJECT'].contains(string)) {
@@ -1179,8 +1189,21 @@ BattleManager.makeActionTargets = function(string) {
     if (['FRIEND', 'FRIENDS', 'ALLIES'].contains(string)) {
       return this._action.friendsUnit().aliveMembers();
     }
+    if (['ALL FRIENDS', 'ALL ALLIES'].contains(string)) {
+      return this._action.friendsUnit().members();
+    }
+    if (['DEAD FRIEND', 'DEAD FRIENDS', 'DEAD ALLIES'].contains(string)) {
+      return this._action.friendsUnit().deadMembers();
+    }
     if (['OPPONENT', 'OPPONENTS', 'RIVALS', 'FOES'].contains(string)) {
       return this._action.opponentsUnit().aliveMembers();
+    }
+    if (['ALL OPPONENTS', 'ALL RIVALS', 'ALL FOES'].contains(string)) {
+      return this._action.opponentsUnit().members();
+    }
+    if (['DEAD OPPONENT', 'DEAD OPPONENTS', 'DEAD RIVALS',
+    'DEAD FOES'].contains(string)) {
+      return this._action.opponentsUnit().deadMembers();
     }
     if (['FRIENDS NOT USER', 'ALLIES NOT USER'].contains(string)) {
       targets = this._action.friendsUnit().aliveMembers();
@@ -1191,12 +1214,28 @@ BattleManager.makeActionTargets = function(string) {
       delete targets[this._subject];
       return targets;
     }
-    if (['EVERYTHING', 'EVERYBODY'].contains(string)) {
+    if (string.match(/(?:FRIEND|ALLY)[ ](\d+)/i)) {
+      return [this._action.friendsUnit().members()[parseInt(RegExp.$1)]];
+    }
+    if (string.match(/(?:OPPONENT|FOE|RIVAL)[ ](\d+)/i)) {
+      return [this._action.opponentsUnit().members()[parseInt(RegExp.$1)]];
+    }
+    if (['ALL ALIVE'].contains(string)) {
       targets = this._action.friendsUnit().aliveMembers();
       targets = targets.concat(this._action.opponentsUnit().aliveMembers());
       return targets;
     }
-    if (['EVERYTHING NOT USER', 'EVERYBODY NOT USER'].contains(string)) {
+    if (['ALL MEMBERS'].contains(string)) {
+      targets = this._action.friendsUnit().members();
+      targets = targets.concat(this._action.opponentsUnit().members());
+      return targets;
+    }
+    if (['ALL DEAD'].contains(string)) {
+      targets = this._action.friendsUnit().deadMembers();
+      targets = targets.concat(this._action.opponentsUnit().deadMembers());
+      return targets;
+    }
+    if (['ALL NOT USER'].contains(string)) {
       targets = this._action.friendsUnit().aliveMembers();
       targets = targets.concat(this._action.opponentsUnit().aliveMembers());
       var index = targets.indexOf(this._subject);
@@ -1266,9 +1305,14 @@ BattleManager.actionConditionsMet = function(actSeq) {
     return true
 };
 
-BattleManager.actionActionAnimation = function() {
-		this._logWindow.showAnimation(this._subject,
-      this._targets.filter(Yanfly.Util.onlyUnique),
+BattleManager.actionActionAnimation = function(actionArgs) {
+    if (actionArgs && actionArgs[0]) {
+      var targets = this.makeActionTargets(actionArgs[0]);
+    } else {
+      var targets = this._targets;
+    }
+    this._logWindow.showAnimation(this._subject,
+      targets.filter(Yanfly.Util.onlyUnique),
 			this._action.item().animationId);
     return true;
 };
@@ -1282,9 +1326,18 @@ BattleManager.actionActionCommonEvent = function() {
     return false;
 };
 
-BattleManager.actionActionEffect = function() {
-    this._targets.forEach(function(target) {
+BattleManager.actionActionEffect = function(actionArgs) {
+    if (actionArgs && actionArgs[0]) {
+      var targets = this.makeActionTargets(actionArgs[0]);
+    } else {
+      var targets = this._targets;
+    }
+    targets.forEach(function(target) {
+      var alreadyDead = target.isDead();
       this.invokeAction(this._subject, target);
+      if (target.isDead() && !alreadyDead) {
+          target.performCollapse();
+      }
     }, this);
     return true;
 };
@@ -1355,8 +1408,9 @@ BattleManager.actionImmortal = function(actionArgs) {
 			if (value) {
 				target.addImmortal();
 			} else {
-				target.removeImmortal();
-        if (target.isDead())  target.performCollapse();
+        var alreadyDead = target.isDead();
+        target.removeImmortal();
+        if (target.isDead() && !alreadyDead) target.performCollapse();
 			}
 		}, this);
     return true;
@@ -1515,6 +1569,9 @@ Sprite_Battler.prototype.stepToSubstitute = function(focus) {
 Sprite_Battler.prototype.startMotion = function(motionType) {
 };
 
+Sprite_Battler.prototype.forceMotion = function(motionType) {
+};
+
 Sprite_Battler.prototype.refreshMotion = function() {
 };
 
@@ -1524,7 +1581,8 @@ Sprite_Battler.prototype.startActionMotion = function() {
 Sprite_Battler.prototype.moveForward = function(distance, frames) {
     if (this._battler.isActor()) distance *= -1;
     var moveX = this.x - this._homeX + distance;
-    this.startMove(moveX, 0, frames);
+    var moveY = this.y - this._homeY;
+    this.startMove(moveX, moveY, frames);
 };
 
 Sprite_Battler.prototype.moveToPoint = function(pointX, pointY, frames) {
@@ -1683,7 +1741,10 @@ Game_Action.prototype.apply = function(target) {
     }
 };
 
+Yanfly.BEC.Game_Action_applyGlobal = Game_Action.prototype.applyGlobal;
 Game_Action.prototype.applyGlobal = function() {
+    if ($gameParty.inBattle()) return;
+    Yanfly.BEC.Game_Action_applyGlobal.call(this);
 };
 
 //=============================================================================
@@ -2017,8 +2078,8 @@ Game_Battler.prototype.spriteFaceAwayTarget = function(target) {
 };
 
 Game_Battler.prototype.spriteFaceHome = function() {
-    var pointX = target.spriteHomeX();
-    var pointY = target.spriteHomeY();
+    var pointX = this.spriteHomeX();
+    var pointY = this.spriteHomeY();
     this.spriteFacePoint(pointX, pointY);
 };
 

@@ -21,13 +21,13 @@ Yanfly.ASP2 = Yanfly.ASP2 || {};
  * Introduction
  * ============================================================================
  *
- * The Action Sequence Pack 1 plugin is an extension plugin for Yanfly Engine
+ * The Action Sequence Pack 2 plugin is an extension plugin for Yanfly Engine
  * Plugins' Battle Engine Core. This extension plugin will not work without the
  * main plugin.
  *
  * This extension plugin contains the more basic functions used for customized
- * action sequences on a technical scale. Here, you are able to change switches,
- * operate variables, add states, change damage rates, and more.
+ * action sequences on a visual scale. This plugin focuses on making battlers
+ * perform visual actions.
  *
  * ============================================================================
  * Action Sequences - ala Melody
@@ -111,17 +111,27 @@ Yanfly.ASP2 = Yanfly.ASP2 || {};
  *   target, targets; These will select the active targets in question.
  *   actors, existing actors; These will select all living actors.
  *   all actors; This will select all actors including dead ones.
+ *   dead actors: This will select only dead actors.
  *   actors not user; This will select all living actors except for the user.
+ *   actor x; This will select the actor in slot x.
  *   enemies, existing enemies; This will select all living enemies.
  *   all enemies; This will select all enemies, even dead.
+ *   dead enemies: This will select only dead enemies.
  *   enemies not user; This will select all enemies except for the user.
- *   actor x; This will select the actor in slot x.
  *   enemy x; This will select the enemy in slot x.
- *   friends; This will select the battler's allies.
- *   opponents; This will select the battler's opponents.
+ *   friends; This will select the battler's alive allies.
+ *   all friends; This will select the all of battler's allies, even dead.
+ *   dead friends; This will select the battler's dead allies.
  *   friends not user; This will select the battler's allies except itself.
- *   everyone, everything; Selects all living actors and enemies.
- *   everyone not user; This will select all living battlers except user.
+ *   friend x: This will select the battler's ally in slot x.
+ *   opponents; This will select the battler's alive opponents.
+ *   all opponents; This will select the all of the battler's opponents.
+ *   dead opponents; This will select the battler's dead opponents.
+ *   opponent x: This will select the battler's opponent in slot x.
+ *   all alive; Selects all living actors and enemies.
+ *   all members; Selects all living and dead actors and enemies.
+ *   all dead; Selects all dead actors and enemies.
+ *   all not user; This will select all living battlers except user.
  *   focus; Selects the active battler and its targets.
  *   not focus; Selects everything but the active battler and its targets.
  *
@@ -220,15 +230,19 @@ Yanfly.ASP2 = Yanfly.ASP2 || {};
  *=============================================================================
  *
  *=============================================================================
+ * FLOAT target: (height), (frames)
  * FLOAT target: (height%), (frames)
  *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
  * Causes the target to float into the air above the ground by height%. The
  * height is relative to the floating target. Using 100% means the target will
- * float above the ground 100% higher than its height. The frames determine
- * how many frames it will take for the target to reach that height. Using 0%
- * for the height will bring the target back to the ground.
+ * float above the ground 100% higher than its height. If no '%' sign is used,
+ * the target will float that many pixels rather than a percentage of the
+ * target's height. The frames determine how many frames it will take for the
+ * target to reach that height. Using 0% for the height will bring the target
+ * back to the ground.
  *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
  * Usage Example: float user: 200%
+ *                float enemies: 500, 30
  *                float target: 0%, 30
  *=============================================================================
  *
@@ -242,16 +256,18 @@ Yanfly.ASP2 = Yanfly.ASP2 || {};
  *=============================================================================
  *
  *=============================================================================
+ * JUMP target: (height), (frames)
  * JUMP target: (height%), (frames)
  *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
  * Causes the target to jump a height relative to the target itself. If the
  * target jumps a height of 200%, the height will be 200% of the target's
- * height. The frame count is how long the target will be in the air. You can
- * use this with the 'Move' action sequence to make the target appear like it
- * is jumping a distance.
+ * height. If no '%' sign is used, the target will jump that many pixels rather
+ * than a percentage of the target's height. The frame count is how long the
+ * target will be in the air. You can use this with the 'Move' action sequence
+ * to make the target appear like it is jumping a distance.
  *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
  * Usage Example: jump user: 150%
- *                jump target: 300%, 60
+ *                jump target: 300, 60
  *=============================================================================
  *
  *=============================================================================
@@ -428,7 +444,10 @@ BattleManager.processActionSequence = function(actionName, actionArgs) {
   }
   // FACE TARGET
   if (actionName.match(/FACE[ ](.*)/i)) {
-    return this.actionFace(String(RegExp.$1), actionArgs);
+    var string = String(RegExp.$1);
+    if (this.makeActionTargets(string).length > 0) {
+      return this.actionFace(string, actionArgs);
+    }
   }
   // FADE IN, FADE OUT
   if (['FADE IN', 'FADE OUT'].contains(actionName)) {
@@ -440,7 +459,10 @@ BattleManager.processActionSequence = function(actionName, actionArgs) {
   }
   // FLOAT TARGET
   if (actionName.match(/FLOAT[ ](.*)/i)) {
-    return this.actionFloat(String(RegExp.$1), actionArgs);
+    var string = String(RegExp.$1);
+    if (this.makeActionTargets(string).length > 0) {
+      return this.actionFloat(string, actionArgs);
+    }
   }
   // HIDE BATTLE HUD, SHOW BATTLE HUD
   if (['HIDE BATTLE HUD', 'SHOW BATTLE HUD'].contains(actionName)) {
@@ -448,7 +470,10 @@ BattleManager.processActionSequence = function(actionName, actionArgs) {
   }
   // JUMP TARGET
   if (actionName.match(/JUMP[ ](.*)/i)) {
-    return this.actionJump(String(RegExp.$1), actionArgs);
+    var string = String(RegExp.$1);
+    if (this.makeActionTargets(string).length > 0) {
+      return this.actionJump(string, actionArgs);
+    }
   }
   // MOTION TYPE
   if (actionName.match(/MOTION[ ](.*)/i)) {
@@ -456,11 +481,17 @@ BattleManager.processActionSequence = function(actionName, actionArgs) {
   }
   // MOVE TARGET
   if (actionName.match(/MOVE[ ](.*)/i)) {
-    return this.actionMove(String(RegExp.$1), actionArgs);
+    var string = String(RegExp.$1);
+    if (this.makeActionTargets(string).length > 0) {
+      return this.actionMove(string, actionArgs);
+    }
   }
   // OPACITY TARGET
   if (actionName.match(/OPACITY[ ](.*)/i)) {
-    return this.actionOpacity(String(RegExp.$1), actionArgs);
+    var string = String(RegExp.$1);
+    if (this.makeActionTargets(string).length > 0) {
+      return this.actionOpacity(string, actionArgs);
+    }
   }
   // SHAKE SCREEN
   if (actionName === 'SHAKE SCREEN') {
@@ -487,8 +518,9 @@ BattleManager.processActionSequence = function(actionName, actionArgs) {
 };
 
 BattleManager.actionAttackAnimation = function(actionArgs) {
-		var targets = this.makeActionTargets(actionArgs[0]).filter(onlyUnique);
-    this._logWindow.showActorAttackAnimation(this._subject, targets);
+		var targets = this.makeActionTargets(actionArgs[0]);
+    this._logWindow.showActorAttackAnimation(this._subject,
+      targets.filter(Yanfly.Util.onlyUnique));
     return true;
 };
 
@@ -641,13 +673,18 @@ BattleManager.actionFloat = function(name, actionArgs) {
     if (movers.length < 1) return true;
     var cmd = actionArgs[0];
     var frames = actionArgs[1] || 12;
-    if (cmd.match(/(\d+)/i)) {
+    var pixels = 0;
+    if (cmd.match(/(\d+)([%％])/i)) {
       var floatPeak = parseFloat(RegExp.$1 * 0.01);
+    } else if (cmd.match(/(\d+)/i)) {
+      pixels = parseInt(RegExp.$1);
+      var floatPeak = 0.0;
     } else {
       var floatPeak = 1.0;
     }
     movers.forEach(function(mover) {
-      mover.spriteFloat(floatPeak, frames);
+      var floatRate = floatPeak + (pixels / mover.spriteHeight());
+      mover.spriteFloat(floatRate, frames);
     });
     return false;
 };
@@ -658,15 +695,20 @@ BattleManager.actionJump = function(name, actionArgs) {
     if (movers.length < 1) return true;
     var cmd = actionArgs[0];
     var frames = actionArgs[1] || 12;
-    if (cmd.match(/(\d+)/i)) {
+    var pixels = 0;
+    if (cmd.match(/(\d+)([%％])/i)) {
       var jumpPeak = parseFloat(RegExp.$1 * 0.01);
+    } else if (cmd.match(/(\d+)/i)) {
+      pixels = parseInt(RegExp.$1);
+      var jumpPeak = 0.0;
     } else {
       var jumpPeak = 1.0;
     }
     movers.forEach(function(mover) {
-      mover.spriteJump(jumpPeak, frames);
+      var jumpRate = jumpPeak + (pixels / mover.spriteHeight());
+      mover.spriteJump(jumpRate, frames);
     });
-    return false;
+    return true;
 };
 
 BattleManager.actionMotionTarget = function(name, actionArgs) {
@@ -691,18 +733,12 @@ BattleManager.actionMotionTarget = function(name, actionArgs) {
     } else if (['thrust', 'swing', 'missile'].contains(cmd)) {
       motion = cmd;
       movers.forEach(function(mover) {
+        mover.forceMotion(motion);
         var weapons = mover.weapons();
         var wtypeId = weapons[0] ? weapons[0].wtypeId : 0;
         var attackMotion = $dataSystem.attackMotions[wtypeId];
-        if (attackMotion) {
-            if (attackMotion.type === 0) {
-                cmd = 'thrust';
-            } else if (attackMotion.type === 1) {
-                cmd = 'swing';
-            } else if (attackMotion.type === 2) {
-                cmd = 'missile';
-            }
-            mover.startWeaponAnimation(attackMotion.weaponImageId);
+        if (attackMotion && [0, 1, 2].contains(attackMotion.type)) {
+          mover.startWeaponAnimation(attackMotion.weaponImageId);
         }
       });
       return false;
@@ -1096,6 +1132,8 @@ Sprite_Battler.prototype.update = function() {
 
 Sprite_Battler.prototype.updateFloat = function() {
     if (!this._battler) return;
+    if (this._floatDur > 0) this._floatDur--;
+    if (this._jumpDur > 0) this._jumpDur--;
     var baseY = this._battler.anchorY();
     var floatHeight = this.getFloatHeight();
     var jumpHeight = this.getJumpHeight();
@@ -1115,7 +1153,6 @@ Sprite_Battler.prototype.updateWeapon = function() {
 };
 
 Sprite_Battler.prototype.getFloatHeight = function() {
-    this._floatDur--;
     if (this._floatDur <= 0) {
       this._floatHeight = this._floatTarget;
     } else {
@@ -1131,7 +1168,6 @@ Sprite_Battler.prototype.getFloatHeight = function() {
 };
 
 Sprite_Battler.prototype.getJumpHeight = function() {
-    this._jumpDur--;
     if (this._jumpDur <= 0) {
       return 0;
     } else {

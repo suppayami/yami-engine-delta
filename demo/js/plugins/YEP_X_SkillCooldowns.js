@@ -20,12 +20,12 @@ Yanfly.SCD = Yanfly.SCD || {};
  * @default
  *
  * @param Cooldown Format
- * @desc This is the text format used for cooldowns.                .
+ * @desc This is the text format used for cooldowns.
  * %1 - Turns Remaining
  * @default %1CD
  *
  * @param Cooldown Font Size
- * @desc This is the font size used for cooldowns.                  .
+ * @desc This is the font size used for cooldowns.
  * Default: 28
  * @default 20
  *
@@ -34,12 +34,12 @@ Yanfly.SCD = Yanfly.SCD || {};
  * @default 6
  *
  * @param Cooldown Icon
- * @desc What icon to be used for cooldowns.                        .
+ * @desc What icon to be used for cooldowns.
  * Use 0 for no icon.
  * @default 75
  *
  * @param Cooldown After Battle
- * @desc How are cooldowns handled after battle?                    .
+ * @desc How are cooldowns handled after battle?
  * @default -10
  *
  * @param Cooldown Steps
@@ -49,19 +49,19 @@ Yanfly.SCD = Yanfly.SCD || {};
  *
  * @param Cooldown Bypass
  * @desc This is a list of skills that cannot be on cooldown so that
- * way, skills like Attack, Guard, won't cause any locking out.
+ * way, skills like Attack, Guard.
  * @default 1 2 3 4 5 6 7
  *
  * @param ---Warmup---
  * @default
  *
  * @param Warmup Format
- * @desc This is the text format used for warmups.                  .
+ * @desc This is the text format used for warmups.
  * %1 - Turns Remaining
  * @default %1WU
  *
  * @param Warmup Font Size
- * @desc This is the font size used for warmups.                    .
+ * @desc This is the font size used for warmups.
  * Default: 28
  * @default 20
  *
@@ -70,7 +70,7 @@ Yanfly.SCD = Yanfly.SCD || {};
  * @default 4
  *
  * @param Warmup Icon
- * @desc What icon to be used for warmups.                          .
+ * @desc What icon to be used for warmups.
  * Use 0 for no icon.
  * @default 75
  *
@@ -686,9 +686,9 @@ Game_BattlerBase.prototype.updateCooldownSteps = function() {
 };
 
 Game_BattlerBase.prototype.applyCooldownEffect = function(skill) {
-		this.applyCooldownChange(skill);
-		this.applyStypeCooldownChange(skill);
 		this.applyGlobalCooldownChange(skill);
+		this.applyStypeCooldownChange(skill);
+		this.applyCooldownChange(skill);
 };
 
 Game_BattlerBase.prototype.applyCooldownChange = function(skill) {
@@ -794,13 +794,19 @@ Game_Actor.prototype.cooldownDuration = function(skill) {
 		for (var i = 0; i < this.equips().length; ++i) {
 			var equip = this.equips()[i];
 			if (!equip) continue;
-			if (equip.cooldownDuration[skillId] !== undefined) {
-				value *= equip.cooldownDuration[skillId];
+			if (equip.cooldownDuration !== undefined) {
+				if (equip.cooldownDuration[skillId] !== undefined) {
+					value *= equip.cooldownDuration[skillId];
+				}
 			}
-			if (equip.stypeCooldownDuration[stypeId] !== undefined) {
-				value *= equip.stypeCooldownDuration[stypeId];
+			if (equip.stypeCooldownDuration !== undefined) {
+				if (equip.stypeCooldownDuration[stypeId] !== undefined) {
+					value *= equip.stypeCooldownDuration[stypeId];
+				}
 			}
-			value *= equip.globalCooldownDuration;
+			if (equip.globalCooldownDuration !== undefined) {
+				value *= equip.globalCooldownDuration;
+			}
 		}
 		return value;
 };
@@ -826,13 +832,19 @@ Game_Actor.prototype.cooldownRate = function(skill) {
 		for (var i = 0; i < this.equips().length; ++i) {
 			var equip = this.equips()[i];
 			if (!equip) continue;
-			if (equip.cooldownRate[skillId] !== undefined) {
-				value *= equip.cooldownRate[skillId];
+			if (equip.cooldownRate !== undefined) {
+				if (equip.cooldownRate[skillId] !== undefined) {
+					value *= equip.cooldownRate[skillId];
+				}
 			}
-			if (equip.stypeCooldownRate[stypeId] !== undefined) {
-				value *= equip.stypeCooldownRate[stypeId];
+			if (equip.stypeCooldownRate !== undefined) {
+				if (equip.stypeCooldownRate[stypeId] !== undefined) {
+					value *= equip.stypeCooldownRate[stypeId];
+				}
 			}
-			value *= equip.globalCooldownRate;
+			if (equip.globalCooldownRate !== undefined) {
+				value *= equip.globalCooldownRate;
+			}
 		}
 		return value;
 };

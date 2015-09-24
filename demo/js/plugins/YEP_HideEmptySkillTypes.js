@@ -43,6 +43,7 @@ Game_BattlerBase.prototype.addedSkillTypes = function() {
 Game_BattlerBase.prototype.hasSkillOfType = function(skillType) {
     for (var i = 0; i < this.skills().length; ++i) {
       var skill = this.skills()[i];
+      if (!skill) continue;
       if (skill.stypeId === skillType) return true;
     }
     return false;

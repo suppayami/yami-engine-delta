@@ -25,13 +25,13 @@ Yanfly.ASP3 = Yanfly.ASP3 || {};
  * Introduction
  * ============================================================================
  *
- * The Action Sequence Pack 1 plugin is an extension plugin for Yanfly Engine
+ * The Action Sequence Pack 3 plugin is an extension plugin for Yanfly Engine
  * Plugins' Battle Engine Core. This extension plugin will not work without the
  * main plugin.
  *
  * This extension plugin contains the more basic functions used for customized
- * action sequences on a technical scale. Here, you are able to change switches,
- * operate variables, add states, change damage rates, and more.
+ * action sequences on a visual scale. This plugin focuses on camera control
+ * and screen zooming.
  *
  * ============================================================================
  * Action Sequences - ala Melody
@@ -115,17 +115,27 @@ Yanfly.ASP3 = Yanfly.ASP3 || {};
  *   target, targets; These will select the active targets in question.
  *   actors, existing actors; These will select all living actors.
  *   all actors; This will select all actors including dead ones.
+ *   dead actors: This will select only dead actors.
  *   actors not user; This will select all living actors except for the user.
+ *   actor x; This will select the actor in slot x.
  *   enemies, existing enemies; This will select all living enemies.
  *   all enemies; This will select all enemies, even dead.
+ *   dead enemies: This will select only dead enemies.
  *   enemies not user; This will select all enemies except for the user.
- *   actor x; This will select the actor in slot x.
  *   enemy x; This will select the enemy in slot x.
- *   friends; This will select the battler's allies.
- *   opponents; This will select the battler's opponents.
+ *   friends; This will select the battler's alive allies.
+ *   all friends; This will select the all of battler's allies, even dead.
+ *   dead friends; This will select the battler's dead allies.
  *   friends not user; This will select the battler's allies except itself.
- *   everyone, everything; Selects all living actors and enemies.
- *   everyone not user; This will select all living battlers except user.
+ *   friend x: This will select the battler's ally in slot x.
+ *   opponents; This will select the battler's alive opponents.
+ *   all opponents; This will select the all of the battler's opponents.
+ *   dead opponents; This will select the battler's dead opponents.
+ *   opponent x: This will select the battler's opponent in slot x.
+ *   all alive; Selects all living actors and enemies.
+ *   all members; Selects all living and dead actors and enemies.
+ *   all dead; Selects all dead actors and enemies.
+ *   all not user; This will select all living battlers except user.
  *   focus; Selects the active battler and its targets.
  *   not focus; Selects everything but the active battler and its targets.
  *
@@ -605,6 +615,7 @@ BattleManager.resetCamera = function(duration) {
 		this._cameraFocusPosX = 'BASE';
 		this._cameraFocusPosY = 'BASE';
     this._cameraClamp = true;
+    $gameScreen.setCameraDuration(duration);
 };
 
 BattleManager.cameraClamp = function() {

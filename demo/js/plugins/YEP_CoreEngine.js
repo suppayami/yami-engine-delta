@@ -20,22 +20,22 @@ Yanfly.Core = Yanfly.Core || {};
  * @default
  *
  * @param Screen Width
- * @desc Adjusts the width of the screen.                           .
+ * @desc Adjusts the width of the screen.
  * Default: 816
  * @default 816
  *
  * @param Screen Height
- * @desc Adjusts the height of the screen.                          .
+ * @desc Adjusts the height of the screen.
  * Default: 624
  * @default 624
  *
  * @param Open Console
- * @desc For testing and debug purposes, this opens up the console. .
+ * @desc For testing and debug purposes, this opens up the console.
  * Don't Open - false     Open - true
  * @default false
  *
  * @param Reposition Battlers
- * @desc Allow the plugin to reposition battlers to fit resolution? .
+ * @desc Allow the plugin to reposition battlers to resolution?
  * NO - false     YES - true
  * @default true
  *
@@ -43,12 +43,12 @@ Yanfly.Core = Yanfly.Core || {};
  * @desc
  *
  * @param Gold Max
- * @desc The maximum amount of gold the player can have.            .
+ * @desc The maximum amount of gold the player can have.
  * Default: 99999999
  * @default 99999999
  *
  * @param Gold Font Size
- * @desc The font size used to display gold.                        .
+ * @desc The font size used to display gold.
  * Default: 28
  * @default 20
  *
@@ -58,20 +58,20 @@ Yanfly.Core = Yanfly.Core || {};
  * @default 297
  *
  * @param Gold Overlap
- * @desc This will be what's displayed when the gold number exceeds
- * the allocated area's content size.
+ * @desc This will be what's displayed when the gold number
+ * exceeds the allocated area's content size.
  * @default A lotta
  *
  * @param ---Items---
  * @desc
  *
  * @param Default Max
- * @desc This is the maximum number of items a player can hold.     .
+ * @desc This is the maximum number of items a player can hold.
  * Default: 99
  * @default 99
  *
  * @param Quantity Text Size
- * @desc This is the text's font size used for the item quantity.   .
+ * @desc This is the text's font size used for the item quantity.
  * Default: 28
  * @default 20
  *
@@ -79,37 +79,37 @@ Yanfly.Core = Yanfly.Core || {};
  * @default
  *
  * @param Max Level
- * @desc Adjusts the maximum level limit for actors.                .
+ * @desc Adjusts the maximum level limit for actors.
  * Default: 99
  * @default 99
  *
  * @param Actor MaxHP
- * @desc Adjusts the maximum HP limit for actors.                   .
+ * @desc Adjusts the maximum HP limit for actors.
  * Default: 9999
  * @default 9999
  *
  * @param Actor MaxMP
- * @desc Adjusts the maximum MP limit for actors.                   .
+ * @desc Adjusts the maximum MP limit for actors.
  * Default: 9999
  * @default 9999
  *
  * @param Actor Parameter
- * @desc Adjusts the maximum parameter limit for actors.            .
+ * @desc Adjusts the maximum parameter limit for actors.
  * Default: 999
  * @default 999
  *
  * @param Enemy MaxHP
- * @desc Adjusts the maximum HP limit for enemies.                  .
+ * @desc Adjusts the maximum HP limit for enemies.
  * Default: 999999
  * @default 999999
  *
  * @param Enemy MaxMP
- * @desc Adjusts the maximum MP limit for enemies.                  .
+ * @desc Adjusts the maximum MP limit for enemies.
  * Default: 9999
  * @default 9999
  *
  * @param Enemy Parameter
- * @desc Adjusts the maximum parameter limit for enemies.           .
+ * @desc Adjusts the maximum parameter limit for enemies.
  * Default: 999
  * @default 999
  *
@@ -117,12 +117,12 @@ Yanfly.Core = Yanfly.Core || {};
  * @desc
  *
  * @param Animation Rate
- * @desc Adjusts the rate of battle animations. Lower for faster.   .
+ * @desc Adjusts the rate of battle animations. Lower for faster.
  * Default: 4
  * @default 4
  *
  * @param Flash Target
- * @desc If an enemy is targeted, it flashes or it can whiten.      .
+ * @desc If an enemy is targeted, it flashes or it can whiten.
  * OFF - false     ON - true
  * @default false
  *
@@ -130,27 +130,27 @@ Yanfly.Core = Yanfly.Core || {};
  * @desc
  *
  * @param Chinese Font
- * @desc Default font(s) used for a Chinese RPG.                    .
+ * @desc Default font(s) used for a Chinese RPG.
  * Default: SimHei, Heiti TC, sans-serif
  * @default SimHei, Heiti TC, sans-serif
  *
  * @param Korean Font
- * @desc Default font(s) used for a Korean RPG.                     .
+ * @desc Default font(s) used for a Korean RPG.
  * Default: Dotum, AppleGothic, sans-serif
  * @default Dotum, AppleGothic, sans-serif
  *
  * @param Default Font
- * @desc Default font(s) used for everything else.                  .
+ * @desc Default font(s) used for everything else.
  * Default: GameFont
  * @default GameFont, Verdana, Arial, Courier New
  *
  * @param Font Size
- * @desc Default font size used for windows.                        .
+ * @desc Default font size used for windows.
  * Default: 28
  * @default 28
  *
  * @param Text Align
- * @desc How to align the text for command windows.                 .
+ * @desc How to align the text for command windows.
  * left     center     right
  * @default left
  *
@@ -158,62 +158,62 @@ Yanfly.Core = Yanfly.Core || {};
  * @default
  *
  * @param Digit Grouping
- * @desc Groups together digits with a comma.                       .
+ * @desc Groups together digits with a comma.
  * false - OFF     true - ON
  * @default true
  *
  * @param Line Height
- * @desc Adjusts universal line height used in Windows.             .
+ * @desc Adjusts universal line height used in Windows.
  * Default: 36
  * @default 36
  *
  * @param Icon Width
- * @desc Adjusts the width of your icons.                           .
+ * @desc Adjusts the width of your icons.
  * Default: 32
  * @default 32
  *
  * @param Icon Height
- * @desc Adjusts the height of your icons.                          .
+ * @desc Adjusts the height of your icons.
  * Default: 32
  * @default 32
  *
  * @param Face Width
- * @desc Adjusts the width of actors' faces.                        .
+ * @desc Adjusts the width of actors' faces.
  * Default: 144
  * @default 144
  *
  * @param Face Height
- * @desc Adjusts the height of actors' faces.                       .
+ * @desc Adjusts the height of actors' faces.
  * Default: 144
  * @default 144
  *
  * @param Window Padding
- * @desc Adjusts the padding for all standard windows.              .
+ * @desc Adjusts the padding for all standard windows.
  * Default: 18
  * @default 18
  *
  * @param Text Padding
- * @desc Adjusts the padding for text inside of windows.            .
+ * @desc Adjusts the padding for text inside of windows.
  * Default: 6
  * @default 6
  *
  * @param Window Opacity
- * @desc Adjusts the background opacity for windows.                .
+ * @desc Adjusts the background opacity for windows.
  * Default: 192
  * @default 192
  *
  * @param Gauge Outline
- * @desc Enable outlines for gauges.                                .
+ * @desc Enable outlines for gauges.
  * false - OFF     true - ON
  * @default true
  *
  * @param Gauge Height
- * @desc Sets the height for gauges.                                .
+ * @desc Sets the height for gauges.
  * Default: 6
  * @default 18
  *
  * @param Menu TP Bar
- * @desc Draws a TP bar in the menu status for actors.              .
+ * @desc Draws a TP bar in the menu status for actors.
  * false - OFF     true - ON
  * @default true
  *
@@ -221,77 +221,77 @@ Yanfly.Core = Yanfly.Core || {};
  * @default
  *
  * @param Color: Normal
- * @desc Changes the text color for Windows.                        .
+ * @desc Changes the text color for Windows.
  * Default: 0
  * @default 0
  *
  * @param Color: System
- * @desc Changes the text color for Windows.                        .
+ * @desc Changes the text color for Windows.
  * Default: 16
  * @default 16
  *
  * @param Color: Crisis
- * @desc Changes the text color for Windows.                        .
+ * @desc Changes the text color for Windows.
  * Default: 17
  * @default 17
  *
  * @param Color: Death
- * @desc Changes the text color for Windows.                        .
+ * @desc Changes the text color for Windows.
  * Default: 18
  * @default 18
  *
  * @param Color: Gauge Back
- * @desc Changes the text color for Windows.                        .
+ * @desc Changes the text color for Windows.
  * Default: 19
  * @default 19
  *
  * @param Color: HP Gauge 1
- * @desc Changes the text color for Windows.                        .
+ * @desc Changes the text color for Windows.
  * Default: 20
  * @default 20
  *
  * @param Color: HP Gauge 2
- * @desc Changes the text color for Windows.                        .
+ * @desc Changes the text color for Windows.
  * Default: 21
  * @default 21
  *
  * @param Color: MP Gauge 1
- * @desc Changes the text color for Windows.                        .
+ * @desc Changes the text color for Windows.
  * Default: 22
  * @default 22
  *
  * @param Color: MP Gauge 2
- * @desc Changes the text color for Windows.                        .
+ * @desc Changes the text color for Windows.
  * Default: 23
  * @default 23
  *
  * @param Color: MP Cost
- * @desc Changes the text color for Windows.                        .
+ * @desc Changes the text color for Windows.
  * Default: 23
  * @default 23
  *
  * @param Color: Power Up
- * @desc Changes the text color for Windows.                        .
+ * @desc Changes the text color for Windows.
  * Default: 24
  * @default 24
  *
  * @param Color: Power Down
- * @desc Changes the text color for Windows.                        .
+ * @desc Changes the text color for Windows.
  * Default: 25
  * @default 25
  *
  * @param Color: TP Gauge 1
- * @desc Changes the text color for Windows.                        .
+ * @desc Changes the text color for Windows.
  * Default: 28
  * @default 28
  *
  * @param Color: TP Gauge 2
- * @desc Changes the text color for Windows.                        .
+ * @desc Changes the text color for Windows.
  * Default: 29
  * @default 29
  *
  * @param Color: TP Cost Color
- * @desc Changes the text color for Windows.                        .
+ * @desc Changes the text color for Windows.
  * Default: 29
  * @default 29
  *
@@ -413,7 +413,8 @@ Yanfly.Core = Yanfly.Core || {};
  *   Allows the piece of weapon or armor to gain or lose x amount of stat.
  *   Replace "stat" with "hp", "mp", "atk", "def", "mat", "mdf", "agi", or
  *   "luk" to alter that specific stat. This allows the piece of equipment
- *   to go past the editor's default limitation.
+ *   to go past the editor's default limitation so long as the maximum value
+ *   allows for it.
  *
  * Enemy Notetags
  *   <stat: x>
@@ -476,7 +477,7 @@ Yanfly.Param.ColorPowerUp = Number(Yanfly.Parameters['Color: Power Up']);
 Yanfly.Param.ColorPowerDown = Number(Yanfly.Parameters['Color: Power Down']);
 Yanfly.Param.ColorTpGauge1 = Number(Yanfly.Parameters['Color: TP Gauge 1']);
 Yanfly.Param.ColorTpGauge2 = Number(Yanfly.Parameters['Color: TP Gauge 2']);
-Yanfly.Param.ColorTpCost = Number(Yanfly.Parameters['Color: TP Cost']);
+Yanfly.Param.ColorTpCost = Number(Yanfly.Parameters['Color: TP Cost Color']);
 Yanfly.Param.GoldFontSize = String(Yanfly.Parameters['Gold Font Size']);
 Yanfly.Icon.Gold = Number(Yanfly.Parameters['Gold Icon']);
 Yanfly.Param.GoldOverlap = String(Yanfly.Parameters['Gold Overlap']);
@@ -490,6 +491,21 @@ Yanfly.Core.Bitmap_initialize = Bitmap.prototype.initialize;
 Bitmap.prototype.initialize = function(width, height) {
 	Yanfly.Core.Bitmap_initialize.call(this, width, height);
 	this.fontFace = Yanfly.Param.DefaultFont;
+};
+
+//=============================================================================
+// ScreenSprite
+//=============================================================================
+
+Yanfly.Core.ScreenSprite_initialize = ScreenSprite.prototype.initialize;
+ScreenSprite.prototype.initialize = function() {
+    Yanfly.Core.ScreenSprite_initialize.call(this);
+    this.scale.x = Graphics.width * 2;
+    this.scale.y = Graphics.height * 2;
+    this.anchor.x = 0.5;
+    this.anchor.y = 0.5;
+    this.x = Graphics.boxWidth / 2;
+    this.x = Graphics.boxHeight / 2;
 };
 
 //=============================================================================
@@ -671,6 +687,9 @@ SceneManager._boxHeight    = Number(Yanfly.Parameters['Screen Height'] || 624);
 Yanfly.Core.SceneManager_run = SceneManager.run;
 SceneManager.run = function(sceneClass) {
     Yanfly.Core.SceneManager_run.call(this, sceneClass);
+		if (Utils.isMobileDevice()) return;
+		if (Utils.isMobileSafari()) return;
+		if (Utils.isAndroidChrome()) return;
 		var resizeWidth = Graphics.boxWidth - window.innerWidth;
 		var resizeHeight = Graphics.boxHeight - window.innerHeight;
     if (eval(Yanfly.Param.OpenConsole)) this.openConsole();
@@ -749,6 +768,8 @@ if (eval(Yanfly.Param.ReposBattlers)) {
 	Sprite_Enemy.prototype.setBattler = function(battler) {
 			Yanfly.Core.Sprite_Enemy_setBattler.call(this, battler);
 			this._homeY += Graphics.boxHeight - 624;
+			if ($gameSystem.isSideView()) return;
+			this._homeX += (Graphics.boxWidth - 816) / 2;
 	};
 };
 
@@ -1006,7 +1027,7 @@ Window_Base.prototype.tpGaugeColor2 = function() {
     return this.textColor(Yanfly.Param.ColorTpGauge2);
 };
 Window_Base.prototype.tpCostColor = function() {
-    return this.textColor(Yanfly.Param.ColorTpCost);
+		return this.textColor(Yanfly.Param.ColorTpCost);
 };
 
 Window_Base.prototype.drawGauge = function(dx, dy, dw, rate, color1, color2) {
@@ -1032,9 +1053,12 @@ Window_Base.prototype.gaugeHeight = function() {
 
 Window_Base.prototype.drawActorLevel = function(actor, x, y) {
     this.changeTextColor(this.systemColor());
-    this.drawText(TextManager.levelA, x, y, 48);
+		var dw1 = this.textWidth(TextManager.levelA);
+		this.drawText(TextManager.levelA, x, y, dw1);
     this.resetTextColor();
-    this.drawText(Yanfly.Util.toGroup(actor.level), x + 84, y, 36, 'right');
+		var level = Yanfly.Util.toGroup(actor.level);
+		var dw2 = this.textWidth(Yanfly.Util.toGroup(actor.maxLevel()));
+    this.drawText(level, x + dw1, y, dw2, 'right');
 };
 
 Window_Base.prototype.drawCurrentAndMax = function(current, max, x, y,
@@ -1253,13 +1277,14 @@ Window_ActorCommand.prototype.addSkillCommands = function() {
 Window_Status.prototype.drawParameters = function(x, y) {
     var lineHeight = this.lineHeight();
     for (var i = 0; i < 6; i++) {
-        var paramId = i + 2;
-        var y2 = y + lineHeight * i;
-        this.changeTextColor(this.systemColor());
-        this.drawText(TextManager.param(paramId), x, y2, 160);
-        this.resetTextColor();
-				var actorParam = Yanfly.Util.toGroup(this._actor.param(paramId));
-        this.drawText(actorParam, x + 160, y2, 60, 'right');
+      var paramId = i + 2;
+      var y2 = y + lineHeight * i;
+      this.changeTextColor(this.systemColor());
+      this.drawText(TextManager.param(paramId), x, y2, 160);
+      this.resetTextColor();
+			var actorParam = Yanfly.Util.toGroup(this._actor.param(paramId));
+			var dw = this.textWidth(Yanfly.Util.toGroup(this._actor.paramMax(i + 2)));
+      this.drawText(actorParam, x + 160, y2, dw, 'right');
     }
 };
 
@@ -1356,7 +1381,7 @@ Window_BattleLog.prototype.showNormalAnimation = function(targets,
 animationId, mirror) {
     var animation = $dataAnimations[animationId];
     if (animation) {
-			if (animation.position == 3) {
+			if (animation.position === 3) {
 				targets.forEach(function(target) {
 						target.startAnimation(animationId, mirror, 0);
 				});
