@@ -1,5 +1,8 @@
 /* globals LunaEngine: false */
 
+/* -------------------------------/
+/   Configuration Area!!!
+/--------------------------------*/
 (function() {
     // Status Spritesets
     var HUD = {
@@ -52,6 +55,13 @@
                     properties: {
                         tone: [64,64,64,0]
                     }
+                },
+
+                {
+                    condition: 'this.isSelectingEnemy()',
+                    properties: {
+                        visible: false
+                    }
                 }
             ]
         }, // spriteFace
@@ -90,6 +100,13 @@
                     properties: {
                         textColor: '{this.deathColor()}'
                     }
+                },
+
+                {
+                    condition: 'this.isSelectingEnemy()',
+                    properties: {
+                        visible: false
+                    }
                 }
             ]
         }, // spriteName
@@ -121,7 +138,12 @@
 
             /* Conditional Properties */
             conditional: [
-
+                {
+                    condition: 'this.isSelectingEnemy()',
+                    properties: {
+                        visible: false
+                    }
+                }
             ]
         }, // spriteHPGauge
 
@@ -147,7 +169,12 @@
 
             /* Conditional Properties */
             conditional: [
-
+                {
+                    condition: 'this.isSelectingEnemy()',
+                    properties: {
+                        visible: false
+                    }
+                }
             ]
         }, // spriteHPNumber
 
@@ -178,7 +205,12 @@
 
             /* Conditional Properties */
             conditional: [
-
+                {
+                    condition: 'this.isSelectingEnemy()',
+                    properties: {
+                        visible: false
+                    }
+                }
             ]
         }, // spriteHPGauge
 
@@ -204,7 +236,12 @@
 
             /* Conditional Properties */
             conditional: [
-
+                {
+                    condition: 'this.isSelectingEnemy()',
+                    properties: {
+                        visible: false
+                    }
+                }
             ]
         } // spriteMPNumber
     };

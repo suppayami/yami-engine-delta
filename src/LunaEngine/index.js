@@ -11,11 +11,3 @@ var LunaEngine = LunaEngine || {};
 
 LunaEngine.Core = {};
 LunaEngine.Core.Sprite = {};
-
-/**
- * @namespace Battle
- * @memberof LunaEngine
- */
-
-LunaEngine.Battle = {};
-LunaEngine.Battle.Config = {};

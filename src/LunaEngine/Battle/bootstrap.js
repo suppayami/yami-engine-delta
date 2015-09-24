@@ -95,6 +95,8 @@
 
     Scene_Battle.prototype._updateLuna = function() {
         this._updateSelectingActor();
+        this._updateSelectingEnemy();
+        this._updateSelectingAction();
     };
 
     Scene_Battle.prototype._updateSelectingActor = function() {
@@ -103,5 +105,15 @@
         if (this._actorWindow.active) {
             this._lunaHUD.select(this._actorWindow.actor());
         }
+    };
+
+    Scene_Battle.prototype._updateSelectingEnemy = function() {
+        this._lunaHUD.setSelectEnemy(this._enemyWindow.active);
+    };
+
+    Scene_Battle.prototype._updateSelectingAction = function() {
+        var flag = this._skillWindow.active || this._itemWindow.active;
+
+        this._lunaHUD.setSelectAction(flag);
     };
 }());

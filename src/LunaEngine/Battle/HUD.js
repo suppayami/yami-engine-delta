@@ -17,6 +17,9 @@
 
         this._guiSpritesets = [];
         this._actor = null;
+        this._selectEnemy = false;
+        this._selectAction = false;
+
         this.setupGUI();
     };
 
@@ -40,6 +43,14 @@
 
     HUD.prototype.select = function(actor) {
         this._actor = actor;
+    };
+
+    HUD.prototype.setSelectEnemy = function(flag) {
+        this._selectEnemy = flag;
+    };
+
+    HUD.prototype.setSelectAction = function(flag) {
+        this._selectAction = flag;
     };
 
     HUD.prototype.refresh = function() {
@@ -94,6 +105,9 @@
         for (var i = 0; i < this._guiSpritesets.length; i++) {
             spriteset = this._guiSpritesets[i];
             spriteset.deselect();
+
+            spriteset.setSelectEnemy(this._selectEnemy);
+            spriteset.setSelectAction(this._selectAction);
 
             if (spriteset.actor === this._actor) {
                 spriteset.select();

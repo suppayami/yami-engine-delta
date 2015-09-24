@@ -16,6 +16,9 @@
         this._attach = {};
         this._select = false;
 
+        this._selectEnemy = false;
+        this._selectAction = false;
+
         this.loadWindowskin();
     };
 
@@ -45,6 +48,14 @@
 
     GUI.prototype.deselect = function() {
         this._select = false;
+    };
+
+    GUI.prototype.setSelectEnemy = function(flag) {
+        this._selectEnemy = flag;
+    };
+
+    GUI.prototype.setSelectAction = function(flag) {
+        this._selectAction = flag;
     };
 
     GUI.prototype._setupConfig = function(config) {
@@ -160,8 +171,17 @@
     };
 
     GUI.prototype.updateGUIParams = function() {
+        this.updateGUIVisible();
         this.updateGUIPosition();
         this.updateGUIColor();
+    };
+
+    GUI.prototype.updateGUIVisible = function() {
+        var visible = this._getVisible();
+
+        if (this.visible !== visible) {
+            this.visible = visible;
+        }
     };
 
     GUI.prototype.updateGUIPosition = function() {
@@ -217,6 +237,14 @@
         return this.config.tone || [0,0,0,0];
     };
 
+    GUI.prototype._getVisible = function() {
+        if (this.config.visible === undefined) {
+            return true;
+        }
+
+        return this.config.visible;
+    };
+
     GUI.prototype._getConditions = function() {
         return this._config.conditional; // avoid infinite loops
     };
@@ -227,6 +255,14 @@
 
     GUI.prototype.isSelectingActor = function() {
         return this._select;
+    };
+
+    GUI.prototype.isSelectingEnemy = function() {
+        return this._selectEnemy;
+    };
+
+    GUI.prototype.isSelectingAction = function() {
+        return this._selectAction;
     };
 
     GUI.prototype.loadWindowskin = Window_Base.prototype.loadWindowskin;

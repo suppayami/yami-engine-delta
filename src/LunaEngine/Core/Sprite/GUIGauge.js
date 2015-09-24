@@ -82,11 +82,11 @@
 
     Object.defineProperty(GUIGauge.prototype, 'rate', {
         get: function() {
-            return Math.floor(this._rate);
+            return this._rate;
         },
         set: function(value) {
-            if (Math.floor(this._rate) !== Math.floor(value)) {
-                this._rate = Math.floor(value);
+            if ((Math.round(this._rate * 100) / 100) !== (Math.round(value * 100) / 100)) {
+                this._rate = value;
                 this._refreshGUI();
             }
         },

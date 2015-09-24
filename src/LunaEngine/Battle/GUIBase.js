@@ -78,6 +78,24 @@
         }
     };
 
+    GUIBase.prototype.setSelectEnemy = function(flag) {
+        var sprite;
+
+        for (var i = 0; i < this._guiSprites.length; i++) {
+            sprite = this._guiSprites[i];
+            sprite.setSelectEnemy(flag);
+        }
+    };
+
+    GUIBase.prototype.setSelectAction = function(flag) {
+        var sprite;
+
+        for (var i = 0; i < this._guiSprites.length; i++) {
+            sprite = this._guiSprites[i];
+            sprite.setSelectAction(flag);
+        }
+    };
+
     GUIBase.prototype.onActorChange = function() {
         var sprite;
 

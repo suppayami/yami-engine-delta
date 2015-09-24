@@ -12,229 +12,6 @@ var LunaEngine = LunaEngine || {};
 LunaEngine.Core = {};
 LunaEngine.Core.Sprite = {};
 
-/**
- * @namespace Battle
- * @memberof LunaEngine
- */
-
-LunaEngine.Battle = {};
-LunaEngine.Battle.Config = {};
-
-/* globals LunaEngine: false */
-
-(function() {
-    // Status Spritesets
-    var HUD = {
-        /* Position */
-        x: 200,
-        y: 460,
-
-        /* Grid and size */
-        width:  624,
-        height: 180,
-        grid:   4,
-        direction: 'horizontal',
-    };
-
-    // Status Elements
-    var GUISprites = {
-        spriteFace: {
-            /* GUI Type */
-            class: 'GUIFace',
-
-            /* Position */
-            x: 0,
-            y: 0,
-
-            /* Color */
-            tone: [0,0,0,0],
-
-            /* Basic Properties */
-            faceName:  '{this.actor.faceName()}',
-            faceIndex: '{this.actor.faceIndex()}',
-
-            /* Conditional Properties */
-            conditional: [
-                {
-                    condition: 'this.actor.hpRate() < 0.5',
-                    properties: {
-                        tone: [96,0,0,0]
-                    }
-                },
-
-                {
-                    condition: 'this.actor.isDead()',
-                    properties: {
-                        tone: [0,0,0,255]
-                    }
-                },
-
-                {
-                    condition: 'this.isSelectingActor()',
-                    properties: {
-                        tone: [64,64,64,0]
-                    }
-                }
-            ]
-        }, // spriteFace
-
-        spriteName: {
-            /* GUI Type */
-            class: 'GUIText',
-
-            /* Position */
-            x: 0,
-            y: 0,
-
-            /* Color */
-            tone: [0,0,0,0],
-
-            /* Basic Properties */
-            text: '{this.actor.name()}',
-
-            fontFace: 'GameFont',
-            fontSize: '24',
-
-            textColor: '#ffffff',
-            outlineColor: 'rgba(0,0,0,0.5)',
-
-            /* Conditional Properties */
-            conditional: [
-                {
-                    condition: 'this.actor.hpRate() < 0.5',
-                    properties: {
-                        textColor: '{this.crisisColor()}'
-                    }
-                },
-
-                {
-                    condition: 'this.actor.isDead()',
-                    properties: {
-                        textColor: '{this.deathColor()}'
-                    }
-                }
-            ]
-        }, // spriteName
-
-        spriteHPGauge: {
-            /* GUI Type */
-            class: 'GUIGauge',
-
-            /* Position */
-            x: 0,
-            y: 100,
-
-            /* Color */
-            tone: [0,0,0,0],
-
-            /* Basic Properties */
-            width:  140,
-            height: 6,
-
-            rate: 'this.actor.hpRate()',
-
-            color1: '{this.hpGaugeColor1()}',
-            color2: '{this.hpGaugeColor2()}',
-
-            backColor:    '#000000',
-            outlineColor: 'rgba(0,0,0,0.5)',
-
-            direction: 'horizontal',
-
-            /* Conditional Properties */
-            conditional: [
-
-            ]
-        }, // spriteHPGauge
-
-        spriteHPNumber: {
-            /* GUI Type */
-            class: 'GUIText',
-
-            /* Position */
-            x: 0,
-            y: 72,
-
-            /* Color */
-            tone: [0,0,0,0],
-
-            /* Basic Properties */
-            text: 'HP: {this.actor.hp} / {this.actor.mhp}',
-
-            fontFace: 'GameFont',
-            fontSize: '16',
-
-            textColor: '#ffffff',
-            outlineColor: 'rgba(0,0,0,0.5)',
-
-            /* Conditional Properties */
-            conditional: [
-
-            ]
-        }, // spriteHPNumber
-
-        spriteMPGauge: {
-            /* GUI Type */
-            class: 'GUIGauge',
-
-            /* Position */
-            x: 0,
-            y: 136,
-
-            /* Color */
-            tone: [0,0,0,0],
-
-            /* Basic Properties */
-            width:  140,
-            height: 6,
-
-            rate: 'this.actor.mpRate()',
-
-            color1: '{this.mpGaugeColor1()}',
-            color2: '{this.mpGaugeColor2()}',
-
-            backColor:    '#000000',
-            outlineColor: 'rgba(0,0,0,0.5)',
-
-            direction: 'horizontal',
-
-            /* Conditional Properties */
-            conditional: [
-
-            ]
-        }, // spriteHPGauge
-
-        spriteMPNumber: {
-            /* GUI Type */
-            class: 'GUIText',
-
-            /* Position */
-            x: 0,
-            y: 108,
-
-            /* Color */
-            tone: [0,0,0,0],
-
-            /* Basic Properties */
-            text: 'MP: {this.actor.mp} / {this.actor.mmp}',
-
-            fontFace: 'GameFont',
-            fontSize: '16',
-
-            textColor: '#ffffff',
-            outlineColor: 'rgba(0,0,0,0.5)',
-
-            /* Conditional Properties */
-            conditional: [
-
-            ]
-        } // spriteMPNumber
-    };
-
-    LunaEngine.Battle.Config.HUD = HUD;
-    LunaEngine.Battle.Config.GUISprites = GUISprites;
-}());
-
 /* globals LunaEngine: false */
 
 (function() {
@@ -252,6 +29,9 @@ LunaEngine.Battle.Config = {};
         this._config = {};
         this._attach = {};
         this._select = false;
+
+        this._selectEnemy = false;
+        this._selectAction = false;
 
         this.loadWindowskin();
     };
@@ -282,6 +62,14 @@ LunaEngine.Battle.Config = {};
 
     GUI.prototype.deselect = function() {
         this._select = false;
+    };
+
+    GUI.prototype.setSelectEnemy = function(flag) {
+        this._selectEnemy = flag;
+    };
+
+    GUI.prototype.setSelectAction = function(flag) {
+        this._selectAction = flag;
     };
 
     GUI.prototype._setupConfig = function(config) {
@@ -397,8 +185,17 @@ LunaEngine.Battle.Config = {};
     };
 
     GUI.prototype.updateGUIParams = function() {
+        this.updateGUIVisible();
         this.updateGUIPosition();
         this.updateGUIColor();
+    };
+
+    GUI.prototype.updateGUIVisible = function() {
+        var visible = this._getVisible();
+
+        if (this.visible !== visible) {
+            this.visible = visible;
+        }
     };
 
     GUI.prototype.updateGUIPosition = function() {
@@ -454,6 +251,14 @@ LunaEngine.Battle.Config = {};
         return this.config.tone || [0,0,0,0];
     };
 
+    GUI.prototype._getVisible = function() {
+        if (this.config.visible === undefined) {
+            return true;
+        }
+
+        return this.config.visible;
+    };
+
     GUI.prototype._getConditions = function() {
         return this._config.conditional; // avoid infinite loops
     };
@@ -464,6 +269,14 @@ LunaEngine.Battle.Config = {};
 
     GUI.prototype.isSelectingActor = function() {
         return this._select;
+    };
+
+    GUI.prototype.isSelectingEnemy = function() {
+        return this._selectEnemy;
+    };
+
+    GUI.prototype.isSelectingAction = function() {
+        return this._selectAction;
     };
 
     GUI.prototype.loadWindowskin = Window_Base.prototype.loadWindowskin;
@@ -918,11 +731,11 @@ LunaEngine.Battle.Config = {};
 
     Object.defineProperty(GUIGauge.prototype, 'rate', {
         get: function() {
-            return Math.floor(this._rate);
+            return this._rate;
         },
         set: function(value) {
-            if (Math.floor(this._rate) !== Math.floor(value)) {
-                this._rate = Math.floor(value);
+            if ((Math.round(this._rate * 100) / 100) !== (Math.round(value * 100) / 100)) {
+                this._rate = value;
                 this._refreshGUI();
             }
         },
@@ -1129,6 +942,24 @@ LunaEngine.Battle.Config = {};
         }
     };
 
+    GUIBase.prototype.setSelectEnemy = function(flag) {
+        var sprite;
+
+        for (var i = 0; i < this._guiSprites.length; i++) {
+            sprite = this._guiSprites[i];
+            sprite.setSelectEnemy(flag);
+        }
+    };
+
+    GUIBase.prototype.setSelectAction = function(flag) {
+        var sprite;
+
+        for (var i = 0; i < this._guiSprites.length; i++) {
+            sprite = this._guiSprites[i];
+            sprite.setSelectAction(flag);
+        }
+    };
+
     GUIBase.prototype.onActorChange = function() {
         var sprite;
 
@@ -1188,6 +1019,9 @@ LunaEngine.Battle.Config = {};
 
         this._guiSpritesets = [];
         this._actor = null;
+        this._selectEnemy = false;
+        this._selectAction = false;
+
         this.setupGUI();
     };
 
@@ -1211,6 +1045,14 @@ LunaEngine.Battle.Config = {};
 
     HUD.prototype.select = function(actor) {
         this._actor = actor;
+    };
+
+    HUD.prototype.setSelectEnemy = function(flag) {
+        this._selectEnemy = flag;
+    };
+
+    HUD.prototype.setSelectAction = function(flag) {
+        this._selectAction = flag;
     };
 
     HUD.prototype.refresh = function() {
@@ -1265,6 +1107,9 @@ LunaEngine.Battle.Config = {};
         for (var i = 0; i < this._guiSpritesets.length; i++) {
             spriteset = this._guiSpritesets[i];
             spriteset.deselect();
+
+            spriteset.setSelectEnemy(this._selectEnemy);
+            spriteset.setSelectAction(this._selectAction);
 
             if (spriteset.actor === this._actor) {
                 spriteset.select();
@@ -1400,6 +1245,8 @@ LunaEngine.Battle.Config = {};
 
     Scene_Battle.prototype._updateLuna = function() {
         this._updateSelectingActor();
+        this._updateSelectingEnemy();
+        this._updateSelectingAction();
     };
 
     Scene_Battle.prototype._updateSelectingActor = function() {
@@ -1408,5 +1255,15 @@ LunaEngine.Battle.Config = {};
         if (this._actorWindow.active) {
             this._lunaHUD.select(this._actorWindow.actor());
         }
+    };
+
+    Scene_Battle.prototype._updateSelectingEnemy = function() {
+        this._lunaHUD.setSelectEnemy(this._enemyWindow.active);
+    };
+
+    Scene_Battle.prototype._updateSelectingAction = function() {
+        var flag = this._skillWindow.active || this._itemWindow.active;
+
+        this._lunaHUD.setSelectAction(flag);
     };
 }());
