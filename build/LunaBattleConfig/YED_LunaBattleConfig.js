@@ -28,58 +28,11 @@ LunaEngine.Battle.Config = LunaEngine.Battle.Config || {};
         width:  624,
         height: 180,
         grid:   4,
-        direction: 'horizontal',
+        direction: 'vertical',
     };
 
     // Status Elements
     var GUISprites = {
-        spriteFace: {
-            /* GUI Type */
-            class: 'GUIFace',
-
-            /* Position */
-            x: 0,
-            y: 0,
-
-            /* Color */
-            tone: [0,0,0,0],
-
-            /* Basic Properties */
-            faceName:  '{this.actor.faceName()}',
-            faceIndex: '{this.actor.faceIndex()}',
-
-            /* Conditional Properties */
-            conditional: [
-                {
-                    condition: 'this.actor.hpRate() < 0.5',
-                    properties: {
-                        tone: [96,0,0,0]
-                    }
-                },
-
-                {
-                    condition: 'this.actor.isDead()',
-                    properties: {
-                        tone: [0,0,0,255]
-                    }
-                },
-
-                {
-                    condition: 'this.isSelectingActor()',
-                    properties: {
-                        tone: [64,64,64,0]
-                    }
-                },
-
-                {
-                    condition: 'this.isSelectingEnemy()',
-                    properties: {
-                        visible: false
-                    }
-                }
-            ]
-        }, // spriteFace
-
         spriteName: {
             /* GUI Type */
             class: 'GUIText',
@@ -130,14 +83,14 @@ LunaEngine.Battle.Config = LunaEngine.Battle.Config || {};
             class: 'GUIGauge',
 
             /* Position */
-            x: 0,
-            y: 100,
+            x: 96,
+            y: 0,
 
             /* Color */
             tone: [0,0,0,0],
 
             /* Basic Properties */
-            width:  140,
+            width:  128,
             height: 6,
 
             rate: 'this.actor.hpRate()',
@@ -166,8 +119,8 @@ LunaEngine.Battle.Config = LunaEngine.Battle.Config || {};
             class: 'GUIText',
 
             /* Position */
-            x: 0,
-            y: 72,
+            x: 96,
+            y: 0,
 
             /* Color */
             tone: [0,0,0,0],
@@ -197,14 +150,14 @@ LunaEngine.Battle.Config = LunaEngine.Battle.Config || {};
             class: 'GUIGauge',
 
             /* Position */
-            x: 0,
-            y: 136,
+            x: 240,
+            y: 0,
 
             /* Color */
             tone: [0,0,0,0],
 
             /* Basic Properties */
-            width:  140,
+            width:  128,
             height: 6,
 
             rate: 'this.actor.mpRate()',
@@ -233,8 +186,8 @@ LunaEngine.Battle.Config = LunaEngine.Battle.Config || {};
             class: 'GUIText',
 
             /* Position */
-            x: 0,
-            y: 108,
+            x: 240,
+            y: 0,
 
             /* Color */
             tone: [0,0,0,0],
