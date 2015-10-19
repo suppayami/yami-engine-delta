@@ -1939,6 +1939,7 @@ Graphics._createFontLoader = function(name) {
     var div = document.createElement('div');
     var text = document.createTextNode('.');
     div.style.fontFamily = name;
+    div.style.fontSize = '0px';
     div.style.color = 'transparent';
     div.style.position = 'absolute';
     div.style.margin = 'auto';
@@ -2927,6 +2928,7 @@ TouchInput._setupEventHandlers = function() {
     document.addEventListener('touchmove', this._onTouchMove.bind(this));
     document.addEventListener('touchend', this._onTouchEnd.bind(this));
     document.addEventListener('touchcancel', this._onTouchCancel.bind(this));
+    document.addEventListener('pointerdown', this._onPointerDown.bind(this));
 };
 
 /**
@@ -3091,6 +3093,24 @@ TouchInput._onTouchEnd = function(event) {
  */
 TouchInput._onTouchCancel = function(event) {
     this._screenPressed = false;
+};
+
+/**
+ * @static
+ * @method _onPointerDown
+ * @param {PointerEvent} event
+ * @private
+ */
+TouchInput._onPointerDown = function(event) {
+    if (event.pointerType === 'touch' && !event.isPrimary) {
+        var x = Graphics.pageToCanvasX(event.pageX);
+        var y = Graphics.pageToCanvasY(event.pageY);
+        if (Graphics.isInsideCanvas(x, y)) {
+            // For Microsoft Edge
+            this._onCancel(x, y);
+            event.preventDefault();
+        }
+    }
 };
 
 /**
@@ -3920,6 +3940,7 @@ Tilemap.prototype.updateTransform = function() {
     this._updateLayerPositions(startX, startY);
     if (this._needsRepaint || this._lastAnimationFrame !== this.animationFrame ||
             this._lastStartX !== startX || this._lastStartY !== startY) {
+        this._frameUpdated = this._lastAnimationFrame !== this.animationFrame;
         this._lastAnimationFrame = this.animationFrame;
         this._lastStartX = startX;
         this._lastStartY = startY;
@@ -4090,7 +4111,8 @@ Tilemap.prototype._paintTiles = function(startX, startY, x, y) {
     }
 
     var lastLowerTiles = this._readLastTiles(0, lx, ly);
-    if (!lowerTiles.equals(lastLowerTiles) || Tilemap.isTileA1(tileId0)) {
+    if (!lowerTiles.equals(lastLowerTiles) ||
+            (Tilemap.isTileA1(tileId0) && this._frameUpdated)) {
         this._lowerBitmap.clearRect(dx, dy, this._tileWidth, this._tileHeight);
         for (var i = 0; i < lowerTiles.length; i++) {
             var lowerTileId = lowerTiles[i];
@@ -4748,13 +4770,10 @@ TilingSprite.prototype.update = function() {
  * @param {Number} height The height of the tiling sprite
  */
 TilingSprite.prototype.move = function(x, y, width, height) {
-    this.x = x;
-    this.y = y;
-    if (this._width !== width || this._height !== height) {
-        this._width = width;
-        this._height = height;
-        this._refresh();
-    }
+    this.x = x || 0;
+    this.y = y || 0;
+    this._width = width || 0;
+    this._height = height || 0;
 };
 
 /**
@@ -7410,6 +7429,7 @@ Html5Audio.clear = function () {
 Html5Audio.setStaticSe = function (url) {
     if (!this._initialized) {
         this.initialize();
+        this.clear();
     }
     this._staticSePath = url;
 };

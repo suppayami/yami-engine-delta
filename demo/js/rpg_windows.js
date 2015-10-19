@@ -1697,6 +1697,7 @@ Window_MenuStatus.prototype.initialize = function(x, y) {
     var width = this.windowWidth();
     var height = this.windowHeight();
     Window_Selectable.prototype.initialize.call(this, x, y, width, height);
+    this._formationMode = false;
     this._pendingIndex = -1;
     this.loadImages();
     this.refresh();
@@ -1767,8 +1768,25 @@ Window_MenuStatus.prototype.processOk = function() {
     $gameParty.setMenuActor($gameParty.members()[this.index()]);
 };
 
+Window_MenuStatus.prototype.isCurrentItemEnabled = function() {
+    if (this._formationMode) {
+        var actor = $gameParty.members()[this.index()];
+        return actor && actor.isFormationChangeOk();
+    } else {
+        return true;
+    }
+};
+
 Window_MenuStatus.prototype.selectLast = function() {
     this.select($gameParty.menuActor().index() || 0);
+};
+
+Window_MenuStatus.prototype.formationMode = function() {
+    return this._formationMode;
+};
+
+Window_MenuStatus.prototype.setFormationMode = function(formationMode) {
+    this._formationMode = formationMode;
 };
 
 Window_MenuStatus.prototype.pendingIndex = function() {
@@ -5407,10 +5425,9 @@ Window_ActorCommand.prototype.processOk = function() {
 };
 
 Window_ActorCommand.prototype.selectLast = function() {
+    this.select(0);
     if (this._actor && ConfigManager.commandRemember) {
         this.selectSymbol(this._actor.lastCommandSymbol());
-    } else {
-        this.select(0);
     }
 };
 

@@ -1,8 +1,8 @@
 /* globals LunaEngine: false */
 
-(function() {
+(function($LunaEngine, $Bitmap) {
     // dependencies
-    var GUI = LunaEngine.Core.Sprite.GUI;
+    var GUI = $LunaEngine.Core.Sprite.GUI;
 
     var GUIGauge = function() {
         this.initialize.apply(this, arguments);
@@ -154,11 +154,11 @@
             return;
         }
 
-        this.bitmap = new Bitmap(this.gaugeWidth, this.gaugeHeight);
+        this.bitmap = new $Bitmap(this.gaugeWidth, this.gaugeHeight);
         this.drawGauge(0,0,this.gaugeWidth,this.rate,this.color1,this.color2);
     };
 
-    GUI.prototype.drawGauge = function(x, y, width, rate, color1, color2) {
+    GUIGauge.prototype.drawGauge = function(x, y, width, rate, color1, color2) {
         var fillW,
             fillH,
             height = this.gaugeHeight;
@@ -210,5 +210,5 @@
         return this.config.direction || 'horizontal';
     };
 
-    LunaEngine.Core.Sprite.GUIGauge = GUIGauge;
-}());
+    $LunaEngine.Core.Sprite.GUIGauge = GUIGauge;
+}(LunaEngine, Bitmap));

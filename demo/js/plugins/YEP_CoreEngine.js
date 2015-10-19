@@ -55,7 +55,7 @@ Yanfly.Core = Yanfly.Core || {};
  * @param Gold Icon
  * @desc This will be the icon used to represent gold in the gold
  * window. If left at 0, no icon will be displayed.
- * @default 297
+ * @default 313
  *
  * @param Gold Overlap
  * @desc This will be what's displayed when the gold number
@@ -961,6 +961,11 @@ Window_Base._faceHeight  = Number(Yanfly.Parameters['Face Height'] || 144);
 Window_Base.prototype.lineHeight = function() {
 	return Yanfly.Param.LineHeight;
 };
+
+Window_Base.prototype.textWidthEx = function(text) {
+    return this.drawTextEx(text, 0, this.contents.height);
+};
+
 Window_Base.prototype.standardFontFace = function() {
     if ($gameSystem.isChinese()) {
 		return Yanfly.Param.ChineseFont;
@@ -974,12 +979,15 @@ Window_Base.prototype.standardFontFace = function() {
 Window_Base.prototype.standardFontSize = function() {
     return Yanfly.Param.FontSize;
 };
+
 Window_Base.prototype.standardPadding = function() {
     return Yanfly.Param.WindowPadding;
 };
+
 Window_Base.prototype.textPadding = function() {
     return Yanfly.Param.TextPadding;
 };
+
 Window_Base.prototype.standardBackOpacity = function() {
     return Yanfly.Param.WindowOpacity;
 };
@@ -990,42 +998,55 @@ Window_Base.prototype.normalColor = function() {
 Window_Base.prototype.systemColor = function() {
     return this.textColor(Yanfly.Param.ColorSystem);
 };
+
 Window_Base.prototype.crisisColor = function() {
     return this.textColor(Yanfly.Param.ColorCrisis);
 };
+
 Window_Base.prototype.deathColor = function() {
     return this.textColor(Yanfly.Param.ColorDeath);
 };
+
 Window_Base.prototype.gaugeBackColor = function() {
     return this.textColor(Yanfly.Param.ColorGaugeBack);
 };
+
 Window_Base.prototype.hpGaugeColor1 = function() {
     return this.textColor(Yanfly.Param.ColorHpGauge1);
 };
+
 Window_Base.prototype.hpGaugeColor2 = function() {
     return this.textColor(Yanfly.Param.ColorHpGauge2);
 };
+
 Window_Base.prototype.mpGaugeColor1 = function() {
     return this.textColor(Yanfly.Param.ColorMpGauge1);
 };
+
 Window_Base.prototype.mpGaugeColor2 = function() {
     return this.textColor(Yanfly.Param.ColorMpGauge2);
 };
+
 Window_Base.prototype.mpCostColor = function() {
     return this.textColor(Yanfly.Param.ColorMpCost);
 };
+
 Window_Base.prototype.powerUpColor = function() {
     return this.textColor(Yanfly.Param.ColorPowerUp);
 };
+
 Window_Base.prototype.powerDownColor = function() {
     return this.textColor(Yanfly.Param.ColorPowerDown);
 };
+
 Window_Base.prototype.tpGaugeColor1 = function() {
     return this.textColor(Yanfly.Param.ColorTpGauge1);
 };
+
 Window_Base.prototype.tpGaugeColor2 = function() {
     return this.textColor(Yanfly.Param.ColorTpGauge2);
 };
+
 Window_Base.prototype.tpCostColor = function() {
 		return this.textColor(Yanfly.Param.ColorTpCost);
 };
@@ -1103,7 +1124,7 @@ Window_Base.prototype.drawActorSimpleStatus = function(actor, x, y, width) {
     this.drawActorName(actor, x, y);
     this.drawActorLevel(actor, x, y + lineHeight * 1);
     this.drawActorIcons(actor, x, y + lineHeight * 2);
-    this.drawActorClass(actor, x2, y);
+    this.drawActorClass(actor, x2, y, width2);
     this.drawActorHp(actor, x2, y + lineHeight * 1, width2);
     this.drawActorMp(actor, x2, y + lineHeight * 2, width2);
 		if (eval(Yanfly.Param.MenuTpGauge)) {

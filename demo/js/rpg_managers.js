@@ -1532,7 +1532,7 @@ SceneManager.checkFileAccess = function() {
 SceneManager.initAudio = function() {
     var noAudio = Utils.isOptionValid('noaudio');
     if (!WebAudio.initialize(noAudio) && !noAudio) {
-        throw new Error('Your browser does not support WebAudio API.');
+        throw new Error('Your browser does not support Web Audio API.');
     }
 };
 
@@ -1545,7 +1545,7 @@ SceneManager.initNwjs = function() {
     if (Utils.isNwjs()) {
         var gui = require('nw.gui');
         var win = gui.Window.get();
-        if (process.platform === 'darwin') {
+        if (process.platform === 'darwin' && !win.menu) {
             var menubar = new gui.Menu({ type: 'menubar' });
             var option = { hideEdit: true, hideWindow: true };
             menubar.createMacBuiltin('Game', option);
@@ -1913,7 +1913,7 @@ BattleManager.updateEvent = function() {
             return this.updateEventMain();
         }
     }
-    return false;
+    return this.checkAbort();
 };
 
 BattleManager.updateEventMain = function() {
@@ -2053,16 +2053,12 @@ BattleManager.startTurn = function() {
     this.makeActionOrders();
     $gameParty.requestMotionRefresh();
     this._logWindow.startTurn();
+    this._subject = this.getNextSubject();
 };
 
 BattleManager.updateTurn = function() {
-    var subject = this._subject;
     $gameParty.requestMotionRefresh();
-    if (!subject || !subject.currentAction()) {
-        subject = this.getNextSubject();
-    }
-    this._subject = subject;
-    if (subject) {
+    if (this._subject) {
         this.processTurn();
     } else {
         this.endTurn();
@@ -2084,6 +2080,7 @@ BattleManager.processTurn = function() {
         this._logWindow.displayAutoAffectedStatus(subject);
         this._logWindow.displayCurrentState(subject);
         this._logWindow.displayRegeneration(subject);
+        this._subject = this.getNextSubject();
     }
 };
 
@@ -2239,8 +2236,7 @@ BattleManager.abort = function() {
 
 BattleManager.checkBattleEnd = function() {
     if (this._phase) {
-        if ($gameParty.isEmpty() || this.isAborting()) {
-            this.processAbort();
+        if (this.checkAbort()) {
             return true;
         } else if ($gameParty.isAllDead()) {
             this.processDefeat();
@@ -2249,6 +2245,14 @@ BattleManager.checkBattleEnd = function() {
             this.processVictory();
             return true;
         }
+    }
+    return false;
+};
+
+BattleManager.checkAbort = function() {
+    if ($gameParty.isEmpty() || this.isAborting()) {
+        this.processAbort();
+        return true;
     }
     return false;
 };
@@ -2422,7 +2426,6 @@ PluginManager._errorUrls    = [];
 PluginManager._parameters   = {};
 
 PluginManager.setup = function(plugins) {
-    this.registerNwjsErrorHandler();
     plugins.forEach(function(plugin) {
         if (plugin.status && !this._scripts.contains(plugin.name)) {
             this.setParameters(plugin.name, plugin.parameters);
@@ -2460,14 +2463,4 @@ PluginManager.loadScript = function(name) {
 
 PluginManager.onError = function(e) {
     this._errorUrls.push(e.target._url);
-};
-
-PluginManager.registerNwjsErrorHandler = function() {
-    if (Utils.isNwjs()) {
-        process.addListener('uncaughtException', this.onNwjsError);
-    }
-};
-
-PluginManager.onNwjsError = function(e) {
-    // Do nothing.
 };
