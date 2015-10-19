@@ -1690,7 +1690,7 @@ Game_Action.prototype.evalDamageFormula = function(target) {
         var item = this.item();
         var a = this.subject();
         var b = target;
-        var v = $gameVariables.data;
+        var v = $gameVariables._data;
         var sign = ([3, 4].contains(item.damage.type) ? -1 : 1);
         return Math.max(eval(item.damage.formula), 0) * sign;
     } catch (e) {
@@ -7589,7 +7589,7 @@ Game_Player.prototype.startMapEvent = function(x, y, triggers, normal) {
 
 Game_Player.prototype.moveByInput = function() {
     if (!this.isMoving() && this.canMove()) {
-        var direction = Input.dir4;
+        var direction = this.getInputDirection();
         if (direction > 0) {
             $gameTemp.clearDestination();
         } else if ($gameTemp.isDestinationValid()){
@@ -7598,7 +7598,7 @@ Game_Player.prototype.moveByInput = function() {
             direction = this.findDirectionTo(x, y);
         }
         if (direction > 0) {
-            this.moveStraight(direction);
+            this.executeMove(direction);
         }
     }
 };
@@ -7617,6 +7617,14 @@ Game_Player.prototype.canMove = function() {
         return false;
     }
     return true;
+};
+
+Game_Player.prototype.getInputDirection = function() {
+    return Input.dir4;
+};
+
+Game_Player.prototype.executeMove = function(direction) {
+    this.moveStraight(direction);
 };
 
 Game_Player.prototype.update = function(sceneActive) {
@@ -9275,7 +9283,7 @@ Game_Interpreter.prototype.command111 = function() {
 
 // Else
 Game_Interpreter.prototype.command411 = function() {
-    if (this._branch[this._indent] === true) {
+    if (this._branch[this._indent] !== false) {
         this.skipBranch();
     }
     return true;

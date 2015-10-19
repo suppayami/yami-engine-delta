@@ -28,11 +28,58 @@ LunaEngine.Battle.Config = LunaEngine.Battle.Config || {};
         width:  624,
         height: 180,
         grid:   4,
-        direction: 'vertical',
+        direction: 'horizontal',
     };
 
     // Status Elements
     var GUISprites = {
+        spriteFace: {
+            /* GUI Type */
+            class: 'GUIFace',
+
+            /* Position */
+            x: 0,
+            y: 0,
+
+            /* Color */
+            tone: [0,0,0,0],
+
+            /* Basic Properties */
+            faceName:  '{this.actor.faceName()}',
+            faceIndex: '{this.actor.faceIndex()}',
+
+            /* Conditional Properties */
+            conditional: [
+                {
+                    condition: 'this.actor.hpRate() < 0.5',
+                    properties: {
+                        tone: [96,0,0,0]
+                    }
+                },
+
+                {
+                    condition: 'this.actor.isDead()',
+                    properties: {
+                        tone: [0,0,0,255]
+                    }
+                },
+
+                {
+                    condition: 'this.isSelectingActor()',
+                    properties: {
+                        tone: [64,64,64,0]
+                    }
+                },
+
+                {
+                    condition: 'this.isSelectingEnemy()',
+                    properties: {
+                        visible: false
+                    }
+                }
+            ]
+        }, // spriteFace
+
         spriteName: {
             /* GUI Type */
             class: 'GUIText',
@@ -83,14 +130,14 @@ LunaEngine.Battle.Config = LunaEngine.Battle.Config || {};
             class: 'GUIGauge',
 
             /* Position */
-            x: 96,
-            y: 0,
+            x: 0,
+            y: 100,
 
             /* Color */
             tone: [0,0,0,0],
 
             /* Basic Properties */
-            width:  128,
+            width:  140,
             height: 6,
 
             rate: 'this.actor.hpRate()',
@@ -119,8 +166,8 @@ LunaEngine.Battle.Config = LunaEngine.Battle.Config || {};
             class: 'GUIText',
 
             /* Position */
-            x: 96,
-            y: 0,
+            x: 0,
+            y: 72,
 
             /* Color */
             tone: [0,0,0,0],
@@ -150,14 +197,14 @@ LunaEngine.Battle.Config = LunaEngine.Battle.Config || {};
             class: 'GUIGauge',
 
             /* Position */
-            x: 240,
-            y: 0,
+            x: 0,
+            y: 136,
 
             /* Color */
             tone: [0,0,0,0],
 
             /* Basic Properties */
-            width:  128,
+            width:  140,
             height: 6,
 
             rate: 'this.actor.mpRate()',
@@ -186,8 +233,8 @@ LunaEngine.Battle.Config = LunaEngine.Battle.Config || {};
             class: 'GUIText',
 
             /* Position */
-            x: 240,
-            y: 0,
+            x: 0,
+            y: 108,
 
             /* Color */
             tone: [0,0,0,0],
@@ -210,7 +257,36 @@ LunaEngine.Battle.Config = LunaEngine.Battle.Config || {};
                     }
                 }
             ]
-        } // spriteMPNumber
+        }, // spriteMPNumber
+
+        spriteStates: {
+            /* GUI Type */
+            class: 'GUIIcons',
+
+            /* Position */
+            x: 0,
+            y: 48,
+
+            /* Color */
+            tone: [0,0,0,0],
+
+            /* Basic Properties */
+            // iconIds eval won't need {}
+            // can be one or many constant IDs: '[ID1, ID2]'
+            iconIds: 'this.actor.stateIcons()',
+            maxIcons: 3,
+            direction: 'horizontal',
+
+            /* Conditional Properties */
+            conditional: [
+                {
+                    condition: 'this.isSelectingEnemy()',
+                    properties: {
+                        visible: false
+                    }
+                }
+            ]
+        } // spriteStates
     };
 
     LunaEngine.Battle.Config.HUD = HUD;

@@ -1,3 +1,22 @@
+/*:
+ * @plugindesc Luna Lite for Battle
+ * @author Dr.Yami
+ */
+
+/**
+ * @namespace LunaEngine
+ */
+
+var LunaEngine = LunaEngine || {};
+
+/**
+ * @namespace Battle
+ * @memberof LunaEngine
+ */
+
+LunaEngine.Battle = LunaEngine.Battle || {};
+LunaEngine.Battle.Config = LunaEngine.Battle.Config || {};
+
 /* globals LunaEngine: false */
 
 /* -------------------------------/

@@ -39,6 +39,11 @@ Yanfly.Message = Yanfly.Message || {};
  * quickly. If you don't wish to use this, use 'false' instead.
  * @default Input.isPressed('pagedown')
  *
+ * @param Word Wrapping
+ * @desc Use this to enable or disable word wrapping by default.
+ * OFF - false     ONE - true
+ * @default false
+ *
  * @param ---Font---
  * @default
  *
@@ -109,6 +114,19 @@ Yanfly.Message = Yanfly.Message || {};
  * it a separate font, and to give the player a text fast-forward feature.
  *
  * ============================================================================
+ * Word Wrapping
+ * ============================================================================
+ *
+ * Word wrapping is now possible through the message system. You can enable and
+ * disable Word wrap using Plugin Commands. While using word wrap, if the word
+ * is to extend past the message window's area, it will automatically go to the
+ * following line. That said, word wrap will disable the editor's line breaks
+ * and will require you to use the ones provided by the plugin:
+ *
+ * <br> or <line break> is text code to apply a line break. Use this before or
+ * after a part in which you wish to start a new line.
+ *
+ * ============================================================================
  * Text Codes
  * ============================================================================
  *
@@ -148,6 +166,11 @@ Yanfly.Message = Yanfly.Message || {};
  *    \nr<x>    - Creates a name box with x string. Right side. *Note
  *
  *              *Note: Works for message window only.
+ *
+ * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ *
+ *  Line Break  Effect:
+ *    <br>      - If using word wrap mode, this will cause a line break.
  *
  * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
  *
@@ -227,9 +250,19 @@ Yanfly.Message = Yanfly.Message || {};
  *                            until it hits the row limit. Anything after that
  *                            is cut off until the next message starts to avoid
  *                            accidental overlap.
+ *
  *   MessageWidth 400       = Changes the Message Window Width to 400 pixels.
  *                            This will cut off any words that are shown too
  *                            far to the right so adjust accordingly!
+ *
+ *   EnableWordWrap         = Enables wordwrapping. If a word extends past the
+ *                            window size, it will automatically move onto the
+ *                            next line. Keep in mind, you will need to use
+ *                            \br to perform line breaks.
+ *
+ *   DisableWordWrap        = This disables wordwrapping. Line breaks will be
+ *                            automatic at points where a new line is started
+ *                            in the editor.
  */
 //=============================================================================
 
@@ -244,6 +277,7 @@ Yanfly.Param.MSGDefaultRows = String(Yanfly.Parameters['Default Rows']);
 Yanfly.Param.MSGDefaultWidth = String(Yanfly.Parameters['Default Width']);
 Yanfly.Param.MSGFaceIndent = String(Yanfly.Parameters['Face Indent']);
 Yanfly.Param.MSGFastForward = String(Yanfly.Parameters['Fast Forward']);
+Yanfly.Param.MSGWordWrap = String(Yanfly.Parameters['Word Wrapping']);
 Yanfly.Param.MSGFontName = String(Yanfly.Parameters['Font Name']);
 Yanfly.Param.MSGFontSize = Number(Yanfly.Parameters['Font Size']);
 Yanfly.Param.MSGFontSizeChange = String(Yanfly.Parameters['Font Size Change']);
@@ -276,6 +310,16 @@ Bitmap.prototype._makeFontNameText = function() {
 // Game_System
 //=============================================================================
 
+Yanfly.Message.Game_System_initialize =	Game_System.prototype.initialize;
+Game_System.prototype.initialize = function() {
+		Yanfly.Message.Game_System_initialize.call(this);
+		this.initMessageSystem();
+};
+
+Game_System.prototype.initMessageSystem = function() {
+		this._wordWrap = eval(Yanfly.Param.MSGWordWrap);
+};
+
 Game_System.prototype.messageRows = function() {
 		var rows = eval(this._messageRows) || eval(Yanfly.Param.MSGDefaultRows);
 		return Math.max(1, parseInt(rows));
@@ -283,6 +327,25 @@ Game_System.prototype.messageRows = function() {
 
 Game_System.prototype.messageWidth = function() {
 		return eval(this._messageWidth) || eval(Yanfly.Param.MSGDefaultWidth);
+};
+
+Game_System.prototype.wordWrap = function() {
+		if (this._wordWrap === undefined) this.initMessageSystem();
+		return this._wordWrap;
+};
+
+Game_System.prototype.setWordWrap = function(state) {
+		if (this._wordWrap === undefined) this.initMessageSystem();
+		this._wordWrap = state;
+};
+
+//=============================================================================
+// Game_Message
+//=============================================================================
+
+Game_Message.prototype.addText = function(text) {
+		if ($gameSystem.wordWrap()) text = '<enableWordWrap>' + text;
+		this.add(text);
 };
 
 //=============================================================================
@@ -295,6 +358,8 @@ Game_Interpreter.prototype.pluginCommand = function(command, args) {
     Yanfly.Message.Game_Interpreter_pluginCommand.call(this, command, args);
     if (command === 'MessageRows') $gameSystem._messageRows = args[0];
 		if (command === 'MessageWidth') $gameSystem._messageWidth = args[0];
+		if (command === 'EnableWordWrap') $gameSystem.setWordWrap(true);
+		if (command === 'DisableWordWrap') $gameSystem.setWordWrap(false);
 };
 
 Game_Interpreter.prototype.command101 = function() {
@@ -305,7 +370,7 @@ Game_Interpreter.prototype.command101 = function() {
 			while (this.isContinueMessageString()) {
         this._index++;
 				if (this._list[this._index].code === 401) {
-					$gameMessage.add(this.currentCommand().parameters[0]);
+					$gameMessage.addText(this.currentCommand().parameters[0]);
 				}
 				if ($gameMessage._texts.length >= $gameSystem.messageRows()) break;
       }
@@ -351,11 +416,29 @@ Window_Base.prototype.resetFontSettings = function() {
 		this.contents.outlineWidth = 4;
 };
 
+Window_Base.prototype.textWidthEx = function(text) {
+    return this.drawTextEx(text, 0, this.contents.height);
+};
+
 Yanfly.Message.Window_Base_convertEscapeCharacters =
 		Window_Base.prototype.convertEscapeCharacters;
 Window_Base.prototype.convertEscapeCharacters = function(text) {
-    text = Yanfly.Message.Window_Base_convertEscapeCharacters.call(this, text);
+		text = this.setWordWrap(text);
+		text = Yanfly.Message.Window_Base_convertEscapeCharacters.call(this, text);
 		text = this.convertExtraEscapeCharacters(text);
+		return text;
+};
+
+Window_Base.prototype.setWordWrap = function(text) {
+		this._wordWrap = false;
+		if (text.match(/<(?:enableWordWrap)>/i)) {
+			this._wordWrap = true;
+			text = text.replace(/<(?:enableWordWrap)>/gi, '\n');
+		}
+		if (this._messageWindow && this._wordWrap) {
+			text = text.replace(/[\n\r]+/g, '');
+			text = text.replace(/<(?:BR|line break)>/gi, '\n');
+		}
 		return text;
 };
 
@@ -513,6 +596,69 @@ Window_Base.prototype.makeFontSmaller = function() {
 	this.contents.fontSize = Math.max(size, Yanfly.Param.MSGFontChangeMin);
 };
 
+Yanfly.Message.Window_Base_processNormalCharacter =
+		Window_Base.prototype.processNormalCharacter;
+Window_Base.prototype.processNormalCharacter = function(textState) {
+		if (this.checkWordWrap(textState)) return this.processNewLine(textState);
+		Yanfly.Message.Window_Base_processNormalCharacter.call(this, textState);
+};
+
+Window_Base.prototype.checkWordWrap = function(textState) {
+		if (!textState) return false;
+		if (!this._messageWindow) return false;
+		if (!$gameSystem._wordWrap) return false;
+		if (textState.text[textState.index] === ' ') {
+			var nextSpace = textState.text.indexOf(' ', textState.index + 1);
+			if (nextSpace < 0) nextSpace = textState.text.length + 1;
+			var word = textState.text.substring(textState.index, nextSpace);
+			var size = this.textWidth(word);
+		}
+		return (size + textState.x > this.contents.width);
+};
+
+Window_Base.prototype.saveCurrentWindowSettings = function(){
+		this._saveFontFace = this.contents.fontFace;
+		this._saveFontSize = this.contents.fontSize;
+		this._savetextColor = this.contents.textColor;
+		this._saveFontBold = this.contents.fontBold;
+		this._saveFontItalic = this.contents.fontItalic;
+		this._saveOutlineColor = this.contents.outlineColor;
+		this._saveOutlineWidth = this.contents.outlineWidth;
+};
+
+Window_Base.prototype.restoreCurrentWindowSettings = function(){
+		this.contents.fontFace = this._saveFontFace;
+		this.contents.fontSize = this._saveFontSize;
+		this.contents.textColor = this._savetextColor;
+		this.contents.fontBold = this._saveFontBold;
+		this.contents.fontItalic = this._saveFontItalic;
+		this.contents.outlineColor = this._saveOutlineColor;
+		this.contents.outlineWidth = this._saveOutlineWidth;
+};
+
+Window_Base.prototype.clearCurrentWindowSettings = function(){
+		this._saveFontFace = undefined;
+		this._saveFontSize = undefined;
+		this._savetextColor = undefined;
+		this._saveFontBold = undefined;
+		this._saveFontItalic = undefined;
+		this._saveOutlineColor = undefined;
+		this._saveOutlineWidth = undefined;
+};
+
+Window_Base.prototype.textWidthExCheck = function(text) {
+		var setting = this._wordWrap;
+		this._wordWrap = false;
+		this.saveCurrentWindowSettings();
+		this._checkWordWrapMode = true;
+		var value = this.drawTextEx(text, 0, this.contents.height);
+		this._checkWordWrapMode = false;
+		this.restoreCurrentWindowSettings();
+		this.clearCurrentWindowSettings();
+		this._wordWrap = setting;
+		return value;
+};
+
 //=============================================================================
 // Window_ChoiceList
 //=============================================================================
@@ -656,6 +802,12 @@ Window_NameBox.prototype.adjustPositionY = function() {
 // Window_Message
 //=============================================================================
 
+Yanfly.Message.Window_Message_initialize = Window_Message.prototype.initialize;
+Window_Message.prototype.initialize = function() {
+		Yanfly.Message.Window_Message_initialize.call(this);
+		this._messageWindow = true;
+};
+
 Yanfly.Message.Window_Message_subWindows = Window_Message.prototype.subWindows;
 Window_Message.prototype.subWindows = function() {
     var subWindows = Yanfly.Message.Window_Message_subWindows.call(this);
@@ -759,8 +911,16 @@ Window_Message.prototype.updateWait = function() {
 Yanfly.Message.Window_Message_startWait =
 		Window_Message.prototype.startWait;
 Window_Message.prototype.startWait = function(count) {
-    Yanfly.Message.Window_Message_startWait.call(this, count);
+		if (this._checkWordWrapMode) return;
+		Yanfly.Message.Window_Message_startWait.call(this, count);
 		if (this.isFastForward()) this._waitCount = 0;
+};
+
+Yanfly.Message.Window_Message_startPause =
+		Window_Message.prototype.startPause;
+Window_Message.prototype.startPause = function() {
+		if (this._checkWordWrapMode) return;
+		Yanfly.Message.Window_Message_startPause.call(this);
 };
 
 Window_Message.prototype.convertEscapeCharacters = function(text) {
@@ -820,7 +980,7 @@ Yanfly.Message.Window_Message_processEscapeCharacter =
 Window_Message.prototype.processEscapeCharacter = function(code, textState) {
     switch (code) {
     case '!':
-      if (!this.isFastForward()) this.startPause();
+			if (!this.isFastForward()) this.startPause();
       break;
 		case 'W':
 			this.startWait(this.obtainEscapeParam(textState));

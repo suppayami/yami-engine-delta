@@ -1,8 +1,8 @@
 /* globals LunaEngine: false */
 
-(function() {
+(function($LunaEngine, $ImageManager) {
     // dependencies
-    var GUI = LunaEngine.Core.Sprite.GUI;
+    var GUI = $LunaEngine.Core.Sprite.GUI;
 
     var GUIImage = function() {
         this.initialize.apply(this, arguments);
@@ -17,7 +17,7 @@
         this.path = this._getPath();
         this.hue  = this._getHue();
 
-        ImageManager.loadNormalBitmap(this.path, this.hue);
+        $ImageManager.loadNormalBitmap(this.path, this.hue);
     };
 
     GUIImage.prototype = Object.create(GUI.prototype);
@@ -64,7 +64,7 @@
         var path = this._path,
             hue  = this._hue;
 
-        this.bitmap = ImageManager.loadNormalBitmap(path, hue);
+        this.bitmap = $ImageManager.loadNormalBitmap(path, hue);
     };
 
     GUIImage.prototype._getPath = function() {
@@ -75,5 +75,5 @@
         return this.config.hue || 0;
     };
 
-    LunaEngine.Core.Sprite.GUIImage = GUIImage;
-}());
+    $LunaEngine.Core.Sprite.GUIImage = GUIImage;
+}(LunaEngine, ImageManager));

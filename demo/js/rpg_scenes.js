@@ -85,10 +85,12 @@ Scene_Base.prototype.startFadeOut = function(duration, white) {
 Scene_Base.prototype.createFadeSprite = function(white) {
     if (!this._fadeSprite) {
         this._fadeSprite = new ScreenSprite();
-        if (white) {
-            this._fadeSprite.setWhite();
-        }
         this.addChild(this._fadeSprite);
+    }
+    if (white) {
+        this._fadeSprite.setWhite();
+    } else {
+        this._fadeSprite.setBlack();
     }
 };
 
@@ -445,6 +447,8 @@ Scene_Map.prototype.isBusy = function() {
 Scene_Map.prototype.terminate = function() {
     Scene_Base.prototype.terminate.call(this);
     if (!SceneManager.isNextScene(Scene_Battle)) {
+        this._spriteset.update();
+        this._mapNameWindow.hide();
         SceneManager.snapForBackground();
     }
     $gameScreen.clearZoom();
@@ -626,6 +630,7 @@ Scene_Map.prototype.launchBattle = function() {
     this.stopAudioOnBattleStart();
     SoundManager.playBattleStart();
     this.startEncounterEffect();
+    this._mapNameWindow.hide();
 };
 
 Scene_Map.prototype.stopAudioOnBattleStart = function() {
@@ -801,6 +806,7 @@ Scene_Menu.prototype.commandItem = function() {
 };
 
 Scene_Menu.prototype.commandPersonal = function() {
+    this._statusWindow.setFormationMode(false);
     this._statusWindow.selectLast();
     this._statusWindow.activate();
     this._statusWindow.setHandler('ok',     this.onPersonalOk.bind(this));
@@ -808,6 +814,7 @@ Scene_Menu.prototype.commandPersonal = function() {
 };
 
 Scene_Menu.prototype.commandFormation = function() {
+    this._statusWindow.setFormationMode(true);
     this._statusWindow.selectLast();
     this._statusWindow.activate();
     this._statusWindow.setHandler('ok',     this.onFormationOk.bind(this));
@@ -848,17 +855,13 @@ Scene_Menu.prototype.onPersonalCancel = function() {
 Scene_Menu.prototype.onFormationOk = function() {
     var index = this._statusWindow.index();
     var actor = $gameParty.members()[index];
-    if (actor && actor.isFormationChangeOk()) {
-        var pendingIndex = this._statusWindow.pendingIndex();
-        if (pendingIndex >= 0) {
-            $gameParty.swapOrder(index, pendingIndex);
-            this._statusWindow.setPendingIndex(-1);
-            this._statusWindow.redrawItem(index);
-        } else {
-            this._statusWindow.setPendingIndex(index);
-        }
+    var pendingIndex = this._statusWindow.pendingIndex();
+    if (pendingIndex >= 0) {
+        $gameParty.swapOrder(index, pendingIndex);
+        this._statusWindow.setPendingIndex(-1);
+        this._statusWindow.redrawItem(index);
     } else {
-        SoundManager.playBuzzer();
+        this._statusWindow.setPendingIndex(index);
     }
     this._statusWindow.activate();
 };
@@ -1871,7 +1874,7 @@ Scene_Shop.prototype.buyingPrice = function() {
 };
 
 Scene_Shop.prototype.sellingPrice = function() {
-    return this._item.price / 2;
+    return Math.floor(this._item.price / 2);
 };
 
 //-----------------------------------------------------------------------------
@@ -2031,17 +2034,22 @@ Scene_Battle.prototype.start = function() {
 
 Scene_Battle.prototype.update = function() {
     var active = this.isActive();
-    var busy = this.isBusy();
-    var inputting = this.isAnyInputWindowActive();
     $gameTimer.update(active);
     $gameScreen.update();
     this.updateStatusWindow();
     this.updateWindowPositions();
-    if (active && !busy && !inputting) {
+    if (active && !this.isBusy()) {
+        this.updateBattleProcess();
+    }
+    Scene_Base.prototype.update.call(this);
+};
+
+Scene_Battle.prototype.updateBattleProcess = function() {
+    if (!this.isAnyInputWindowActive() || BattleManager.isAborting() ||
+            BattleManager.isBattleEnd()) {
         BattleManager.update();
         this.changeInputWindow();
     }
-    Scene_Base.prototype.update.call(this);
 };
 
 Scene_Battle.prototype.isAnyInputWindowActive = function() {

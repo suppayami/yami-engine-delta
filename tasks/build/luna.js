@@ -5,6 +5,7 @@ var utils = require('../utils');
 var moduleName = 'LunaEngine';
 var fileName   = ['index.js',
                   'Core/Sprite/GUI.js',
+                  'Core/Sprite/GUIIcons.js',
                   'Core/Sprite/GUIText.js',
                   'Core/Sprite/GUIFace.js',
                   'Core/Sprite/GUIImage.js',

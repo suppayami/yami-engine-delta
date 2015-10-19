@@ -59,7 +59,7 @@ Sprite_Base.prototype.updateAnimationSprites = function() {
 Sprite_Base.prototype.startAnimation = function(animation, mirror, delay) {
     var sprite = new Sprite_Animation();
     sprite.setup(this._effectTarget, animation, mirror, delay);
-    this._effectTarget.parent.addChild(sprite);
+    this.parent.addChild(sprite);
     this._animationSprites.push(sprite);
 };
 
@@ -803,6 +803,13 @@ Sprite_Actor.prototype.updateFrame = function() {
     }
 };
 
+Sprite_Actor.prototype.updateMove = function() {
+    var bitmap = this._mainSprite.bitmap;
+    if (!bitmap || bitmap.isReady()) {
+        Sprite_Battler.prototype.updateMove.call(this);
+    }
+};
+
 Sprite_Actor.prototype.updateMotion = function() {
     this.setupMotion();
     this.setupWeaponAnimation();
@@ -1205,7 +1212,7 @@ Sprite_Animation.prototype.setup = function(target, animation, mirror, delay) {
 };
 
 Sprite_Animation.prototype.remove = function() {
-    if (this._target.parent.removeChild(this)) {
+    if (this.parent && this.parent.removeChild(this)) {
         this._target.setBlendColor([0, 0, 0, 0]);
         this._target.show();
     }
@@ -1348,8 +1355,14 @@ Sprite_Animation.prototype.updatePosition = function() {
         this.x = this.parent.width / 2;
         this.y = this.parent.height / 2;
     } else {
+        var parent = this._target.parent;
+        var grandparent = parent ? parent.parent : null;
         this.x = this._target.x;
         this.y = this._target.y;
+        if (this.parent === grandparent) {
+            this.x += parent.x;
+            this.y += parent.y;
+        }
         if (this._animation.position === 0) {
             this.y -= this._target.height;
         } else if (this._animation.position === 1) {
@@ -1391,6 +1404,7 @@ Sprite_Animation.prototype.updateCellSprite = function(sprite, cell) {
     if (pattern >= 0) {
         var sx = pattern % 5 * 192;
         var sy = Math.floor(pattern % 100 / 5) * 192;
+        var mirror = this._mirror;
         sprite.bitmap = pattern < 100 ? this._bitmap1 : this._bitmap2;
         sprite.setFrame(sx, sy, 192, 192);
         sprite.x = cell[1];
@@ -1400,7 +1414,7 @@ Sprite_Animation.prototype.updateCellSprite = function(sprite, cell) {
         }
         sprite.rotation = cell[4] * Math.PI / 180;
         sprite.scale.x = cell[3] / 100;
-        if (cell[5] === (this._mirror ? 0 : 1)) {
+        if ((cell[5] && !mirror) || (!cell[5] && mirror)) {
             sprite.scale.x *= -1;
         }
         sprite.scale.y = cell[3] / 100;

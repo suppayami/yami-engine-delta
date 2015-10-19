@@ -1,8 +1,8 @@
 /* globals LunaEngine: false */
 
-(function() {
+(function($LunaEngine, $Bitmap) {
     // dependencies
-    var GUI = LunaEngine.Core.Sprite.GUI;
+    var GUI = $LunaEngine.Core.Sprite.GUI;
 
     var GUIText = function() {
         this.initialize.apply(this, arguments);
@@ -14,7 +14,7 @@
     GUIText.prototype.initialize = function() {
         GUI.prototype.initialize.call(this);
 
-        this.bitmap = new Bitmap(1,1);
+        this.bitmap = new $Bitmap(1,1);
 
         this._text = "";
     };
@@ -112,7 +112,7 @@
         width = width + this.textPadding() * 2;
         height = this.lineHeight() * lineNumber;
 
-        this.bitmap = new Bitmap(width, height);
+        this.bitmap = new $Bitmap(width, height);
         this.drawTextEx(text, this.textPadding(), 0);
     };
 
@@ -148,5 +148,5 @@
         return 2;
     };
 
-    LunaEngine.Core.Sprite.GUIText = GUIText;
-}());
+    $LunaEngine.Core.Sprite.GUIText = GUIText;
+}(LunaEngine, Bitmap));
