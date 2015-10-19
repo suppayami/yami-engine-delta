@@ -1,8 +1,3 @@
-/*:
- * @plugindesc Luna Lite for Battle
- * @author Dr.Yami
- */
-
 /**
  * @namespace LunaEngine
  */

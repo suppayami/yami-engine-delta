@@ -5,6 +5,7 @@
     var _DataManager_loadMapData = DataManager.loadMapData;
     var _DataManager_isMapLoaded = DataManager.isMapLoaded;
     var _Game_Map_setup = Game_Map.prototype.setup;
+    var _Game_Event_setupPage = Game_Event.prototype.setupPage;
 
     DataManager.loadMapData = function(mapId) {
         _DataManager_loadMapData.call(this, mapId);
@@ -74,6 +75,37 @@
             index = this.width() * y + x;
 
         return collision[index] === 0;
+    };
+
+    Game_Event.prototype.setupPage = function() {
+        this.setupInitPosition();
+
+        _Game_Event_setupPage.call(this);
+    };
+
+    Game_Event.prototype.setupInitPosition = function() {
+        var list = this.list(),
+            tag  = /\<position:[ ]*(\d+),[ ]*(\d+)\>/i,
+            command,
+            comment,
+            matches,
+            x,y;
+
+        for (var i = 0; i < list.length; i++) {
+            command = list[i];
+
+            if (command.code !== 108) {
+                continue;
+            }
+
+            comment = command.parameters[0];
+
+            if (matches = comment.match(tag)) {
+                x = parseInt(matches[1]);
+                y = parseInt(matches[2]);
+                this.setPosition(x, y);
+            }
+        }
     };
 
     Tilemap.prototype.refresh = function() {
