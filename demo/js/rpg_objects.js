@@ -8551,7 +8551,6 @@ Game_Event.prototype.isTriggerIn = function(triggers) {
 
 Game_Event.prototype.start = function() {
     var list = this.list();
-    console.log(list);
     if (list && list.length > 1) {
         this._starting = true;
         if (this.isTriggerIn([0,1,2])) {

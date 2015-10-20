@@ -3,6 +3,10 @@
  */
 
 /**
+ * @external Game_Action
+ */
+
+/**
  * @external Game_Actor
  */
 
