@@ -1042,6 +1042,8 @@ YED.Tilemap = {};
     var _DataManager_isMapLoaded = DataManager.isMapLoaded;
     var _Game_Map_setup = Game_Map.prototype.setup;
     var _Game_Event_setupPage = Game_Event.prototype.setupPage;
+    var _Game_CharacterBase_distancePerFrame
+        = Game_CharacterBase.prototype.distancePerFrame;
 
     DataManager.loadMapData = function(mapId) {
         _DataManager_loadMapData.call(this, mapId);
@@ -1111,6 +1113,11 @@ YED.Tilemap = {};
             index = this.width() * y + x;
 
         return collision[index] === 0;
+    };
+
+    Game_CharacterBase.prototype.distancePerFrame = function() {
+        var distance = _Game_CharacterBase_distancePerFrame.call(this);
+        return distance * (48 / $gameMap.tileWidth());
     };
 
     Game_Event.prototype.setupPage = function() {
