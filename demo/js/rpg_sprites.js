@@ -577,6 +577,10 @@ Sprite_Battler.prototype.setupAnimation = function() {
         var mirror = data.mirror;
         var delay = animation.position === 3 ? 0 : data.delay;
         this.startAnimation(animation, mirror, delay);
+        for (var i = 0; i < this._animationSprites.length; i++) {
+            var sprite = this._animationSprites[i];
+            sprite.visible = this._battler.isSpriteVisible();
+        }
     }
 };
 

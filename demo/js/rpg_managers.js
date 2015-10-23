@@ -2053,11 +2053,13 @@ BattleManager.startTurn = function() {
     this.makeActionOrders();
     $gameParty.requestMotionRefresh();
     this._logWindow.startTurn();
-    this._subject = this.getNextSubject();
 };
 
 BattleManager.updateTurn = function() {
     $gameParty.requestMotionRefresh();
+    if (!this._subject) {
+        this._subject = this.getNextSubject();
+    }
     if (this._subject) {
         this.processTurn();
     } else {

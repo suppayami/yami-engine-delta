@@ -5062,6 +5062,7 @@ Window_BattleLog.prototype.displayRegeneration = function(subject) {
 };
 
 Window_BattleLog.prototype.displayAction = function(subject, item) {
+    var numMethods = this._methods.length;
     if (DataManager.isSkill(item)) {
         if (item.message1) {
             this.push('addText', subject.name() + item.message1.format(item.name));
@@ -5071,6 +5072,9 @@ Window_BattleLog.prototype.displayAction = function(subject, item) {
         }
     } else {
         this.push('addText', TextManager.useItem.format(subject.name(), item.name));
+    }
+    if (this._methods.length === numMethods) {
+        this.push('wait');
     }
 };
 
