@@ -41,10 +41,9 @@
             nextWord = "",
             nextWidth = 0,
             text = textState.text,
-            breakWord = !!this._breakWord,
-            getBreakLine;
+            breakWord = !!this._breakWord;
 
-        if (!this._wordWrap) {
+        if (!this._yamiWordWrap) {
             return false;
         }
 
@@ -69,8 +68,6 @@
 
             nextWidth = this.textWidth(nextWord);
 
-            console.log(nextWord);
-
             if (textState.x + nextWidth >= this.textAreaWidth()) {
                 return true;
             }
@@ -89,28 +86,28 @@
     Window_Base.prototype.convertWordWrapEscapeCharacters = function(text) {
         text = this.enableWordWrap(text);
 
-        if (!!this._wordWrap) {
+        if (!!this._yamiWordWrap) {
             text = text.replace(/[\n\r]+/g, '');
-            text = text.replace(/\<br\>/gi, '\n');
+            text = text.replace(/<br>/gi, '\n');
         }
 
         return text;
     };
 
     Window.prototype.enableWordWrap = function(text) {
-        this._wordWrap = false;
+        this._yamiWordWrap = false;
         this._breakWord = false;
 
-        if (!!text.match(/\<wrap\>/i)) {
-            this._wordWrap = true;
+        if (!!text.match(/<wrap>/i)) {
+            this._yamiWordWrap = true;
         }
 
-        if (!!text.match(/\<breakword\>/i)) {
+        if (!!text.match(/<breakword>/i)) {
             this._breakWord = true;
         }
 
-        text = text.replace(/\<wrap\>/gi, '');
-        text = text.replace(/\<breakword\>/gi, '');
+        text = text.replace(/<wrap>/gi, '');
+        text = text.replace(/<breakword>/gi, '');
 
         return text;
     };
