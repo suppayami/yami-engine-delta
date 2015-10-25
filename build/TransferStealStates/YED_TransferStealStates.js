@@ -104,21 +104,26 @@ YED.TransferStealStates = {};
      * @memberof YED.TransferStealStates.Utils
      */
     Utils.processNotetags = function() {
-        var group = $dataSkills,    // shorten group name
+        var groups = [$dataSkills, $dataItems],
+            group,
             obj,
             notedata,
             line;
 
-        for (var i = 1; i < group.length; i++) {
-            obj = group[i];
-            notedata = obj.note.split(/[\r\n]+/);
+        for (var j = 0; j < groups.length; j++) {
+            group = groups[j];
 
-            Utils._processProperties.call(this, obj);
-            Utils._processMethods.call(this, obj);
+            for (var i = 1; i < group.length; i++) {
+                obj = group[i];
+                notedata = obj.note.split(/[\r\n]+/);
 
-            for (var n = 0; n < notedata.length; n++) {
-                line = notedata[n];
-                Utils._processNotetag.call(this, obj, line);
+                Utils._processProperties.call(this, obj);
+                Utils._processMethods.call(this, obj);
+
+                for (var n = 0; n < notedata.length; n++) {
+                    line = notedata[n];
+                    Utils._processNotetag.call(this, obj, line);
+                }
             }
         }
     };
