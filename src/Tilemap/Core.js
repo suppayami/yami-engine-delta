@@ -57,8 +57,8 @@
                 if (xhr.status === 200 || xhr.responseText !== "") {
                     Core.dataMap = JSON.parse(xhr.responseText);
                 } else {
-                    Core.noMap = true;
-                    // throw new Error('[YED#Tilemap] Loading error');
+                    // Core.noMap = true;
+                    throw new Error('[YED#Tilemap] Loading error');
                 }
             }
         };
