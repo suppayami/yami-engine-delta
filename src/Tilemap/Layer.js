@@ -232,9 +232,9 @@
         this.bitmap = this.bitmap || new Bitmap(this.gridHorz * this.tileWidth,
                                                 this.gridVert * this.tileHeight);
 
-        if (this.isRegionLayer() || this.isCollisionLayer()) {
-            this.visible = false;
-        }
+        // if (this.isRegionLayer() || this.isCollisionLayer()) {
+        //     this.visible = false;
+        // }
 
         // different methods for tile-based and object-based layer
         if (this.isObjectLayer()) {
