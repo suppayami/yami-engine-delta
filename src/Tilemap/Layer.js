@@ -183,12 +183,38 @@
     };
 
     /**
+     * Check if layer is tile-based layer
+     *
+     * @return {Boolean}
+     */
+    Layer.prototype.isTileLayer = function() {
+        return this.data.type === 'tilelayer';
+    };
+
+    /**
      * Check if layer is object-based layer or tile-based layer
      *
      * @return {Boolean}
      */
     Layer.prototype.isObjectLayer = function() {
         return this.data.type === 'objectgroup';
+    };
+
+    /**
+     * Check if layer is image-based layer
+     *
+     * @return {Boolean}
+     */
+    Layer.prototype.isImageLayer = function() {
+        return this.data.type === 'imagelayer';
+    };
+
+    Layer.prototype.isCollisionLayer = function() {
+        return !!this.properties && !!this.properties.collision;
+    };
+
+    Layer.prototype.isRegionLayer = function() {
+        return !!this.properties && !!this.properties.regionId;
     };
 
     Layer.prototype.isUpperLayer = function() {
@@ -206,11 +232,21 @@
         this.bitmap = this.bitmap || new Bitmap(this.gridHorz * this.tileWidth,
                                                 this.gridVert * this.tileHeight);
 
+        if (this.isRegionLayer() || this.isCollisionLayer()) {
+            this.visible = false;
+        }
+
         // different methods for tile-based and object-based layer
         if (this.isObjectLayer()) {
             this._renderObjectLayer();
-        } else {
+        }
+
+        if (this.isTileLayer()) {
             this._renderTileLayer();
+        }
+
+        if (this.isImageLayer()) {
+            this._renderImageLayer();
         }
     };
 
@@ -271,6 +307,18 @@
 
             this._drawTile(tileId, bitmapX, bitmapY);
         }
+    };
+
+    /**
+     * Render object-based layer
+     *
+     * @private
+     */
+    Layer.prototype._renderImageLayer = function() {
+        var dest = this.bitmap,
+            img  = ImageManager.loadParserParallax(this.data.image, 0);
+
+        dest.blt(img, 0, 0, img.width, img.height, this.data.x, this.data.y);
     };
 
     /**

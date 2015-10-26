@@ -20,6 +20,7 @@
         this._loadListeners = [];
         this._isExist = false;
         this._collision = []; // collision matrix
+        this._region = []; // region matrix
         this.data = data;
     };
 
@@ -136,6 +137,12 @@
             get: function() {
                 return this._collision;
             }
+        },
+
+        region: {
+            get: function() {
+                return this._region;
+            }
         }
     });
 
@@ -147,6 +154,7 @@
     Data.prototype._setupData = function() {
         if (!!this.data) {
             this._setupCollision();
+            this._setupRegions();
             this._loadTilesets();
         }
     };
@@ -175,6 +183,30 @@
         }
     };
 
+    Data.prototype._setupRegions = function() {
+        var regionLayers = this._getRegionsLayers(),
+            i,j,
+            layer;
+
+        for (i = 0; i < this.width * this.height; i++) {
+            this.region[i] = 0;
+        }
+
+        for (i = 0; i < regionLayers.length; i++) {
+            layer = regionLayers[i];
+
+            if (!layer.data) {
+                continue;
+            }
+
+            for (j = 0; j < layer.data.length; j++) {
+                if (layer.data[j] > 0) {
+                    this.region[j] = parseInt(layer.properties.regionId);
+                }
+            }
+        }
+    };
+
     Data.prototype._loadTilesets = function() {
         var tilesetsData = this.tilesets,
             i = 0,
@@ -190,6 +222,18 @@
     Data.prototype._getCollisionLayers = function() {
         return this.layers.filter(function(layer) {
             return !!layer.properties && !!layer.properties.collision;
+        });
+    };
+
+    Data.prototype._getRegionsLayers = function() {
+        return this.layers.filter(function(layer) {
+            return !!layer.properties && !!layer.properties.regionId;
+        });
+    };
+
+    Data.prototype.getImageLayers = function() {
+        return this.layers.filter(function(layer) {
+            return layer.type === "imagelayer";
         });
     };
 

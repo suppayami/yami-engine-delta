@@ -19,7 +19,16 @@ YED.Tilemap = {};
         return this.loadNormalBitmap(realPath, hue);
     };
 
+    ImageManager.loadParserParallax = function(path, hue) {
+        var paths = path.split("/"),
+            filename = paths[paths.length - 1],
+            realPath = "img/parallaxes/" + filename;
+
+        return this.loadNormalBitmap(realPath, hue);
+    };
+
 }());
+
 /* globals YED: false */
 
 (function() {
@@ -42,6 +51,7 @@ YED.Tilemap = {};
         this._loadListeners = [];
         this._isExist = false;
         this._collision = []; // collision matrix
+        this._region = []; // region matrix
         this.data = data;
     };
 
@@ -158,6 +168,12 @@ YED.Tilemap = {};
             get: function() {
                 return this._collision;
             }
+        },
+
+        region: {
+            get: function() {
+                return this._region;
+            }
         }
     });
 
@@ -169,6 +185,7 @@ YED.Tilemap = {};
     Data.prototype._setupData = function() {
         if (!!this.data) {
             this._setupCollision();
+            this._setupRegions();
             this._loadTilesets();
         }
     };
@@ -197,6 +214,30 @@ YED.Tilemap = {};
         }
     };
 
+    Data.prototype._setupRegions = function() {
+        var regionLayers = this._getRegionsLayers(),
+            i,j,
+            layer;
+
+        for (i = 0; i < this.width * this.height; i++) {
+            this.region[i] = 0;
+        }
+
+        for (i = 0; i < regionLayers.length; i++) {
+            layer = regionLayers[i];
+
+            if (!layer.data) {
+                continue;
+            }
+
+            for (j = 0; j < layer.data.length; j++) {
+                if (layer.data[j] > 0) {
+                    this.region[j] = parseInt(layer.properties.regionId);
+                }
+            }
+        }
+    };
+
     Data.prototype._loadTilesets = function() {
         var tilesetsData = this.tilesets,
             i = 0,
@@ -212,6 +253,18 @@ YED.Tilemap = {};
     Data.prototype._getCollisionLayers = function() {
         return this.layers.filter(function(layer) {
             return !!layer.properties && !!layer.properties.collision;
+        });
+    };
+
+    Data.prototype._getRegionsLayers = function() {
+        return this.layers.filter(function(layer) {
+            return !!layer.properties && !!layer.properties.regionId;
+        });
+    };
+
+    Data.prototype.getImageLayers = function() {
+        return this.layers.filter(function(layer) {
+            return layer.type === "imagelayer";
         });
     };
 
@@ -660,12 +713,38 @@ YED.Tilemap = {};
     };
 
     /**
+     * Check if layer is tile-based layer
+     *
+     * @return {Boolean}
+     */
+    Layer.prototype.isTileLayer = function() {
+        return this.data.type === 'tilelayer';
+    };
+
+    /**
      * Check if layer is object-based layer or tile-based layer
      *
      * @return {Boolean}
      */
     Layer.prototype.isObjectLayer = function() {
         return this.data.type === 'objectgroup';
+    };
+
+    /**
+     * Check if layer is image-based layer
+     *
+     * @return {Boolean}
+     */
+    Layer.prototype.isImageLayer = function() {
+        return this.data.type === 'imagelayer';
+    };
+
+    Layer.prototype.isCollisionLayer = function() {
+        return !!this.properties && !!this.properties.collision;
+    };
+
+    Layer.prototype.isRegionLayer = function() {
+        return !!this.properties && !!this.properties.regionId;
     };
 
     Layer.prototype.isUpperLayer = function() {
@@ -683,11 +762,21 @@ YED.Tilemap = {};
         this.bitmap = this.bitmap || new Bitmap(this.gridHorz * this.tileWidth,
                                                 this.gridVert * this.tileHeight);
 
+        if (this.isRegionLayer() || this.isCollisionLayer()) {
+            this.visible = false;
+        }
+
         // different methods for tile-based and object-based layer
         if (this.isObjectLayer()) {
             this._renderObjectLayer();
-        } else {
+        }
+
+        if (this.isTileLayer()) {
             this._renderTileLayer();
+        }
+
+        if (this.isImageLayer()) {
+            this._renderImageLayer();
         }
     };
 
@@ -748,6 +837,18 @@ YED.Tilemap = {};
 
             this._drawTile(tileId, bitmapX, bitmapY);
         }
+    };
+
+    /**
+     * Render object-based layer
+     *
+     * @private
+     */
+    Layer.prototype._renderImageLayer = function() {
+        var dest = this.bitmap,
+            img  = ImageManager.loadParserParallax(this.data.image, 0);
+
+        dest.blt(img, 0, 0, img.width, img.height, this.data.x, this.data.y);
     };
 
     /**
@@ -830,6 +931,7 @@ YED.Tilemap = {};
     };
 
     Core.dataMap = null;
+    Core.noMap = false;
 
     Core.loadMapFile = function() {
         var filePath = Core.getFilePath();
@@ -838,6 +940,7 @@ YED.Tilemap = {};
 
     Core.unloadMap = function() {
         Core.dataMap = null;
+        Core.noMap = false;
     };
 
     Core.loadFile = function(filePath) {
@@ -848,10 +951,11 @@ YED.Tilemap = {};
         // on success callback
         xhr.onreadystatechange = function() {
             if (xhr.readyState === 4) {
-                if (xhr.status < 400) {
+                if (xhr.status === 200 || xhr.responseText !== "") {
                     Core.dataMap = JSON.parse(xhr.responseText);
                 } else {
-                    throw new Error('[YED#Tilemap] Loading error: ' + xhr.responseText);
+                    Core.noMap = true;
+                    // throw new Error('[YED#Tilemap] Loading error');
                 }
             }
         };
@@ -904,7 +1008,11 @@ YED.Tilemap = {};
     };
 
     Core.isMapLoaded = function() {
-        return !!Core.dataMap;
+        return !!Core.dataMap || !!Core.noMap;
+    };
+
+    Core.isDefaultMap = function() {
+        return !Core.dataMap && !!Core.noMap;
     };
 
     Core.prototype = Object.create(PIXI.DisplayObjectContainer.prototype);
@@ -954,6 +1062,7 @@ YED.Tilemap = {};
         this._setupData();
         this._setupLayers();
         this._setupTilesets();
+        this._setupParallaxes();
     };
 
     Core.prototype._setupData = function() {
@@ -969,6 +1078,16 @@ YED.Tilemap = {};
         for (; i < length; i++) {
             data = tilesetsData[i];
             this.tilesets.push(new Tileset(data));
+        }
+    };
+
+    Core.prototype._setupParallaxes = function() {
+        var imageData = this.data.getImageLayers(),
+            i = 0,
+            length = imageData.length;
+
+        for (; i < length; i++) {
+            ImageManager.loadParserParallax(imageData[i].image, 0);
         }
     };
 
@@ -1041,9 +1160,15 @@ YED.Tilemap = {};
     var _DataManager_loadMapData = DataManager.loadMapData;
     var _DataManager_isMapLoaded = DataManager.isMapLoaded;
     var _Game_Map_setup = Game_Map.prototype.setup;
+    var _Game_Map_tileWidth = Game_Map.prototype.tileWidth;
+    var _Game_Map_tileHeight = Game_Map.prototype.tileHeight;
+    var _Game_Map_width = Game_Map.prototype.width;
+    var _Game_Map_height = Game_Map.prototype.height;
     var _Game_Event_setupPage = Game_Event.prototype.setupPage;
     var _Game_CharacterBase_distancePerFrame
         = Game_CharacterBase.prototype.distancePerFrame;
+    var _Spriteset_Map_createTilemap
+        = Spriteset_Map.prototype.createTilemap;
 
     DataManager.loadMapData = function(mapId) {
         _DataManager_loadMapData.call(this, mapId);
@@ -1080,6 +1205,22 @@ YED.Tilemap = {};
         return this._yed_tilemap.data;
     };
 
+    Game_Map.prototype.oldTileWidth = function() {
+        return _Game_Map_tileWidth.call(this);
+    };
+
+    Game_Map.prototype.oldTileHeight = function() {
+        return _Game_Map_tileHeight.call(this);
+    };
+
+    Game_Map.prototype.oldWidth = function() {
+        return _Game_Map_width.call(this);
+    };
+
+    Game_Map.prototype.oldHeight = function() {
+        return _Game_Map_height.call(this);
+    };
+
     Game_Map.prototype.tileWidth = function() {
         return this._yedTilemapData().tileWidth;
     };
@@ -1094,6 +1235,14 @@ YED.Tilemap = {};
 
     Game_Map.prototype.height = function() {
         return this._yedTilemapData().height;
+    };
+
+    Game_Map.prototype.defaultMapX = function() {
+        return this._yedTilemapData().properties.defaultMapX || 0;
+    };
+
+    Game_Map.prototype.defaultMapY = function() {
+        return this._yedTilemapData().properties.defaultMapY || 0;
     };
 
     Game_Map.prototype.tilemapUpperLayers = function() {
@@ -1113,6 +1262,13 @@ YED.Tilemap = {};
             index = this.width() * y + x;
 
         return collision[index] === 0;
+    };
+
+    Game_Map.prototype.regionId = function(x, y) {
+        var regions = this._yedTilemapData().region,
+            index = this.width() * y + x;
+
+        return regions[index];
     };
 
     Game_CharacterBase.prototype.distancePerFrame = function() {
@@ -1151,8 +1307,16 @@ YED.Tilemap = {};
         }
     };
 
+    Spriteset_Map.prototype.createTilemap = function() {
+        _Spriteset_Map_createTilemap.call(this);
+        this._tilemap.tileWidth = $gameMap.oldTileWidth();
+        this._tilemap.tileHeight = $gameMap.oldTileHeight();
+        this._tilemap.setData($gameMap.oldWidth(), $gameMap.oldHeight(), $gameMap.data());
+    };
+
     Tilemap.prototype.refresh = function() {
-        this._needsRepaint = false; // no need to draw default tiles
+        this._needsRepaint = true; // no need to draw default tiles
+        this._lastTiles.length = 0;
         $gameMap.tilemapRefresh();
     };
 
@@ -1165,6 +1329,9 @@ YED.Tilemap = {};
             layerWidth = tileCols * this._tileWidth,
             layerHeight = tileRows * this._tileHeight,
             i;
+
+        this._lowerBitmap = new Bitmap(layerWidth, layerHeight);
+        this._upperBitmap = new Bitmap(layerWidth, layerHeight);
 
         this._layerWidth = layerWidth;
         this._layerHeight = layerHeight;
@@ -1214,13 +1381,14 @@ YED.Tilemap = {};
             w1 = this._layerWidth - x2,
             h1 = this._layerHeight - y2,
             w2 = this._width - w1,
-            h2 = this._height - h1;
+            h2 = this._height - h1,
+            dx = x2 + $gameMap.defaultMapX() * 12,
+            dy = y2 + $gameMap.defaultMapY() * 12;
 
         // TODO: Loop map!!!
 
         var moveFunc = function(layer) {
             layer.move(x2, y2);
-            // layer.setFrame(0, 0, w2, h2);
         };
 
         for (var i = 0; i < 2; i++) {
@@ -1234,11 +1402,13 @@ YED.Tilemap = {};
 
             children.forEach(moveFunc);
         }
+
+        // this._updateDefaultLayerPositions(startX, startY);
     };
 
-    Tilemap.prototype._paintAllTiles = function(startX, startY) {
-        /* jshint unused:vars */
-        // destroy method
-    };
+    // Tilemap.prototype._paintAllTiles = function(startX, startY) {
+    //     /* jshint unused:vars */
+    //     // destroy method
+    // };
 
 }());

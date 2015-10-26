@@ -5,9 +5,15 @@
     var _DataManager_loadMapData = DataManager.loadMapData;
     var _DataManager_isMapLoaded = DataManager.isMapLoaded;
     var _Game_Map_setup = Game_Map.prototype.setup;
+    var _Game_Map_tileWidth = Game_Map.prototype.tileWidth;
+    var _Game_Map_tileHeight = Game_Map.prototype.tileHeight;
+    var _Game_Map_width = Game_Map.prototype.width;
+    var _Game_Map_height = Game_Map.prototype.height;
     var _Game_Event_setupPage = Game_Event.prototype.setupPage;
     var _Game_CharacterBase_distancePerFrame
         = Game_CharacterBase.prototype.distancePerFrame;
+    var _Spriteset_Map_createTilemap
+        = Spriteset_Map.prototype.createTilemap;
 
     DataManager.loadMapData = function(mapId) {
         _DataManager_loadMapData.call(this, mapId);
@@ -44,6 +50,22 @@
         return this._yed_tilemap.data;
     };
 
+    Game_Map.prototype.oldTileWidth = function() {
+        return _Game_Map_tileWidth.call(this);
+    };
+
+    Game_Map.prototype.oldTileHeight = function() {
+        return _Game_Map_tileHeight.call(this);
+    };
+
+    Game_Map.prototype.oldWidth = function() {
+        return _Game_Map_width.call(this);
+    };
+
+    Game_Map.prototype.oldHeight = function() {
+        return _Game_Map_height.call(this);
+    };
+
     Game_Map.prototype.tileWidth = function() {
         return this._yedTilemapData().tileWidth;
     };
@@ -58,6 +80,14 @@
 
     Game_Map.prototype.height = function() {
         return this._yedTilemapData().height;
+    };
+
+    Game_Map.prototype.defaultMapX = function() {
+        return this._yedTilemapData().properties.defaultMapX || 0;
+    };
+
+    Game_Map.prototype.defaultMapY = function() {
+        return this._yedTilemapData().properties.defaultMapY || 0;
     };
 
     Game_Map.prototype.tilemapUpperLayers = function() {
@@ -77,6 +107,13 @@
             index = this.width() * y + x;
 
         return collision[index] === 0;
+    };
+
+    Game_Map.prototype.regionId = function(x, y) {
+        var regions = this._yedTilemapData().region,
+            index = this.width() * y + x;
+
+        return regions[index];
     };
 
     Game_CharacterBase.prototype.distancePerFrame = function() {
@@ -115,8 +152,16 @@
         }
     };
 
+    Spriteset_Map.prototype.createTilemap = function() {
+        _Spriteset_Map_createTilemap.call(this);
+        this._tilemap.tileWidth = $gameMap.oldTileWidth();
+        this._tilemap.tileHeight = $gameMap.oldTileHeight();
+        this._tilemap.setData($gameMap.oldWidth(), $gameMap.oldHeight(), $gameMap.data());
+    };
+
     Tilemap.prototype.refresh = function() {
-        this._needsRepaint = false; // no need to draw default tiles
+        this._needsRepaint = true; // no need to draw default tiles
+        this._lastTiles.length = 0;
         $gameMap.tilemapRefresh();
     };
 
@@ -129,6 +174,9 @@
             layerWidth = tileCols * this._tileWidth,
             layerHeight = tileRows * this._tileHeight,
             i;
+
+        this._lowerBitmap = new Bitmap(layerWidth, layerHeight);
+        this._upperBitmap = new Bitmap(layerWidth, layerHeight);
 
         this._layerWidth = layerWidth;
         this._layerHeight = layerHeight;
@@ -178,13 +226,14 @@
             w1 = this._layerWidth - x2,
             h1 = this._layerHeight - y2,
             w2 = this._width - w1,
-            h2 = this._height - h1;
+            h2 = this._height - h1,
+            dx = x2 + $gameMap.defaultMapX() * 12,
+            dy = y2 + $gameMap.defaultMapY() * 12;
 
         // TODO: Loop map!!!
 
         var moveFunc = function(layer) {
             layer.move(x2, y2);
-            // layer.setFrame(0, 0, w2, h2);
         };
 
         for (var i = 0; i < 2; i++) {
@@ -198,11 +247,13 @@
 
             children.forEach(moveFunc);
         }
+
+        // this._updateDefaultLayerPositions(startX, startY);
     };
 
-    Tilemap.prototype._paintAllTiles = function(startX, startY) {
-        /* jshint unused:vars */
-        // destroy method
-    };
+    // Tilemap.prototype._paintAllTiles = function(startX, startY) {
+    //     /* jshint unused:vars */
+    //     // destroy method
+    // };
 
 }());

@@ -34,6 +34,7 @@
     };
 
     Core.dataMap = null;
+    Core.noMap = false;
 
     Core.loadMapFile = function() {
         var filePath = Core.getFilePath();
@@ -42,6 +43,7 @@
 
     Core.unloadMap = function() {
         Core.dataMap = null;
+        Core.noMap = false;
     };
 
     Core.loadFile = function(filePath) {
@@ -52,10 +54,11 @@
         // on success callback
         xhr.onreadystatechange = function() {
             if (xhr.readyState === 4) {
-                if (xhr.status < 400) {
+                if (xhr.status === 200 || xhr.responseText !== "") {
                     Core.dataMap = JSON.parse(xhr.responseText);
                 } else {
-                    throw new Error('[YED#Tilemap] Loading error: ' + xhr.responseText);
+                    Core.noMap = true;
+                    // throw new Error('[YED#Tilemap] Loading error');
                 }
             }
         };
@@ -108,7 +111,11 @@
     };
 
     Core.isMapLoaded = function() {
-        return !!Core.dataMap;
+        return !!Core.dataMap || !!Core.noMap;
+    };
+
+    Core.isDefaultMap = function() {
+        return !Core.dataMap && !!Core.noMap;
     };
 
     Core.prototype = Object.create(PIXI.DisplayObjectContainer.prototype);
@@ -158,6 +165,7 @@
         this._setupData();
         this._setupLayers();
         this._setupTilesets();
+        this._setupParallaxes();
     };
 
     Core.prototype._setupData = function() {
@@ -173,6 +181,16 @@
         for (; i < length; i++) {
             data = tilesetsData[i];
             this.tilesets.push(new Tileset(data));
+        }
+    };
+
+    Core.prototype._setupParallaxes = function() {
+        var imageData = this.data.getImageLayers(),
+            i = 0,
+            length = imageData.length;
+
+        for (; i < length; i++) {
+            ImageManager.loadParserParallax(imageData[i].image, 0);
         }
     };
 
