@@ -9,4 +9,5 @@ gulp.task('build', ['lint-engine'], function() {
     gulp.start('build-luna-battle-config');
     gulp.start('build-transferstealstates');
     gulp.start('build-wordwrap');
+    gulp.start('build-hospital-cc');
 });

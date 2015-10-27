@@ -40,7 +40,6 @@
         this.tileHeight = tileHeight;
 
         this._tilingSprite = null;
-        this.origin = new Point();
 
         if (!this.data.visible) {
             this.visible = false;
@@ -349,7 +348,7 @@
 
         this._tilingSprite = new TilingSprite(img);
         this._tilingSprite.move(this.data.x, this.data.y,
-            Graphics.width, Graphics.height)
+            Graphics.width, Graphics.height);
         this.addChild(this._tilingSprite);
     };
 

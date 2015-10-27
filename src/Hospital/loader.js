@@ -3,20 +3,27 @@
 /**
  * Pre-processes and notetag parsing
  */
-(function() {
-    // shorten dependencies
-    var Utils = YED.Hospital.Utils;
-    // Aliasing: Scene_Boot.start
-    var _Scene_Boot_start = Scene_Boot.prototype.start;
+(function($Utils) {
+    /**
+     * Aliasing methods
+     */
+    var _DataManager_isDatabaseLoaded = DataManager.isDatabaseLoaded;
 
     /**
-     * Extending: Scene_Boot.prototype.start
+     * Extending: DataManager.isDatabaseLoaded
      *
-     * Add notetags processing for module.
+     * Add notetags and parameters processing for module.
      */
-    Scene_Boot.prototype.start = function() {
-        _Scene_Boot_start.call(this);
+    DataManager.isDatabaseLoaded = function() {
+        var loaded = _DataManager_isDatabaseLoaded.call(this);
 
-        Utils.processParameters.call(DataManager);
+        if (!loaded) {
+            return false;
+        }
+
+        $Utils.processParameters.call(DataManager);
+        $Utils.processNotetags.call(DataManager);
+
+        return true;
     };
-}());
+}(YED.Hospital.Utils));

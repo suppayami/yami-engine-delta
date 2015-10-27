@@ -1,10 +1,7 @@
 /* globals LunaEngine: false */
 
 (function() {
-    var SpriteClasses = LunaEngine.Core.Sprite,
-        GUIText = LunaEngine.Core.Sprite.GUIText,
-        GUIFace = LunaEngine.Core.Sprite.GUIFace,
-        GUIImage = LunaEngine.Core.Sprite.GUIImage;
+    var SpriteClasses = LunaEngine.Core.Sprite;
 
     var GUIBase = function() {
         this.initialize.apply(this, arguments);

@@ -5,6 +5,7 @@ var utils = require('../utils');
 var moduleName = 'Hospital';
 var fileName   = ['header.js',
                   'index.js',
+                  'Regexp.js',
                   'Utils.js',
                   'loader.js',
                   'Game_Actor.js',

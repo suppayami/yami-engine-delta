@@ -270,9 +270,9 @@ YED.TransferStealStates = {};
     var _DataManager_isDatabaseLoaded = DataManager.isDatabaseLoaded;
 
     /**
-     * Extending: Scene_Boot.prototype.start
+     * Extending: DataManager.isDatabaseLoaded
      *
-     * Add notetags processing for module.
+     * Add notetags and parameters processing for module.
      */
     DataManager.isDatabaseLoaded = function() {
         var loaded = _DataManager_isDatabaseLoaded.call(this);
@@ -286,8 +286,6 @@ YED.TransferStealStates = {};
         return true;
     };
 }(YED.TransferStealStates.Utils));
-
-/* globals YED: false */
 
 (function() {
     /**
@@ -379,7 +377,6 @@ YED.TransferStealStates = {};
      */
     Game_Action.prototype.itemEffectStealStates = function(target) {
         var result = target.result(),
-            item   = this.item(),
             statesId = this.getTransferStealStates(target, 'steal'),
             subject = this.subject();
 
@@ -406,7 +403,6 @@ YED.TransferStealStates = {};
      */
     Game_Action.prototype.itemEffectTransferStates = function(target) {
         var result = target.result(),
-            item   = this.item(),
             statesId = this.getTransferStealStates(target, 'transfer'),
             subject = this.subject();
 
