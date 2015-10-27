@@ -1,12 +1,7 @@
 /*:
  * Yami Engine Delta - Hospital
  *
-<<<<<<< HEAD
- * @plugindesc v1.0.0 Provides hospital feature, where party spend their money for recovery.
-=======
- * @plugindesc v1.1.0 Provides hospital feature, where party spend their money for
- * recovery.
->>>>>>> development
+ * @plugindesc v1.1.0 Provides hospital feature, where party spend their money for recovery.
  * @author Yami Engine Delta [Dr.Yami]
  *
  * @param [Default Price]
