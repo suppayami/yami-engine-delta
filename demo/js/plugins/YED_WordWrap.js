@@ -1,8 +1,7 @@
 /*:
  * Yami Engine Delta - Word Wrap
  *
- * @plugindesc This plugin provides word wrap feature, so that a long text
- * will be properly broken down into lines.
+ * @plugindesc v1.0.0 This plugin provides word wrap feature, so that a long text will be properly broken down into lines.
  * @author Yami Engine Delta [Dr.Yami]
  *
  * @help

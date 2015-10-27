@@ -1,7 +1,7 @@
 /*:
  * Yami Engine Delta - Transfer and Steal States
  *
- * @plugindesc Allows creating skills that can transfer and/or steal
+ * @plugindesc v1.0.1 Allows creating skills that can transfer and/or steal
  * states to/from target.
  * @author Yami Engine Delta [Dr.Yami]
  *
