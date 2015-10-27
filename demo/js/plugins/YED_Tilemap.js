@@ -569,6 +569,9 @@ YED.Tilemap = {};
         this.tileWidth  = tileWidth;
         this.tileHeight = tileHeight;
 
+        this._tilingSprite = null;
+        this.origin = new Point();
+
         if (!this.data.visible) {
             this.visible = false;
         }
@@ -739,6 +742,17 @@ YED.Tilemap = {};
         return this.data.type === 'imagelayer';
     };
 
+    /**
+     * Check if layer is plane layer
+     *
+     * @return {Boolean}
+     */
+    Layer.prototype.isPlaneLayer = function() {
+        return this.isImageLayer()
+            && !!this.properties
+            && !!this.properties.parallax;
+    };
+
     Layer.prototype.isCollisionLayer = function() {
         return !!this.properties && !!this.properties.collision;
     };
@@ -775,8 +789,12 @@ YED.Tilemap = {};
             this._renderTileLayer();
         }
 
-        if (this.isImageLayer()) {
+        if (this.isImageLayer() && !this.isPlaneLayer()) {
             this._renderImageLayer();
+        }
+
+        if (this.isPlaneLayer()) {
+            this._renderPlaneLayer();
         }
     };
 
@@ -852,6 +870,20 @@ YED.Tilemap = {};
     };
 
     /**
+     * Render object-based layer
+     *
+     * @private
+     */
+    Layer.prototype._renderPlaneLayer = function() {
+        var img = ImageManager.loadParserParallax(this.data.image, 0);
+
+        this._tilingSprite = new TilingSprite(img);
+        this._tilingSprite.move(this.data.x, this.data.y,
+            Graphics.width, Graphics.height)
+        this.addChild(this._tilingSprite);
+    };
+
+    /**
      * Get tileset which contains the drawing tile
      *
      * @param  {number} tileId Tile ID in layer data
@@ -890,6 +922,37 @@ YED.Tilemap = {};
         var dest    = this.bitmap;
 
         dest.blt.apply(dest, params);
+    };
+
+    Layer.prototype.update = function() {
+        this._updatePlane();
+    };
+
+    Layer.prototype._updatePlane = function() {
+        var xSpeed = parseInt(this.properties.planeX),
+            ySpeed = parseInt(this.properties.planeY),
+            ox,
+            oy,
+            mOx,
+            mOy;
+
+        if (!this._tilingSprite) {
+            return;
+        }
+
+        ox = this._tilingSprite.origin.x;
+        oy = this._tilingSprite.origin.y;
+
+        mOx = this._tilingSprite.bitmap.width;
+        mOy = this._tilingSprite.bitmap.height;
+
+        if (!!xSpeed) {
+            this._tilingSprite.origin.x = (ox + xSpeed) % mOx;
+        }
+
+        if (!!ySpeed) {
+            this._tilingSprite.origin.y = (oy + ySpeed) % mOy;
+        }
     };
 
     YED.Tilemap.Layer = Layer;
@@ -1388,7 +1451,12 @@ YED.Tilemap = {};
         // TODO: Loop map!!!
 
         var moveFunc = function(layer) {
-            layer.move(x2, y2);
+            if (!layer.isPlaneLayer()) {
+                layer.move(x2, y2);
+                return;
+            }
+
+            layer.move(m, m);
         };
 
         for (var i = 0; i < 2; i++) {

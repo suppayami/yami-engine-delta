@@ -3953,7 +3953,7 @@ Game_Actor.prototype.isLearnedSkill = function(skillId) {
 
 Game_Actor.prototype.changeClass = function(classId, keepExp) {
     if (keepExp) {
-        this._exp[classId] = this._exp();
+        this._exp[classId] = this.currentExp();
     }
     this._classId = classId;
     this.changeExp(this._exp[this._classId] || 0, false);
@@ -8476,7 +8476,8 @@ Game_Event.prototype.updateStop = function() {
 };
 
 Game_Event.prototype.updateSelfMovement = function() {
-    if (this.isNearTheScreen() && this.checkStop(this.stopCountThreshold())) {
+    if (!this._locked && this.isNearTheScreen() &&
+            this.checkStop(this.stopCountThreshold())) {
         switch (this._moveType) {
         case 1:
             this.moveTypeRandom();

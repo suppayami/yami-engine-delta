@@ -5,6 +5,11 @@
          "image":"..\/img\/parallaxes\/BlueSky.png",
          "name":"Image Layer 1",
          "opacity":1,
+         "properties":
+            {
+             "parallax":"true",
+             "planeX":"2"
+            },
          "type":"imagelayer",
          "visible":true,
          "width":80,

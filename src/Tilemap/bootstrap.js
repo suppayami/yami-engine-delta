@@ -233,7 +233,12 @@
         // TODO: Loop map!!!
 
         var moveFunc = function(layer) {
-            layer.move(x2, y2);
+            if (!layer.isPlaneLayer()) {
+                layer.move(x2, y2);
+                return;
+            }
+
+            layer.move(m, m);
         };
 
         for (var i = 0; i < 2; i++) {
