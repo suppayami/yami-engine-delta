@@ -1,5 +1,3 @@
-/* globals YED: false */
-
 (function() {
     /**
      * Aliasing methods
@@ -90,7 +88,6 @@
      */
     Game_Action.prototype.itemEffectStealStates = function(target) {
         var result = target.result(),
-            item   = this.item(),
             statesId = this.getTransferStealStates(target, 'steal'),
             subject = this.subject();
 
@@ -117,7 +114,6 @@
      */
     Game_Action.prototype.itemEffectTransferStates = function(target) {
         var result = target.result(),
-            item   = this.item(),
             statesId = this.getTransferStealStates(target, 'transfer'),
             subject = this.subject();
 

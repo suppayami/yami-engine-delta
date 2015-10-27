@@ -22,7 +22,7 @@
         fee += lostMp * this.getHospitalMpFeeRate();
 
         for (var i = 0; i < states.length; i++) {
-            fee += this.getHospitalStateFeeRate(states[i].id);
+            fee += this.getHospitalStateFeeRate(states[i]);
         }
 
         return fee;
@@ -52,11 +52,11 @@
      * Get hospital fee for each state to be removed.
      *
      * @function external:Game_Actor#getHospitalStateFeeRate
+     * @param  {Object} state State object
      * @return {number} Hospital State Fee Rate
      */
-    Game_Actor.prototype.getHospitalStateFeeRate = function(stateId) {
-        /* jshint unused:vars */
-        return Utils.parameters['State Price'];
+    Game_Actor.prototype.getHospitalStateFeeRate = function(state) {
+        return state.getHospitalFee();
     };
 
     /**
@@ -66,7 +66,9 @@
      * @return {Object[]} States Array
      */
     Game_Actor.prototype.getHospitalStates = function() {
-        return this.states();
+        return this.states().filter(function(state) {
+            return !state.getNoHospital();
+        });
     };
 
     /**

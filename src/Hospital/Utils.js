@@ -1,6 +1,6 @@
 /* globals YED: false */
 
-(function() {
+(function($exports, $PluginManager, $Regexp) {
     /**
      * Contains utility tools for module.
      *
@@ -25,7 +25,7 @@
      * @memberof YED.Hospital.Utils
      */
     Utils.processParameters = function() {
-        var parameters   = PluginManager.parameters('YED_Hospital'),
+        var parameters   = $PluginManager.parameters('YED_Hospital'),
             result       = Utils.parameters,
             nurseFaceStr = String(parameters['Nurse Face'] || 'People4, 1'),
             nurseFace    = [];
@@ -73,6 +73,119 @@
     };
 
     /**
+     * Process notetag function.
+     * Should be called with DataManager as current object.
+     *
+     * @function processNotetag
+     * @memberof YED.Hospital.Utils
+     */
+    Utils.processNotetags = function() {
+        Utils._processNotetags.call(this, $dataStates);
+    };
+
+    /**
+     * Process notetag function.
+     * Should be called with DataManager as current object.
+     *
+     * @function _processNotetags
+     * @memberof YED.Hospital.Utils
+     * @param  {Object} $data Data object
+     * @private
+     */
+    Utils._processNotetags = function($data) {
+        var group = $data,
+            obj,
+            notedata,
+            line;
+
+        for (var i = 1; i < group.length; i++) {
+            obj = group[i];
+            notedata = obj.note.split(/[\r\n]+/);
+
+            Utils._processProperties.call(this, obj);
+            Utils._processMethods.call(this, obj);
+
+            for (var n = 0; n < notedata.length; n++) {
+                line = notedata[n];
+                Utils._processNotetag.call(this, obj, line);
+            }
+        }
+    };
+
+    /**
+     * Add new properties into object.
+     *
+     * @function _processProperties
+     * @memberof YED.Hospital.Utils
+     * @param  {Object} obj Data object
+     * @private
+     */
+    Utils._processProperties = function(obj) {
+        obj._noHospital = false;
+        obj._hospitalFee = Utils.parameters['State Price'];
+    };
+
+    /**
+     * Add new methods into object.
+     *
+     * @function _processMethods
+     * @memberof YED.Hospital.Utils
+     * @param  {Object} obj Data object
+     * @private
+     */
+    Utils._processMethods = function(obj) {
+        obj.getNoHospital = Utils.getNoHospital;
+        obj.getHospitalFee = Utils.getHospitalFee;
+    };
+
+    /**
+     * Process notetag for object.
+     *
+     * @function _processNotetag
+     * @memberof YED.Hospital.Utils
+     * @param  {Object} obj Data object
+     * @param  {String} notetag Notetag
+     * @private
+     */
+    Utils._processNotetag = function(obj, notetag) {
+        var match;
+
+        match = notetag.match($Regexp.RETAIN);
+        if (match) {
+            obj._noHospital = true;
+        }
+
+        match = notetag.match($Regexp.STATE_COST);
+        if (match) {
+            obj._hospitalFee = parseInt(match[1]) || 0;
+        }
+    };
+
+    /**
+     * Get no hospitalizable flag.
+     * Should be attached to state object.
+     *
+     * @function getNoHospital
+     * @memberof YED.Hospital.Utils
+     * @return {Boolean} No Hospitalized
+     */
+    Utils.getNoHospital = function() {
+        return !!this._noHospital;
+    };
+
+    /**
+     * Get hospital fee.
+     * Should be attached to state object.
+     *
+     * @function getHospitalFee
+     * @memberof YED.Hospital.Utils
+     * @return {Number} Hospital Fee
+     */
+    Utils.getHospitalFee = function() {
+        return this._hospitalFee;
+    };
+
+    /**
      * Go to Hospital Scene.
      * Should be called with Game_Interpreter object as current object.
      *
@@ -85,5 +198,5 @@
         SceneManager.push(scene);
     };
 
-    YED.Hospital.Utils = Utils;
-}());
+    $exports.Utils = Utils;
+}(YED.Hospital, PluginManager, YED.Hospital.Regexp));

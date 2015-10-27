@@ -1,7 +1,7 @@
 /*:
  * Yami Engine Delta - Hospital
  *
- * @plugindesc Provides hospital feature, where party spend their money for
+ * @plugindesc v1.1.0 Provides hospital feature, where party spend their money for
  * recovery.
  * @author Yami Engine Delta [Dr.Yami]
  *
@@ -86,4 +86,16 @@
  *
  * Plugin Command:
  *   OpenHospital       Opens up the Hospital Scene from the field.
+ *
+ * ============================================================================
+ *
+ * States
+ *
+ * To make state not removable on hospitalize, use below notetag.
+ *   <No Hospital>
+ *
+ * To set hospital fee for state, use below notetag.
+ *   <Hospital Fee: X>
+ *
+ * ============================================================================
  */

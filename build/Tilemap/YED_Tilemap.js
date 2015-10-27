@@ -570,7 +570,6 @@ YED.Tilemap = {};
         this.tileHeight = tileHeight;
 
         this._tilingSprite = null;
-        this.origin = new Point();
 
         if (!this.data.visible) {
             this.visible = false;
@@ -879,7 +878,7 @@ YED.Tilemap = {};
 
         this._tilingSprite = new TilingSprite(img);
         this._tilingSprite.move(this.data.x, this.data.y,
-            Graphics.width, Graphics.height)
+            Graphics.width, Graphics.height);
         this.addChild(this._tilingSprite);
     };
 
@@ -1347,7 +1346,7 @@ YED.Tilemap = {};
 
     Game_Event.prototype.setupInitPosition = function() {
         var list = this.list(),
-            tag  = /\<position:[ ]*(\d+),[ ]*(\d+)\>/i,
+            tag  = /<position:[ ]*(\d+),[ ]*(\d+)>/i,
             command,
             comment,
             matches,
@@ -1361,8 +1360,8 @@ YED.Tilemap = {};
             }
 
             comment = command.parameters[0];
-
-            if (matches = comment.match(tag)) {
+            matches = comment.match(tag);
+            if (matches) {
                 x = parseInt(matches[1]);
                 y = parseInt(matches[2]);
                 this.setPosition(x, y);
@@ -1440,13 +1439,7 @@ YED.Tilemap = {};
             ox = Math.floor(this.origin.x),
             oy = Math.floor(this.origin.y),
             x2 = -(ox - m),
-            y2 = -(oy - m),
-            w1 = this._layerWidth - x2,
-            h1 = this._layerHeight - y2,
-            w2 = this._width - w1,
-            h2 = this._height - h1,
-            dx = x2 + $gameMap.defaultMapX() * 12,
-            dy = y2 + $gameMap.defaultMapY() * 12;
+            y2 = -(oy - m);
 
         // TODO: Loop map!!!
 

@@ -10,9 +10,9 @@
     var _DataManager_isDatabaseLoaded = DataManager.isDatabaseLoaded;
 
     /**
-     * Extending: Scene_Boot.prototype.start
+     * Extending: DataManager.isDatabaseLoaded
      *
-     * Add notetags processing for module.
+     * Add notetags and parameters processing for module.
      */
     DataManager.isDatabaseLoaded = function() {
         var loaded = _DataManager_isDatabaseLoaded.call(this);
