@@ -13,60 +13,39 @@
  *
  * @param HP Price (Eval)
  * @desc Needed money for recovering full HP. Evalable.
- * @default (1 - actor.hpRate()) * 100
+ * actor refers to actor object.
+ * @default (1 - actor.hpRate()) * 100 * 50 * actor.level
  *
  * @param MP Price (Eval)
  * @desc Needed money for recovering full MP. Evalable.
- * @default (1 - actor.mpRate()) * 200
+ * actor refers to actor object.
+ * @default (1 - actor.mpRate()) * 100 * 100 * actor.level
  *
  * @param State Price (Eval)
- * @desc Needed money for removing all states. Evalable.
- * @default actor.states().length * 200
+ * @desc Needed money for removing a state. Evalable.
+ * actor refers to actor object. price refers to default fee.
+ * @default price * actor.level
  *
  * @param [Cost Weapons]
  * @default
  *
- * @param HP Weapon Costs
- * @desc Needed weapons for recovering full HP. Array of [WeaponID, Quantity]
- * @default [1, 5], [2, 10]
- *
- * @param MP Weapon Costs
- * @desc Needed weapons for recovering full MP. Array of [WeaponID, Quantity]
- * @default [1, 5], [2, 10]
- *
- * @param State Weapon Costs
- * @desc Needed weapons for removing all states. Array of [WeaponID, Quantity]
- * @default [1, 5], [2, 10]
+ * @param Hospital Weapon Costs
+ * @desc Needed weapons for fully recovering. Array of [WeaponID, Quantity]
+ * @default
  *
  * @param [Cost Armors]
  * @default
  *
- * @param HP Armor Costs
- * @desc Needed armors for recovering full HP. Array of [ArmorID, Quantity]
- * @default [1, 5], [2, 10]
- *
- * @param MP Armor Costs
- * @desc Needed armors for recovering full MP. Array of [ArmorID, Quantity]
- * @default [1, 5], [2, 10]
- *
- * @param State Armor Costs
- * @desc Needed armors for removing all states. Array of [ArmorID, Quantity]
- * @default [1, 5], [2, 10]
+ * @param Hospital Armor Costs
+ * @desc Needed armors for fully recovering. Array of [ArmorID, Quantity]
+ * @default
  *
  * @param [Cost Items]
  * @default
  *
- * @param HP Item Costs
- * @desc Needed items for recovering full HP. Array of [ItemID, Quantity]
- * @default [1, 5], [2, 10]
- *
- * @param MP Item Costs
- * @desc Needed items for recovering full MP. Array of [ItemID, Quantity]
- * @default [1, 5], [2, 10]
- *
- * @param State Item Costs
- * @desc Needed items for removing all states. Array of [ItemID, Quantity]
- * @default [1, 5], [2, 10]
+ * @param Hospital Item Costs
+ * @desc Needed items for fully recovering. Array of [ItemID, Quantity]
+ * @default
  *
  * @help
  * The following are Plugin Commands you may use with events.

@@ -113,7 +113,7 @@
         }
 
         gaugeWidth = this.contentsWidth()
-            - (168 * 2 + Window_Base._iconWidth * 3 + this.textPadding() * 2);
+            - (168 * 2 + Window_Base._iconWidth * 3 + this.textPadding() * 3);
         gaugeWidth = gaugeWidth / 2 - 8;
 
         offsetX = this.textPadding();
@@ -122,7 +122,7 @@
         offsetX = offsetX + 168;
         this.drawActorIcons(actor, rect.x + offsetX, rect.y, Window_Base._iconWidth * 3);
 
-        offsetX = offsetX + Window_Base._iconWidth * 3;
+        offsetX = offsetX + Window_Base._iconWidth * 3 + this.textPadding();
         this.drawActorHp(actor, rect.x + offsetX, rect.y, gaugeWidth);
 
         offsetX = offsetX + gaugeWidth + 8;

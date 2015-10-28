@@ -13,13 +13,11 @@
      * @return {number} Total hospital fees
      */
     Game_Actor.prototype.hospitalFee = function() {
-        var lostHp = Math.max(this.mhp - this._hp, 0),
-            lostMp = Math.max(this.mmp - this._mp, 0),
-            fee    = 0,
+        var fee    = 0,
             states = this.getHospitalStates();
 
-        fee  = lostHp * this.getHospitalHpFeeRate();
-        fee += lostMp * this.getHospitalMpFeeRate();
+        fee += this.getHospitalHpFeeRate();
+        fee += this.getHospitalMpFeeRate();
 
         for (var i = 0; i < states.length; i++) {
             fee += this.getHospitalStateFeeRate(states[i]);
@@ -35,7 +33,9 @@
      * @return {number} Hospital HP Fee Rate
      */
     Game_Actor.prototype.getHospitalHpFeeRate = function() {
-        return Utils.parameters['HP Price'];
+        var lostHp = Math.max(this.mhp - this._hp, 0);
+
+        return Utils.parameters['HP Price'] * lostHp;
     };
 
     /**
@@ -45,7 +45,9 @@
      * @return {number} Hospital MP Fee Rate
      */
     Game_Actor.prototype.getHospitalMpFeeRate = function() {
-        return Utils.parameters['MP Price'];
+        var lostMp = Math.max(this.mmp - this._mp, 0);
+
+        return Utils.parameters['MP Price'] * lostMp;
     };
 
     /**

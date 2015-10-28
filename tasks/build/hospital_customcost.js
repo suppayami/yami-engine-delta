@@ -6,7 +6,9 @@ var moduleName = 'Hospital_CustomCost';
 var fileName   = ['header.js',
                   'index.js',
                   'Utils.js',
-                  'loader.js'];
+                  'loader.js',
+                  'Game_Actor.js',
+                  'Window_HospitalActors.js'];
 
 var globs = utils.getGlobs(moduleName, fileName);
 

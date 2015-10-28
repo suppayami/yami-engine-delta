@@ -1,7 +1,7 @@
 /*:
  * Yami Engine Delta - Hospital
  *
- * @plugindesc v1.1.0 Provides hospital feature, where party spend their money for recovery.
+ * @plugindesc v1.1.1 Provides hospital feature, where party spend their money for recovery.
  * @author Yami Engine Delta [Dr.Yami]
  *
  * @param [Default Price]
@@ -398,13 +398,11 @@ YED.Hospital.Scenes  = {};
      * @return {number} Total hospital fees
      */
     Game_Actor.prototype.hospitalFee = function() {
-        var lostHp = Math.max(this.mhp - this._hp, 0),
-            lostMp = Math.max(this.mmp - this._mp, 0),
-            fee    = 0,
+        var fee    = 0,
             states = this.getHospitalStates();
 
-        fee  = lostHp * this.getHospitalHpFeeRate();
-        fee += lostMp * this.getHospitalMpFeeRate();
+        fee += this.getHospitalHpFeeRate();
+        fee += this.getHospitalMpFeeRate();
 
         for (var i = 0; i < states.length; i++) {
             fee += this.getHospitalStateFeeRate(states[i]);
@@ -420,7 +418,9 @@ YED.Hospital.Scenes  = {};
      * @return {number} Hospital HP Fee Rate
      */
     Game_Actor.prototype.getHospitalHpFeeRate = function() {
-        return Utils.parameters['HP Price'];
+        var lostHp = Math.max(this.mhp - this._hp, 0);
+
+        return Utils.parameters['HP Price'] * lostHp;
     };
 
     /**
@@ -430,7 +430,9 @@ YED.Hospital.Scenes  = {};
      * @return {number} Hospital MP Fee Rate
      */
     Game_Actor.prototype.getHospitalMpFeeRate = function() {
-        return Utils.parameters['MP Price'];
+        var lostMp = Math.max(this.mmp - this._mp, 0);
+
+        return Utils.parameters['MP Price'] * lostMp;
     };
 
     /**
@@ -707,7 +709,7 @@ YED.Hospital.Scenes  = {};
         }
 
         gaugeWidth = this.contentsWidth()
-            - (168 * 2 + Window_Base._iconWidth * 3 + this.textPadding() * 2);
+            - (168 * 2 + Window_Base._iconWidth * 3 + this.textPadding() * 3);
         gaugeWidth = gaugeWidth / 2 - 8;
 
         offsetX = this.textPadding();
@@ -716,7 +718,7 @@ YED.Hospital.Scenes  = {};
         offsetX = offsetX + 168;
         this.drawActorIcons(actor, rect.x + offsetX, rect.y, Window_Base._iconWidth * 3);
 
-        offsetX = offsetX + Window_Base._iconWidth * 3;
+        offsetX = offsetX + Window_Base._iconWidth * 3 + this.textPadding();
         this.drawActorHp(actor, rect.x + offsetX, rect.y, gaugeWidth);
 
         offsetX = offsetX + gaugeWidth + 8;
