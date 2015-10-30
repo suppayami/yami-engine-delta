@@ -33,6 +33,7 @@
         "TextManager"       :   false,
         "SceneManager"      :   false,
         "Scene_Boot"        :   false,
+        "Rectangle"         :   false,
         "Bitmap"            :   false,
         "Sprite"            :   false,
         "TilingSprite"      :   false,
@@ -57,6 +58,7 @@
         "Window_Gold"       :   false,
         "Window_Help"       :   false,
         "Window_BattleActor":   false,
+        "Window_SkillStatus":   false,
         "Scene_MenuBase"    :   false,
         "Scene_Battle"      :   false
     }

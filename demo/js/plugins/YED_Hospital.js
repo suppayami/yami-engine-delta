@@ -824,7 +824,7 @@ YED.Hospital.Scenes  = {};
         wh = wh || this.windowHeight();
 
         Window_Base.prototype.initialize.call(this, wx, wy, ww, wh);
-        this.loadImages();
+        // this.loadImages();
         this.refresh();
     };
 

@@ -7,7 +7,15 @@ var fileName   = ['header.js',
                   'index.js',
                   'Regexp.js',
                   'Utils.js',
-                  'loader.js'];
+                  'loader.js',
+                  'Game_Actor.js',
+                  'Window_SkillShopCommand.js',
+                  'Window_SkillShopActors.js',
+                  'Window_SkillShopSkills.js',
+                  'Window_SkillShopCosts.js',
+                  'Window_SkillShopGold.js',
+                  'Scene_SkillShop.js',
+                  'Game_Interpreter.js'];
 
 var globs = utils.getGlobs(moduleName, fileName);
 

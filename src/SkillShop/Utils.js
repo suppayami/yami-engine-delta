@@ -1,7 +1,6 @@
 /* globals YED: false */
 
-(function($SkillShop, PluginManager,
-    $dataSkills, $dataWeapons, $dataArmors, $dataItems) {
+(function($SkillShop) {
     /**
      * Shorten Dependencies
      */
@@ -37,8 +36,20 @@
         result['Default Price'] =
             Number(parameters['Default Price'] || 0);
 
-        result['Requirements Text'] =
-            String(parameters['Requirements Text'] || 'Requirements');
+        result['Gold Cost Text'] =
+            String(parameters['Gold Cost Text'] || 'Gold Cost');
+
+        result['Item Cost Text'] =
+            String(parameters['Item Cost Text'] || 'Requires');
+
+        result['Buy Command'] =
+            String(parameters['Buy Command'] || 'Learn');
+
+        result['Cancel Command'] =
+            String(parameters['Cancel Command'] || 'Leave');
+
+        result['Text Alignment'] =
+            String(parameters['Text Alignment'] || 'Leave');
     };
 
     /**
@@ -51,8 +62,8 @@
     Utils.processNotetags = function() {
         var group = $dataSkills,    // shorten group name
             obj,
-            notedata,
-            line;
+            notedata, line,
+            helpers = {}; // multiline notetag
 
         for (var i = 1; i < group.length; i++) {
             obj = group[i];
@@ -63,7 +74,7 @@
 
             for (var n = 0; n < notedata.length; n++) {
                 line = notedata[n];
-                Utils._processNotetag.call(this, obj, line);
+                Utils._processNotetag.call(this, obj, line, helpers);
             }
         }
     };
@@ -77,13 +88,13 @@
      * @private
      */
     Utils._processProperties = function(obj) {
-        obj._skillShop = {};
+        obj._buyCost = {};
 
-        obj._skillShop.goldCost = Utils.parameters['Default Price'];
-        obj._skillShop.itemCost = [];
-        obj._skillShop.customCost = [];
-        obj._skillShop.customRequire = [];
-        obj._skillShop.customText = [];
+        obj._buyCost.goldCost = Utils.parameters['Default Price'];
+        obj._buyCost.itemCost = [];
+        obj._buyCost.customCost = [];
+        obj._buyCost.customRequire = [];
+        obj._buyCost.customText = "";
     };
 
     /**
@@ -97,6 +108,10 @@
     Utils._processMethods = function(obj) {
         obj.getBuyCostGold = Utils.getBuyCostGold;
         obj.getBuyCostItems = Utils.getBuyCostItems;
+
+        obj.getBuyCustomCost = Utils.getBuyCustomCost;
+        obj.getBuyCustomRequire = Utils.getBuyCustomRequire;
+        obj.getBuyCustomText = Utils.getBuyCustomText;
     };
 
     /**
@@ -108,13 +123,10 @@
      * @param  {String} notetag Notetag
      * @private
      */
-    Utils._processNotetag = function(obj, notetag) {
+    Utils._processNotetag = function(obj, notetag, helpers) {
         var buyCost = obj._buyCost,
             match,
-            type,
-            id,
-            number,
-            flag;
+            type, id, number; // item cost
 
         match = notetag.match(Regexp.GOLD_COST);
         if (match) {
@@ -127,6 +139,58 @@
             id = Number(match[2]);
             number = Number(match[3]);
             buyCost.itemCost.push([type, id, number]);
+        }
+
+        match = notetag.match(Regexp.CUSTOM_TEXT);
+        if (match) {
+            helpers.customTextFlag = true;
+            helpers.customText = "";
+            return;
+        }
+
+        match = notetag.match(Regexp.CUSTOM_TEXT_END);
+        if (match) {
+            helpers.customTextFlag = false;
+            buyCost.customText = helpers.customText;
+            return;
+        }
+
+        match = notetag.match(Regexp.CUSTOM_REQUIRE);
+        if (match) {
+            helpers.customRequireFlag = true;
+            return;
+        }
+
+        match = notetag.match(Regexp.CUSTOM_REQUIRE_END);
+        if (match) {
+            helpers.customRequireFlag = false;
+            return;
+        }
+
+        match = notetag.match(Regexp.CUSTOM_COST);
+        if (match) {
+            helpers.customCostFlag = true;
+            helpers.customCost = "";
+            return;
+        }
+
+        match = notetag.match(Regexp.CUSTOM_COST_END);
+        if (match) {
+            helpers.customCostFlag = false;
+            buyCost.customCost.push(helpers.customCost);
+            return;
+        }
+
+        if (helpers.customTextFlag) {
+            helpers.customText += notetag + "\n";
+        }
+
+        if (helpers.customRequireFlag) {
+            buyCost.customRequire.push(notetag);
+        }
+
+        if (helpers.customCostFlag) {
+            helpers.customCost += "\n" + notetag;
         }
     };
 
@@ -183,6 +247,55 @@
         return result;
     };
 
+    /**
+     * Get skill buying custom cost.
+     * Should be attached to skill object.
+     *
+     * @function getBuyCustomCost
+     * @memberof YED.SkillShop.Utils
+     * @return {String[]} Eval Strings
+     */
+    Utils.getBuyCustomCost = function() {
+        return this._buyCost.customCost;
+    };
+
+    /**
+     * Get skill buying custom require.
+     * Should be attached to skill object.
+     *
+     * @function getBuyCustomRequire
+     * @memberof YED.SkillShop.Utils
+     * @return {String[]} Eval Strings
+     */
+    Utils.getBuyCustomRequire = function() {
+        return this._buyCost.customRequire;
+    };
+
+    /**
+     * Get skill buying custom text.
+     * Should be attached to skill object.
+     *
+     * @function getBuyCustomText
+     * @memberof YED.SkillShop.Utils
+     * @return {Object} {text, icon, color}
+     */
+    Utils.getBuyCustomText = function() {
+        return this._buyCost.customText;
+    };
+
+    /**
+     * Go to SkillShop Scene.
+     * Should be called with Game_Interpreter object as current object.
+     *
+     * @function gotoHospitalScene
+     * @memberof YED.SkillShop.Utils
+     */
+    Utils.gotoSkillShopScene = function(skillIds) {
+        var scene = YED.SkillShop.Scenes.SkillShop;
+
+        SceneManager.push(scene);
+        SceneManager.prepareNextScene(skillIds);
+    };
+
     $SkillShop.Utils = Utils;
-}(YED.SkillShop, PluginManager,
-    $dataSkills, $dataWeapons, $dataArmors, $dataItems));
+}(YED.SkillShop));

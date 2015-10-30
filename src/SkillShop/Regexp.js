@@ -24,9 +24,6 @@
          */
         CUSTOM_TEXT: /<buy custom text>/i,
         CUSTOM_TEXT_END: /<\/buy custom text>/i,
-        CUSTOM_TEXT_TEXT: /text:[ ]*(.*)/i,
-        CUSTOM_TEXT_ICON: /icon:[ ]*(\d+)/i,
-        CUSTOM_TEXT_COLOR: /color:[ ]*(\d+)/i,
 
         /**
          * Custom requirements
