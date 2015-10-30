@@ -69,7 +69,7 @@
      */
     SkillShop.prototype._createGoldWindow = function() {
         this._goldWindow = new Windows.SkillShopGold(0, 0);
-        this._goldWindow.x = Graphics.boxWidth - this._goldWindow.width;
+        this._goldWindow.x = 0;
         this._goldWindow.y = Graphics.boxHeight - this._goldWindow.height;
         this.addWindow(this._goldWindow);
     };
@@ -91,7 +91,7 @@
      */
     SkillShop.prototype._createCommandWindow = function() {
         this._commandWindow = new Windows.SkillShopCommand(0, 0);
-        this._commandWindow.y = this._helpWindow.y;
+        this._commandWindow.y = this._helpWindow.y + this._helpWindow.height;
 
         this._commandWindow.setHandler('buySkill',
             this._commandBuySkill.bind(this));
@@ -125,7 +125,7 @@
         var wx = 0,
             wy = this._commandWindow.y + this._commandWindow.height,
             ww = null, // get default width
-            wh = Graphics.boxHeight - wy;
+            wh = Graphics.boxHeight - wy - this._goldWindow.height;
 
         this._actorsWindow = new Windows.SkillShopActors(wx, wy, ww, wh);
         this._actorsWindow.windowStatus = this._statusWindow;
@@ -145,10 +145,11 @@
         var wx = 0,
             wy = this._actorsWindow.y,
             ww = null, // get default width
-            wh = Graphics.boxHeight - wy;
+            wh = Graphics.boxHeight - wy - this._goldWindow.height;
 
         this._skillsWindow = new Windows.SkillShopSkills(wx, wy, ww, wh);
         this._skillsWindow.data = this._skillIds;
+        this._skillsWindow.setHelpWindow(this._helpWindow);
         this._skillsWindow.hide();
 
         this._skillsWindow.setHandler('ok', this._onSkillOk.bind(this));
@@ -166,7 +167,7 @@
         var wx = this._actorsWindow.width,
             wy = this._actorsWindow.y,
             ww = null, // get default width
-            wh = Graphics.boxHeight - wy - this._goldWindow.height;
+            wh = Graphics.boxHeight - wy;
 
         this._costWindow = new Windows.SkillShopCosts(wx, wy, ww, wh);
         this._skillsWindow.windowCost = this._costWindow;
