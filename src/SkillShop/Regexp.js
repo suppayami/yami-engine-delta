@@ -20,19 +20,25 @@
         ITEM_COST: /<buy cost (.+) (\d+):[ ]*(\d+)>/i,
 
         /**
-         * Variable cost for buying skill (using game variables)
+         * Custom require texts
          */
-        VARIABLE_COST: /<buy cost variable (\d+):[ ]*(\d+)>/i,
+        CUSTOM_TEXT: /<buy custom text>/i,
+        CUSTOM_TEXT_END: /<\/buy custom text>/i,
+        CUSTOM_TEXT_TEXT: /text:[ ]*(.*)/i,
+        CUSTOM_TEXT_ICON: /icon:[ ]*(\d+)/i,
+        CUSTOM_TEXT_COLOR: /color:[ ]*(\d+)/i,
 
         /**
-         * Variable require for buying skill (using game variables)
+         * Custom requirements
          */
-        VARIABLE_REQUIRE: /<buy require variable (\d+):[ ]*(\d+)>/i,
+        CUSTOM_REQUIRE: /<buy custom require>/i,
+        CUSTOM_REQUIRE_END: /<\/buy custom require>/i,
 
         /**
-         * Switch require for buying skill
+         * Custom costs
          */
-        SWITCH_NEED: /<buy require switch (\d+):[ ]*(true|false)>/i
+        CUSTOM_COST: /<buy custom cost>/i,
+        CUSTOM_COST_END: /<\/buy custom cost>/i
     };
 
     YED.SkillShop.Regexp = Regexp;

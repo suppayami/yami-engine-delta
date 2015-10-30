@@ -758,6 +758,18 @@ YED.Tilemap = {};
             && !!this.properties.parallax;
     };
 
+    Layer.prototype.isLoopHorizontal = function() {
+        return $gameMap.isLoopHorizontal();
+    };
+
+    Layer.prototype.isLoopVertical = function() {
+        return $gameMap.isLoopVertical();
+    };
+
+    Layer.prototype.isLoop = function() {
+        return this.isLoopHorizontal() || this.isLoopVertical();
+    };
+
     Layer.prototype.isCollisionLayer = function() {
         return !!this.properties && !!this.properties.collision;
     };
@@ -778,12 +790,9 @@ YED.Tilemap = {};
      * Render layer with given data and tilesets
      */
     Layer.prototype.renderLayer = function() {
-        this.bitmap = this.bitmap || new Bitmap(this.gridHorz * this.tileWidth,
-                                                this.gridVert * this.tileHeight);
-
-        // if (this.isRegionLayer() || this.isCollisionLayer()) {
-        //     this.visible = false;
-        // }
+        this._layerBitmap = this._layerBitmap
+            || new Bitmap(this.gridHorz * this.tileWidth,
+                this.gridVert * this.tileHeight);
 
         // different methods for tile-based and object-based layer
         if (this.isObjectLayer()) {
@@ -831,6 +840,12 @@ YED.Tilemap = {};
 
             this._drawTile(tileId, bitmapX, bitmapY);
         }
+
+        if (this.isLoop) {
+            this._renderLoopLayer();
+        } else {
+            this.bitmap = this._layerBitmap;
+        }
     };
 
     /**
@@ -860,6 +875,28 @@ YED.Tilemap = {};
 
             this._drawTile(tileId, bitmapX, bitmapY);
         }
+
+        if (this.isLoop) {
+            this._renderLoopLayer();
+        } else {
+            this.bitmap = this._layerBitmap;
+        }
+    };
+
+    Layer.prototype._renderLoopLayer = function() {
+        var tilingWidth,
+            tilingHeight;
+
+        tilingWidth = this.isLoopHorizontal() ?
+            Graphics.width : this._layerBitmap.width;
+
+        tilingHeight = this.isLoopVertical() ?
+            Graphics.height : this._layerBitmap.height;
+
+        this._tilingSprite = new TilingSprite(this._layerBitmap);
+        this._tilingSprite.move(0, 0,
+            tilingWidth, tilingHeight);
+        this.addChild(this._tilingSprite);
     };
 
     /**
@@ -868,10 +905,11 @@ YED.Tilemap = {};
      * @private
      */
     Layer.prototype._renderImageLayer = function() {
-        var dest = this.bitmap,
+        var dest = this._layerBitmap,
             img  = ImageManager.loadParserParallax(this.data.image, 0);
 
         dest.blt(img, 0, 0, img.width, img.height, this.data.x, this.data.y);
+        this.bitmap = this._layerBitmap;
     };
 
     /**
@@ -924,7 +962,7 @@ YED.Tilemap = {};
     Layer.prototype._drawTile = function(tileId, x, y) {
         var tileset = this._getTileset(tileId);
         var params  = tileset.getBlockTransferParams(tileId, x, y);
-        var dest    = this.bitmap;
+        var dest    = this._layerBitmap;
 
         dest.blt.apply(dest, params);
     };
@@ -958,6 +996,15 @@ YED.Tilemap = {};
         if (!!ySpeed) {
             this._tilingSprite.origin.y = (oy + ySpeed) % mOy;
         }
+    };
+
+    Layer.prototype.moveLoopLayer = function(x, y) {
+        if (!this._tilingSprite) {
+            return;
+        }
+
+        this._tilingSprite.origin.x = x;
+        this._tilingSprite.origin.y = y;
     };
 
     YED.Tilemap.Layer = Layer;
@@ -1267,6 +1314,10 @@ YED.Tilemap = {};
 
     Game_Map.prototype.setupYEDTilemap = function() {
         this._yed_tilemap = new YED.Tilemap.Core();
+
+        // overwrite dataMap width/height
+        $dataMap.width = this._yedTilemapData().width;
+        $dataMap.height = this._yedTilemapData().height;
     };
 
     Game_Map.prototype._yedTilemapData = function() {
@@ -1450,12 +1501,37 @@ YED.Tilemap = {};
         // TODO: Loop map!!!
 
         var moveFunc = function(layer) {
-            if (!layer.isPlaneLayer()) {
+            if (!layer.isPlaneLayer()
+                && !layer.isLoopVertical()
+                && !layer.isLoopHorizontal()) {
                 layer.move(x2, y2);
+            }
+
+            if (!layer.isPlaneLayer()
+                && layer.isLoopVertical()
+                && layer.isLoopHorizontal()) {
+                layer.move(m, m);
+                layer.moveLoopLayer(ox, oy);
                 return;
             }
 
-            layer.move(m, m);
+            if (!layer.isPlaneLayer()
+                && layer.isLoopHorizontal()) {
+                layer.move(m, y2);
+                layer.moveLoopLayer(ox, 0);
+                return;
+            }
+
+            if (!layer.isPlaneLayer()
+                && layer.isLoopVertical()) {
+                layer.move(x2, m);
+                layer.moveLoopLayer(0, oy);
+                return;
+            }
+
+            if (layer.isPlaneLayer()) {
+                layer.move(m, m);
+            }
         };
 
         for (var i = 0; i < 2; i++) {

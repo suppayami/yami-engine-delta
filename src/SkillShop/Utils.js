@@ -1,10 +1,11 @@
 /* globals YED: false */
 
-(function() {
+(function($SkillShop, PluginManager,
+    $dataSkills, $dataWeapons, $dataArmors, $dataItems) {
     /**
      * Shorten Dependencies
      */
-    var Regexp = YED.SkillShop.Regexp;
+    var Regexp = $SkillShop.Regexp;
 
     /**
      * Contains utility tools for module.
@@ -48,7 +49,7 @@
      * @memberof YED.SkillShop.Utils
      */
     Utils.processNotetags = function() {
-        var group = $dataStates,    // shorten group name
+        var group = $dataSkills,    // shorten group name
             obj,
             notedata,
             line;
@@ -76,13 +77,13 @@
      * @private
      */
     Utils._processProperties = function(obj) {
-        obj._buyCost = {};
+        obj._skillShop = {};
 
-        obj._buyCost.goldCost = Utils.parameters['Default Price'];
-        obj._buyCost.itemCost = [];
-        obj._buyCost.variableCost = [];
-
-        obj._buyCost.switchRequire = [];
+        obj._skillShop.goldCost = Utils.parameters['Default Price'];
+        obj._skillShop.itemCost = [];
+        obj._skillShop.customCost = [];
+        obj._skillShop.customRequire = [];
+        obj._skillShop.customText = [];
     };
 
     /**
@@ -94,7 +95,8 @@
      * @private
      */
     Utils._processMethods = function(obj) {
-        obj.getBuyCost = Utils.getBuyCost;
+        obj.getBuyCostGold = Utils.getBuyCostGold;
+        obj.getBuyCostItems = Utils.getBuyCostItems;
     };
 
     /**
@@ -126,22 +128,6 @@
             number = Number(match[3]);
             buyCost.itemCost.push([type, id, number]);
         }
-
-        match = notetag.match(Regexp.VARIABLE_COST);
-        if (match) {
-            id = Number(match[1]);
-            number = Number(match[2]);
-
-            buyCost.variableCost.push([id, number]);
-        }
-
-        match = notetag.match(Regexp.SWITCH_NEED);
-        if (match) {
-            id = Number(match[1]);
-            flag = match[2].toLowerCase() === 'true' ? true : false;
-
-            buyCost.switchRequire.push([id, flag]);
-        }
     };
 
     /**
@@ -167,19 +153,18 @@
     Utils.getBuyCostItems = function() {
         var result = [],
             itemCost = this._buyCost.itemCost,
-            el,
+            cost,
             id,
             amount,
             item,
-            i,
             type;
 
-        for (i = 0; i < itemCost.length; i++) {
-            el = itemCost[i];
+        for (var i = 0; i < itemCost.length; i++) {
+            cost = itemCost[i];
 
-            type = el[0];
-            id = el[1];
-            amount = el[2];
+            type = cost[0];
+            id = cost[1];
+            amount = cost[2];
 
             switch (type) {
             case 'WEAPON':
@@ -198,5 +183,6 @@
         return result;
     };
 
-    YED.SkillShop.Utils = Utils;
-}());
+    $SkillShop.Utils = Utils;
+}(YED.SkillShop, PluginManager,
+    $dataSkills, $dataWeapons, $dataArmors, $dataItems));

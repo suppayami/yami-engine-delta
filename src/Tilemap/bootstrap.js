@@ -44,6 +44,10 @@
 
     Game_Map.prototype.setupYEDTilemap = function() {
         this._yed_tilemap = new YED.Tilemap.Core();
+
+        // overwrite dataMap width/height
+        $dataMap.width = this._yedTilemapData().width;
+        $dataMap.height = this._yedTilemapData().height;
     };
 
     Game_Map.prototype._yedTilemapData = function() {
@@ -227,12 +231,37 @@
         // TODO: Loop map!!!
 
         var moveFunc = function(layer) {
-            if (!layer.isPlaneLayer()) {
+            if (!layer.isPlaneLayer()
+                && !layer.isLoopVertical()
+                && !layer.isLoopHorizontal()) {
                 layer.move(x2, y2);
+            }
+
+            if (!layer.isPlaneLayer()
+                && layer.isLoopVertical()
+                && layer.isLoopHorizontal()) {
+                layer.move(m, m);
+                layer.moveLoopLayer(ox, oy);
                 return;
             }
 
-            layer.move(m, m);
+            if (!layer.isPlaneLayer()
+                && layer.isLoopHorizontal()) {
+                layer.move(m, y2);
+                layer.moveLoopLayer(ox, 0);
+                return;
+            }
+
+            if (!layer.isPlaneLayer()
+                && layer.isLoopVertical()) {
+                layer.move(x2, m);
+                layer.moveLoopLayer(0, oy);
+                return;
+            }
+
+            if (layer.isPlaneLayer()) {
+                layer.move(m, m);
+            }
         };
 
         for (var i = 0; i < 2; i++) {

@@ -90,19 +90,25 @@ YED.SkillShop.Scenes  = {};
         ITEM_COST: /<buy cost (.+) (\d+):[ ]*(\d+)>/i,
 
         /**
-         * Variable cost for buying skill (using game variables)
+         * Custom require texts
          */
-        VARIABLE_COST: /<buy cost variable (\d+):[ ]*(\d+)>/i,
+        CUSTOM_TEXT: /<buy custom text>/i,
+        CUSTOM_TEXT_END: /<\/buy custom text>/i,
+        CUSTOM_TEXT_TEXT: /text:[ ]*(.*)/i,
+        CUSTOM_TEXT_ICON: /icon:[ ]*(\d+)/i,
+        CUSTOM_TEXT_COLOR: /color:[ ]*(\d+)/i,
 
         /**
-         * Variable require for buying skill (using game variables)
+         * Custom requirements
          */
-        VARIABLE_REQUIRE: /<buy require variable (\d+):[ ]*(\d+)>/i,
+        CUSTOM_REQUIRE: /<buy custom require>/i,
+        CUSTOM_REQUIRE_END: /<\/buy custom require>/i,
 
         /**
-         * Switch require for buying skill
+         * Custom costs
          */
-        SWITCH_NEED: /<buy require switch (\d+):[ ]*(true|false)>/i
+        CUSTOM_COST: /<buy custom cost>/i,
+        CUSTOM_COST_END: /<\/buy custom cost>/i
     };
 
     YED.SkillShop.Regexp = Regexp;
@@ -110,11 +116,12 @@ YED.SkillShop.Scenes  = {};
 
 /* globals YED: false */
 
-(function() {
+(function($SkillShop, PluginManager,
+    $dataSkills, $dataWeapons, $dataArmors, $dataItems) {
     /**
      * Shorten Dependencies
      */
-    var Regexp = YED.SkillShop.Regexp;
+    var Regexp = $SkillShop.Regexp;
 
     /**
      * Contains utility tools for module.
@@ -158,7 +165,7 @@ YED.SkillShop.Scenes  = {};
      * @memberof YED.SkillShop.Utils
      */
     Utils.processNotetags = function() {
-        var group = $dataStates,    // shorten group name
+        var group = $dataSkills,    // shorten group name
             obj,
             notedata,
             line;
@@ -186,13 +193,13 @@ YED.SkillShop.Scenes  = {};
      * @private
      */
     Utils._processProperties = function(obj) {
-        obj._buyCost = {};
+        obj._skillShop = {};
 
-        obj._buyCost.goldCost = Utils.parameters['Default Price'];
-        obj._buyCost.itemCost = [];
-        obj._buyCost.variableCost = [];
-
-        obj._buyCost.switchRequire = [];
+        obj._skillShop.goldCost = Utils.parameters['Default Price'];
+        obj._skillShop.itemCost = [];
+        obj._skillShop.customCost = [];
+        obj._skillShop.customRequire = [];
+        obj._skillShop.customText = [];
     };
 
     /**
@@ -204,7 +211,8 @@ YED.SkillShop.Scenes  = {};
      * @private
      */
     Utils._processMethods = function(obj) {
-        obj.getBuyCost = Utils.getBuyCost;
+        obj.getBuyCostGold = Utils.getBuyCostGold;
+        obj.getBuyCostItems = Utils.getBuyCostItems;
     };
 
     /**
@@ -236,22 +244,6 @@ YED.SkillShop.Scenes  = {};
             number = Number(match[3]);
             buyCost.itemCost.push([type, id, number]);
         }
-
-        match = notetag.match(Regexp.VARIABLE_COST);
-        if (match) {
-            id = Number(match[1]);
-            number = Number(match[2]);
-
-            buyCost.variableCost.push([id, number]);
-        }
-
-        match = notetag.match(Regexp.SWITCH_NEED);
-        if (match) {
-            id = Number(match[1]);
-            flag = match[2].toLowerCase() === 'true' ? true : false;
-
-            buyCost.switchRequire.push([id, flag]);
-        }
     };
 
     /**
@@ -277,19 +269,18 @@ YED.SkillShop.Scenes  = {};
     Utils.getBuyCostItems = function() {
         var result = [],
             itemCost = this._buyCost.itemCost,
-            el,
+            cost,
             id,
             amount,
             item,
-            i,
             type;
 
-        for (i = 0; i < itemCost.length; i++) {
-            el = itemCost[i];
+        for (var i = 0; i < itemCost.length; i++) {
+            cost = itemCost[i];
 
-            type = el[0];
-            id = el[1];
-            amount = el[2];
+            type = cost[0];
+            id = cost[1];
+            amount = cost[2];
 
             switch (type) {
             case 'WEAPON':
@@ -308,5 +299,6 @@ YED.SkillShop.Scenes  = {};
         return result;
     };
 
-    YED.SkillShop.Utils = Utils;
-}());
+    $SkillShop.Utils = Utils;
+}(YED.SkillShop, PluginManager,
+    $dataSkills, $dataWeapons, $dataArmors, $dataItems));
