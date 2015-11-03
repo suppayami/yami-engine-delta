@@ -121,7 +121,7 @@
     /**
      * Draw face mini.
      */
-    Window_Base.prototype.drawFace = function(faceName, faceIndex, x, y, width, height) {
+    SkillShopActors.prototype.drawFace = function(faceName, faceIndex, x, y, width, height) {
         var bitmap = ImageManager.loadFace(faceName);
         var pw = Window_Base._faceWidth;
         var ph = Window_Base._faceHeight;
