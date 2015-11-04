@@ -93,7 +93,7 @@
         return text;
     };
 
-    Window.prototype.enableWordWrap = function(text) {
+    Window_Base.prototype.enableWordWrap = function(text) {
         this._yamiWordWrap = false;
         this._breakWord = false;
 

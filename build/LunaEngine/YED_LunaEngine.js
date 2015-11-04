@@ -290,6 +290,8 @@ LunaEngine.Core.Sprite = {};
         return this._selectAction;
     };
 
+    // TODO: Try creating a hidden window sharing bitmap with Sprite.
+
     GUI.prototype.loadWindowskin = $Window_Base.prototype.loadWindowskin;
     GUI.prototype.lineHeight = $Window_Base.prototype.lineHeight;
     GUI.prototype.standardFontFace = $Window_Base.prototype.standardFontFace;
@@ -997,6 +999,70 @@ LunaEngine.Core.Sprite = {};
 /* globals LunaEngine: false */
 
 (function() {
+
+    var Config = LunaEngine.Battle.Config.HUD;
+    var _Window_BattleStatus_update
+        = Window_BattleStatus.prototype.update;
+
+    Window_BattleStatus.prototype.windowWidth = function() {
+        return Config.background.window.width;
+    };
+
+    Window_BattleStatus.prototype.windowHeight = function() {
+        return Config.background.window.height;
+    };
+
+    Window_BattleStatus.prototype.refresh = function() {
+        this.contents.clear();
+
+        this.x = Config.x + Config.background.offsetX;
+        this.y = Config.y + Config.background.offsetY;
+
+        if (Config.background.type === 'image') {
+            this._refreshImageBackground();
+        }
+        // this.drawAllItems();
+    };
+
+    Window_BattleStatus.prototype._refreshImageBackground = function() {
+        var bitmap
+            = ImageManager.loadSystem(Config.background.image.filename);
+
+        this.opacity = 0;
+        this._backgroundSprite = this._backgroundSprite || new Sprite(bitmap);
+        this._backgroundSprite.bitmap = bitmap;
+
+        this.addChild(this._backgroundSprite);
+    };
+
+    Window_BattleStatus.prototype.drawItem = function(index) {
+        // destroy
+    };
+
+    Window_BattleStatus.prototype.updateCursor = function() {
+        // destroy cursor
+        this.setCursorRect(0, 0, 0, 0);
+    };
+
+    Window_BattleStatus.prototype.update = function() {
+        _Window_BattleStatus_update.call(this);
+
+        this._updateBackgroundSprite();
+    };
+
+    Window_BattleStatus.prototype._updateBackgroundSprite = function() {
+        if (!this._backgroundSprite) {
+            return;
+        }
+
+        this._backgroundSprite.visible = this.openness === 255;
+    };
+
+}());
+
+/* globals LunaEngine: false */
+
+(function() {
     var SpriteClasses = LunaEngine.Core.Sprite;
 
     var GUIBase = function() {
@@ -1285,45 +1351,67 @@ LunaEngine.Core.Sprite = {};
         HUDConfig = LunaEngine.Battle.Config.HUD;
 
     // alias
-    var _Game_Battler_initMembers = Game_Battler.prototype.initMembers,
-        _Game_Battler_clearAnimations = Game_Battler.prototype.clearAnimations,
-        _Game_Battler_startAnimation = Game_Battler.prototype.startAnimation,
+    var _Sprite_Actor_initMembers = Sprite_Actor.prototype.initMembers,
+        _Sprite_Actor_setActorHome = Sprite_Actor.prototype.setActorHome,
         _Window_BattleActor_maxCols = Window_BattleActor.prototype.maxCols,
         _Scene_Battle_createDisplayObjects = Scene_Battle.prototype.createDisplayObjects,
         _Scene_Battle_start = Scene_Battle.prototype.start,
         _Scene_Battle_stop = Scene_Battle.prototype.stop,
         _Scene_Battle_updateStatusWindow = Scene_Battle.prototype.updateStatusWindow;
 
-    Game_Battler.prototype.initMembers = function() {
-        _Game_Battler_initMembers.call(this);
+    Game_Actor.prototype.isSpriteVisible = function() {
+        if (!HUDConfig.showAnimation) {
+            return false;
+        }
 
-        this._lunaAnimations = [];
+        return true;
     };
 
-    Game_Battler.prototype.clearAnimations = function() {
-        _Game_Battler_clearAnimations.call(this);
-
-        this._lunaAnimations = [];
+    Sprite_Actor.prototype.initMembers = function() {
+        _Sprite_Actor_initMembers.call(this);
+        this._setupLuna();
     };
 
-    Game_Battler.prototype.isLunaAnimationRequested = function() {
-        return this._lunaAnimations.length > 0;
+    Sprite_Actor.prototype._setupLuna = function() {
+        if ($gameSystem.isSideView()) {
+            return;
+        }
+
+        this.opacity = 0;
     };
 
-    Game_Battler.prototype.startAnimation = function(animationId, mirror, delay) {
-        _Game_Battler_startAnimation.call(this, animationId, mirror, delay);
+    Sprite_Actor.prototype.setActorHome = function(index) {
+        if ($gameSystem.isSideView()) {
+            _Sprite_Actor_setActorHome.call(this, index);
+            return;
+        }
 
-        this.startLunaAnimation(animationId, mirror, delay);
+        this.setHome(this._getGUIX(index), this._getGUIY(index));
     };
 
-    Game_Battler.prototype.startLunaAnimation = function(animationId, mirror, delay) {
-        var data = { animationId: animationId, mirror: mirror, delay: delay };
+    Sprite_Actor.prototype._getGUIX = function(index) {
+        var x = 0;
 
-        this._lunaAnimations.push(data);
+        if (HUDConfig.direction === 'horizontal') {
+            x = Math.round(HUDConfig.width / HUDConfig.grid * index);
+            x += HUDConfig.width / HUDConfig.grid / 2
+        }
+
+        x += HUDConfig.x;
+
+        return x;
     };
 
-    Game_Battler.prototype.shiftLunaAnimation = function() {
-        return this._lunaAnimations.shift();
+    Sprite_Actor.prototype._getGUIY = function(index) {
+        var y = 0;
+
+        if (HUDConfig.direction === 'vertical') {
+            y = Math.round(HUDConfig.height / HUDConfig.grid * index);
+        }
+
+        y += HUDConfig.y;
+
+        return y;
     };
 
     Window_BattleActor.prototype.maxCols = function() {
@@ -1351,7 +1439,7 @@ LunaEngine.Core.Sprite = {};
 
     Scene_Battle.prototype._setupLuna = function() {
         this._lunaHUD.refresh();
-        this._statusWindow.y = 9999;
+        // this._statusWindow.y = 9999;
         this._actorWindow.y  = 9999;
     };
 
@@ -1370,6 +1458,10 @@ LunaEngine.Core.Sprite = {};
         }
 
         this._updateLuna();
+    };
+
+    Scene_Battle.prototype.updateWindowPositions = function() {
+        // destroy
     };
 
     Scene_Battle.prototype._updateLuna = function() {

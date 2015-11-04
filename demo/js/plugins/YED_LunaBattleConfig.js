@@ -21,7 +21,7 @@ LunaEngine.Battle.Config = LunaEngine.Battle.Config || {};
     // Status Spritesets
     var HUD = {
         /* Position */
-        x: 200,
+        x: 204,
         y: 460,
 
         /* Grid and size */
@@ -29,6 +29,27 @@ LunaEngine.Battle.Config = LunaEngine.Battle.Config || {};
         height: 180,
         grid:   4,
         direction: 'horizontal',
+
+        /* Others */
+        showAnimation: false, // for non-sideview
+
+        /* Background */
+        background: {
+            type: 'image', // window or image
+            offsetX: -12,
+            offsetY: -12,
+
+            window: {
+                width: 648,
+                height: 204,
+
+                windowskin: 'Window'
+            },
+
+            image: {
+                filename: '' // put into img/system
+            }
+        }
     };
 
     // Status Elements

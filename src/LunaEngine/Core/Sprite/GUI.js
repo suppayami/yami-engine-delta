@@ -276,6 +276,8 @@
         return this._selectAction;
     };
 
+    // TODO: Try creating a hidden window sharing bitmap with Sprite.
+
     GUI.prototype.loadWindowskin = $Window_Base.prototype.loadWindowskin;
     GUI.prototype.lineHeight = $Window_Base.prototype.lineHeight;
     GUI.prototype.standardFontFace = $Window_Base.prototype.standardFontFace;

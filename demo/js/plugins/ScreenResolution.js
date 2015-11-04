@@ -12,7 +12,7 @@ Yanfly.ScrRes = Yanfly.ScrRes || {};
 
 //=============================================================================
  /*:
- * @plugindesc Change your game's screen resolution to your liking!
+ * @plugindesc v1.00 Change your game's screen resolution to your liking!
  * @author Yanfly Engine Plugins
  *
  * @param Screen Width

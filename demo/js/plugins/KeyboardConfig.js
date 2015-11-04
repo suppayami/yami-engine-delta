@@ -12,7 +12,7 @@ Yanfly.KeyConfig = Yanfly.KeyboardConfig || {};
 
 //=============================================================================
  /*:
- * @plugindesc Allows players to adjust their button configuration
+ * @plugindesc v1.00 Allows players to adjust their button configuration
  * for keyboards.
  * @author Yanfly Engine Plugins
  *
