@@ -58,6 +58,7 @@ YED.Tilemap = {};
         this._isExist = false;
         this._collision = []; // collision matrix
         this._region = []; // region matrix
+        this._arrows = []; // arrow matrix
         this.data = data;
     };
 
@@ -180,6 +181,12 @@ YED.Tilemap = {};
             get: function() {
                 return this._region;
             }
+        },
+
+        arrows: {
+            get: function() {
+                return this._arrows;
+            }
         }
     });
 
@@ -191,6 +198,7 @@ YED.Tilemap = {};
     Data.prototype._setupData = function() {
         if (!!this.data) {
             this._setupCollision();
+            this._setupArrows();
             this._setupRegions();
             this._loadTilesets();
         }
@@ -244,6 +252,47 @@ YED.Tilemap = {};
         }
     };
 
+    Data.prototype._setupArrows = function() {
+        var arrowLayers = this._getArrowLayers(),
+            i,j,
+            layer,
+            bit;
+
+        for (i = 0; i < this.width * this.height; i++) {
+            this.arrows[i] = 1 | 2 | 4 | 8;
+        }
+
+        for (i = 0; i < arrowLayers.length; i++) {
+            layer = arrowLayers[i];
+
+            if (!layer.data) {
+                continue;
+            }
+
+            if (layer.properties.arrowImpassable === "left") {
+                bit = 1;
+            }
+
+            if (layer.properties.arrowImpassable === "up") {
+                bit = 2;
+            }
+
+            if (layer.properties.arrowImpassable === "right") {
+                bit = 4;
+            }
+
+            if (layer.properties.arrowImpassable === "down") {
+                bit = 8;
+            }
+
+            for (j = 0; j < layer.data.length; j++) {
+                if (layer.data[j] > 0) {
+                    this.arrows[j] = this.arrows[j] ^ bit;
+                }
+            }
+        }
+    };
+
     Data.prototype._loadTilesets = function() {
         var tilesetsData = this.tilesets,
             i = 0,
@@ -265,6 +314,12 @@ YED.Tilemap = {};
     Data.prototype._getRegionsLayers = function() {
         return this.layers.filter(function(layer) {
             return !!layer.properties && !!layer.properties.regionId;
+        });
+    };
+
+    Data.prototype._getArrowLayers = function() {
+        return this.layers.filter(function(layer) {
+            return !!layer.properties && !!layer.properties.arrowImpassable;
         });
     };
 
@@ -1378,7 +1433,32 @@ YED.Tilemap = {};
 
     Game_Map.prototype.isPassable = function(x, y, d) {
         var collision = this._yedTilemapData().collision,
+            arrows = this._yedTilemapData().arrows,
             index = this.width() * y + x;
+
+        if (d === 4) {
+            if (!(arrows[index] & 1)) {
+                return false;
+            }
+        }
+
+        if (d === 8) {
+            if (!(arrows[index] & 2)) {
+                return false;
+            }
+        }
+
+        if (d === 6) {
+            if (!(arrows[index] & 4)) {
+                return false;
+            }
+        }
+
+        if (d === 2) {
+            if (!(arrows[index] & 8)) {
+                return false;
+            }
+        }
 
         return collision[index] === 0;
     };
@@ -1402,12 +1482,18 @@ YED.Tilemap = {};
     };
 
     Game_Event.prototype.setupInitPosition = function() {
-        var list = this.list(),
+        var list,
             tag  = /<position:[ ]*(\d+),[ ]*(\d+)>/i,
             command,
             comment,
             matches,
             x,y;
+
+        if (!this.page()) {
+            return;
+        }
+
+        list = this.list();
 
         for (var i = 0; i < list.length; i++) {
             command = list[i];

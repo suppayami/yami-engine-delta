@@ -40,8 +40,8 @@
  *
  * Plugin Command:
  *   OpenSkillShop(ID,ID,ID)    Opens up skill shop instantly with
- *                              skill list defined by ID. You can put
- *                              as many ID as you want into the command.
+ *     or                       skill list defined by ID. You can put
+ *   OpenSkillShop ID ID ID     as many ID as you want into the command.
  *                              Remember not to put any whitespace into
  *                              the command.
  *

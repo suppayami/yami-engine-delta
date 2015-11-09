@@ -40,8 +40,8 @@
  *
  * Plugin Command:
  *   OpenSkillShop(ID,ID,ID)    Opens up skill shop instantly with
- *                              skill list defined by ID. You can put
- *                              as many ID as you want into the command.
+ *     or                       skill list defined by ID. You can put
+ *   OpenSkillShop ID ID ID     as many ID as you want into the command.
  *                              Remember not to put any whitespace into
  *                              the command.
  *
@@ -902,7 +902,7 @@ YED.SkillShop.Scenes  = {};
     /**
      * Draw face mini.
      */
-    Window_Base.prototype.drawFace = function(faceName, faceIndex, x, y, width, height) {
+    SkillShopActors.prototype.drawFace = function(faceName, faceIndex, x, y, width, height) {
         var bitmap = ImageManager.loadFace(faceName);
         var pw = Window_Base._faceWidth;
         var ph = Window_Base._faceHeight;
@@ -1680,6 +1680,12 @@ YED.SkillShop.Scenes  = {};
             });
 
             Utils.gotoSkillShopScene.call(this, ids);
+        }
+
+        // SkillShop Plugin Command
+        match = command.match(/OpenSkillShop/i);
+        if (match) {
+            Utils.gotoSkillShopScene.call(this, args);
         }
     };
 }(YED.SkillShop));

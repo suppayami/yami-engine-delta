@@ -1,7 +1,7 @@
 /*:
  * Yami Engine Delta - Skill Shop
  *
- * @plugindesc v1.0.1 This plugin provides a skill shop for buying skills.
+ * @plugindesc v1.0.0 This plugin provides a skill shop for buying skills.
  * @author Yami Engine Delta [Dr.Yami]
  *
  * @param [Basic Setting]
@@ -40,8 +40,8 @@
  *
  * Plugin Command:
  *   OpenSkillShop(ID,ID,ID)    Opens up skill shop instantly with
- *                              skill list defined by ID. You can put
- *                              as many ID as you want into the command.
+ *     or                       skill list defined by ID. You can put
+ *   OpenSkillShop ID ID ID     as many ID as you want into the command.
  *                              Remember not to put any whitespace into
  *                              the command.
  *
@@ -1680,6 +1680,12 @@ YED.SkillShop.Scenes  = {};
             });
 
             Utils.gotoSkillShopScene.call(this, ids);
+        }
+
+        // SkillShop Plugin Command
+        match = command.match(/OpenSkillShop/i);
+        if (match) {
+            Utils.gotoSkillShopScene.call(this, args);
         }
     };
 }(YED.SkillShop));

@@ -21,6 +21,7 @@
         this._isExist = false;
         this._collision = []; // collision matrix
         this._region = []; // region matrix
+        this._arrows = []; // arrow matrix
         this.data = data;
     };
 
@@ -143,6 +144,12 @@
             get: function() {
                 return this._region;
             }
+        },
+
+        arrows: {
+            get: function() {
+                return this._arrows;
+            }
         }
     });
 
@@ -154,6 +161,7 @@
     Data.prototype._setupData = function() {
         if (!!this.data) {
             this._setupCollision();
+            this._setupArrows();
             this._setupRegions();
             this._loadTilesets();
         }
@@ -207,6 +215,47 @@
         }
     };
 
+    Data.prototype._setupArrows = function() {
+        var arrowLayers = this._getArrowLayers(),
+            i,j,
+            layer,
+            bit;
+
+        for (i = 0; i < this.width * this.height; i++) {
+            this.arrows[i] = 1 | 2 | 4 | 8;
+        }
+
+        for (i = 0; i < arrowLayers.length; i++) {
+            layer = arrowLayers[i];
+
+            if (!layer.data) {
+                continue;
+            }
+
+            if (layer.properties.arrowImpassable === "left") {
+                bit = 1;
+            }
+
+            if (layer.properties.arrowImpassable === "up") {
+                bit = 2;
+            }
+
+            if (layer.properties.arrowImpassable === "right") {
+                bit = 4;
+            }
+
+            if (layer.properties.arrowImpassable === "down") {
+                bit = 8;
+            }
+
+            for (j = 0; j < layer.data.length; j++) {
+                if (layer.data[j] > 0) {
+                    this.arrows[j] = this.arrows[j] ^ bit;
+                }
+            }
+        }
+    };
+
     Data.prototype._loadTilesets = function() {
         var tilesetsData = this.tilesets,
             i = 0,
@@ -228,6 +277,12 @@
     Data.prototype._getRegionsLayers = function() {
         return this.layers.filter(function(layer) {
             return !!layer.properties && !!layer.properties.regionId;
+        });
+    };
+
+    Data.prototype._getArrowLayers = function() {
+        return this.layers.filter(function(layer) {
+            return !!layer.properties && !!layer.properties.arrowImpassable;
         });
     };
 

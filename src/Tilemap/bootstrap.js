@@ -108,7 +108,32 @@
 
     Game_Map.prototype.isPassable = function(x, y, d) {
         var collision = this._yedTilemapData().collision,
+            arrows = this._yedTilemapData().arrows,
             index = this.width() * y + x;
+
+        if (d === 4) {
+            if (!(arrows[index] & 1)) {
+                return false;
+            }
+        }
+
+        if (d === 8) {
+            if (!(arrows[index] & 2)) {
+                return false;
+            }
+        }
+
+        if (d === 6) {
+            if (!(arrows[index] & 4)) {
+                return false;
+            }
+        }
+
+        if (d === 2) {
+            if (!(arrows[index] & 8)) {
+                return false;
+            }
+        }
 
         return collision[index] === 0;
     };
@@ -132,12 +157,18 @@
     };
 
     Game_Event.prototype.setupInitPosition = function() {
-        var list = this.list(),
+        var list,
             tag  = /<position:[ ]*(\d+),[ ]*(\d+)>/i,
             command,
             comment,
             matches,
             x,y;
+
+        if (!this.page()) {
+            return;
+        }
+
+        list = this.list();
 
         for (var i = 0; i < list.length; i++) {
             command = list[i];

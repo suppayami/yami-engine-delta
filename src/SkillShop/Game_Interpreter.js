@@ -32,5 +32,11 @@
 
             Utils.gotoSkillShopScene.call(this, ids);
         }
+
+        // SkillShop Plugin Command
+        match = command.match(/OpenSkillShop/i);
+        if (match) {
+            Utils.gotoSkillShopScene.call(this, args);
+        }
     };
 }(YED.SkillShop));
