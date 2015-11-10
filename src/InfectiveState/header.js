@@ -10,8 +10,20 @@
  * ============================================================================
  *
  * States
- * To make a state to be retained on death, use the following notetag:
- *   <retain on death>
+ * <Infect Allies X: Y, Y%>
+ * Infects all allies with state X after Y turns with a chance of Z%.
+ *
+ * <Infect Enemies X: Y, Y%>
+ * Infects all enemies with state X after Y turns with a chance of Z%.
+ *
+ * <Infect N Allies X: Y, Y%>
+ * Infects N allies with state X after Y turns with a chance of Z%.
+ *
+ * <Infect N Enemies X: Y, Y%>
+ * Infects N allies with state X after Y turns with a chance of Z%.
+ *
+ * <Infect N Random X: Y, Y%>
+ * Infects N battlers with state X after Y turns with a chance of Z%.
  *
  * ============================================================================
  */
