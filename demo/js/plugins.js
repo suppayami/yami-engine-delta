@@ -6,9 +6,8 @@ var $plugins =
 {"name":"YED_SkillShop","status":true,"description":"v1.0.0 This plugin provides a skill shop for buying skills.","parameters":{"[Basic Setting]":"","Default Price":"100","[Visual Setting]":"","Gold Cost Text":"Gold Cost","Item Cost Text":"Item Costs","Buy Command":"Learn","Cancel Command":"Cancel","Text Alignment":"center"}},
 {"name":"YED_Filters","status":false,"description":"","parameters":{}},
 {"name":"YED_TransferStealStates","status":true,"description":"v1.0.1 Allows creating skills that can transfer and/or steal\nstates to/from target.","parameters":{}},
-{"name":"YED_LunaBattleConfig","status":true,"description":"","parameters":{}},
-{"name":"YED_LunaEngine","status":true,"description":"","parameters":{}},
 {"name":"YEP_MessageCore","status":true,"description":"Adds more features to the Message Window to customized the\nway your messages appear and functions.","parameters":{"---General---":"","Default Rows":"4","Default Width":"Graphics.boxWidth","Face Indent":"Window_Base._faceWidth + 24","Fast Forward":"Input.isPressed('pagedown')","Word Wrapping":"false","---Font---":"","Font Name":"GameFont","Font Size":"28","Font Size Change":"12","Font Changed Max":"96","Font Changed Min":"12","---Name Box---":"","Name Box Buffer X":"-28","Name Box Buffer Y":"0","Name Box Padding":"this.standardPadding() * 4","Name Box Color":"0","Name Box Clear":"false","Name Box Added Text":"\\c[6]"}},
 {"name":"YED_WordWrap","status":true,"description":"v1.0.0 This plugin provides word wrap feature, so that a long text will be properly broken down into lines.","parameters":{}},
-{"name":"YED_Tilemap","status":true,"description":"v1.1.0 Implementation for Tiled Map Editor.","parameters":{}}
+{"name":"YED_Tilemap","status":true,"description":"v1.1.0 Implementation for Tiled Map Editor.","parameters":{}},
+{"name":"YED_InfectiveState","status":true,"description":"v1.0.0 Make a state can be infected to nearby battlers.","parameters":{}}
 ];

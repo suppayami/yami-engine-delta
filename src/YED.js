@@ -7,6 +7,10 @@
  */
 
 /**
+ * @external Game_Battler
+ */
+
+/**
  * @external Game_Actor
  */
 
