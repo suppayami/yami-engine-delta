@@ -43,7 +43,8 @@
     };
 
     Game_Map.prototype.setupYEDTilemap = function() {
-        this._yed_tilemap = new YED.Tilemap.Core();
+        // this._yed_tilemap = new YED.Tilemap.Core();
+        YED.Tilemap.Core.singleton = new YED.Tilemap.Core();
 
         // overwrite dataMap width/height
         $dataMap.width = this._yedTilemapData().width;
@@ -51,7 +52,7 @@
     };
 
     Game_Map.prototype._yedTilemapData = function() {
-        return this._yed_tilemap.data;
+        return YED.Tilemap.Core.singleton.data;
     };
 
     Game_Map.prototype.oldTileWidth = function() {
@@ -95,15 +96,15 @@
     };
 
     Game_Map.prototype.tilemapUpperLayers = function() {
-        return this._yed_tilemap.upperLayers;
+        return YED.Tilemap.Core.singleton.upperLayers;
     };
 
     Game_Map.prototype.tilemapLowerLayers = function() {
-        return this._yed_tilemap.lowerLayers;
+        return YED.Tilemap.Core.singleton.lowerLayers;
     };
 
     Game_Map.prototype.tilemapRefresh = function() {
-        this._yed_tilemap.refresh();
+        YED.Tilemap.Core.singleton.refresh();
     };
 
     Game_Map.prototype.isPassable = function(x, y, d) {
@@ -248,7 +249,7 @@
 
         this.addChild(this._lowerLayer);
         this.addChild(this._upperLayer);
-        this.addChild($gameMap._yed_tilemap);
+        this.addChild(YED.Tilemap.Core.singleton);
     };
 
     Tilemap.prototype._updateLayerPositions = function(startX, startY) {

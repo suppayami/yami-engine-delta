@@ -35,6 +35,7 @@
 
     Core.dataMap = null;
     Core.noMap = false;
+    Core.singleton = null;
 
     Core.loadMapFile = function() {
         var filePath = Core.getFilePath();
