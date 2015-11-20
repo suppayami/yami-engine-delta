@@ -1,7 +1,7 @@
 /*:
  * Yami Engine Delta - Skill Shop
  *
- * @plugindesc v1.0.0 This plugin provides a skill shop for buying skills.
+ * @plugindesc v1.0.1 This plugin provides a skill shop for buying skills.
  * @author Yami Engine Delta [Dr.Yami]
  *
  * @param [Basic Setting]
