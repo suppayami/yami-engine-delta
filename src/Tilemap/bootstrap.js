@@ -4,6 +4,7 @@
 
     var _DataManager_loadMapData = DataManager.loadMapData;
     var _DataManager_isMapLoaded = DataManager.isMapLoaded;
+    var _Scene_Map_onMapLoaded = Scene_Map.prototype.onMapLoaded;
     var _Game_Map_setup = Game_Map.prototype.setup;
     var _Game_Map_tileWidth = Game_Map.prototype.tileWidth;
     var _Game_Map_tileHeight = Game_Map.prototype.tileHeight;
@@ -36,6 +37,12 @@
         return defaultLoaded && yedTilemapLoaded;
     };
 
+    Scene_Map.prototype.onMapLoaded = function() {
+        $gameMap.setupYEDTilemap();
+
+        _Scene_Map_onMapLoaded.call(this);
+    };
+
     Game_Map.prototype.setup = function(mapId) {
         this.setupYEDTilemap();
 
@@ -44,7 +51,8 @@
 
     Game_Map.prototype.setupYEDTilemap = function() {
         // this._yed_tilemap = new YED.Tilemap.Core();
-        YED.Tilemap.Core.singleton = new YED.Tilemap.Core();
+        YED.Tilemap.Core.singleton
+            = YED.Tilemap.Core.singleton || new YED.Tilemap.Core();
 
         // overwrite dataMap width/height
         $dataMap.width = this._yedTilemapData().width;
