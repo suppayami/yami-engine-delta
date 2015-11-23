@@ -23,14 +23,7 @@
     var Core = function() {
         PIXI.DisplayObjectContainer.call(this);
 
-        this._data = null;
-        this._tilesets = [];
-        this._needRefresh = false;
-        this._upperLayers = [];
-        this._lowerLayers = [];
-        this.z = -1;
-
-        this._setup();
+        this.setup();
     };
 
     Core.dataMap = null;
@@ -162,11 +155,21 @@
         }
     });
 
-    Core.prototype._setup = function() {
+    Core.prototype.setup = function() {
+        this._clearData();
         this._setupData();
         this._setupLayers();
         this._setupTilesets();
         this._setupParallaxes();
+    };
+
+    Core.prototype._clearData = function() {
+        this._data = null;
+        this._tilesets = [];
+        this._needRefresh = false;
+        this._upperLayers = [];
+        this._lowerLayers = [];
+        this.z = -1;
     };
 
     Core.prototype._setupData = function() {

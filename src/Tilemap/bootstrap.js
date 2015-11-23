@@ -54,6 +54,8 @@
         YED.Tilemap.Core.singleton
             = YED.Tilemap.Core.singleton || new YED.Tilemap.Core();
 
+        YED.Tilemap.Core.singleton.setup();
+
         // overwrite dataMap width/height
         $dataMap.width = this._yedTilemapData().width;
         $dataMap.height = this._yedTilemapData().height;

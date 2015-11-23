@@ -1090,14 +1090,7 @@ YED.Tilemap = {};
     var Core = function() {
         PIXI.DisplayObjectContainer.call(this);
 
-        this._data = null;
-        this._tilesets = [];
-        this._needRefresh = false;
-        this._upperLayers = [];
-        this._lowerLayers = [];
-        this.z = -1;
-
-        this._setup();
+        this.setup();
     };
 
     Core.dataMap = null;
@@ -1229,11 +1222,21 @@ YED.Tilemap = {};
         }
     });
 
-    Core.prototype._setup = function() {
+    Core.prototype.setup = function() {
+        this._clearData();
         this._setupData();
         this._setupLayers();
         this._setupTilesets();
         this._setupParallaxes();
+    };
+
+    Core.prototype._clearData = function() {
+        this._data = null;
+        this._tilesets = [];
+        this._needRefresh = false;
+        this._upperLayers = [];
+        this._lowerLayers = [];
+        this.z = -1;
     };
 
     Core.prototype._setupData = function() {
@@ -1379,6 +1382,8 @@ YED.Tilemap = {};
         // this._yed_tilemap = new YED.Tilemap.Core();
         YED.Tilemap.Core.singleton
             = YED.Tilemap.Core.singleton || new YED.Tilemap.Core();
+
+        YED.Tilemap.Core.singleton.setup();
 
         // overwrite dataMap width/height
         $dataMap.width = this._yedTilemapData().width;
