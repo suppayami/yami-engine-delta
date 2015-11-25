@@ -10,4 +10,5 @@ gulp.task('build', ['lint-engine'], function() {
     gulp.start('build-transferstealstates');
     gulp.start('build-wordwrap');
     gulp.start('build-hospital-cc');
+    gulp.start('make:single-state');
 });
