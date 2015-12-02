@@ -11,5 +11,6 @@ var $plugins =
 {"name":"YED_WordWrap","status":true,"description":"v1.0.0 This plugin provides word wrap feature, so that a long text will be properly broken down into lines.","parameters":{}},
 {"name":"YED_InfectiveState","status":true,"description":"v1.0.0 Make a state can be infected to nearby battlers.","parameters":{}},
 {"name":"YED_Tilemap","status":true,"description":"v1.1.0 Implementation for Tiled Map Editor.","parameters":{}},
-{"name":"YED_SingleState","status":true,"description":"v1.0.0 This plugin restricts battlers to be affected by only one state.","parameters":{"Replace State":"true"}}
+{"name":"YED_SingleState","status":true,"description":"v1.0.0 This plugin restricts battlers to be affected by only one state.","parameters":{"Replace State":"true"}},
+{"name":"YED_EnemyPosition","status":true,"description":"v1.0.0 This plugin moves enemy sprites to certain positions or by offsets in battle. Works well for bigger resolution.","parameters":{}}
 ];

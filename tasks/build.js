@@ -11,4 +11,5 @@ gulp.task('build', ['lint-engine'], function() {
     gulp.start('build-wordwrap');
     gulp.start('build-hospital-cc');
     gulp.start('make:single-state');
+    gulp.start('make:enemy-position');
 });
