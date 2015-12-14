@@ -1,7 +1,7 @@
 /*:
  * Yami Engine Delta - Skill Shop
  *
- * @plugindesc v1.0.1 This plugin provides a skill shop for buying skills.
+ * @plugindesc v1.0.2 This plugin provides a skill shop for buying skills.
  * @author Yami Engine Delta [Dr.Yami]
  *
  * @param [Basic Setting]
@@ -1689,3 +1689,24 @@ YED.SkillShop.Scenes  = {};
         }
     };
 }(YED.SkillShop));
+
+(function() {
+    /**
+     * Aliasing methods
+     */
+    var _Window_SkillStatus_refresh =
+        Window_SkillStatus.prototype.refresh;
+
+    /**
+     * Extending: Game_Interpreter.prototype.pluginCommand
+     *
+     * Add go to Hospital Scene Plugin Command.
+     */
+    Window_SkillStatus.prototype.refresh = function() {
+        this.contents.clear();
+        
+        if (this._actor) {
+            _Window_SkillStatus_refresh.call(this);
+        }
+    };
+}());
