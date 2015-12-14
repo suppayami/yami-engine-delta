@@ -11,7 +11,7 @@ Yanfly.ASP3 = Yanfly.ASP3 || {};
 
 //=============================================================================
  /*:
- * @plugindesc v1.01 (Requires YEP_BattleEngineCore.js) Camera control is
+ * @plugindesc v1.02a (Requires YEP_BattleEngineCore.js) Camera control is
  * added to the Battle Engine Core's action sequences.
  * @author Yanfly Engine Plugins
  *
@@ -313,6 +313,10 @@ Yanfly.ASP3 = Yanfly.ASP3 || {};
  * Changelog
  * ============================================================================
  *
+ * Version 1.02a:
+ * - Updated the Game_Screen.startZoom() function from beta to newest version.
+ * - Decided to separate the methods as it breaks panning.
+ *
  * Version 1.01:
  * - Updated help file to include Character X for target typing.
  *
@@ -580,7 +584,7 @@ BattleManager.actionResetCamera = function(actionArgs) {
 BattleManager.actionResetZoom = function(actionArgs) {
 		if (!$gameSystem.isSideView()) return true;
     var duration = parseInt(actionArgs[0]) || 30;
-		$gameScreen.startZoom(1, duration);
+		$gameScreen.startBattleZoom(1, duration);
 		return true;
 };
 
@@ -605,7 +609,7 @@ BattleManager.actionZoom = function(actionArgs) {
 			var scale = parseFloat(actionArgs[0]) || 1.0;
 		}
 		var duration = parseInt(actionArgs[1]) || 30;
-		$gameScreen.startZoom(scale, duration);
+		$gameScreen.startBattleZoom(scale, duration);
 		return true;
 };
 
@@ -782,7 +786,7 @@ Game_Screen.prototype.update = function() {
 		this.updateBattleCamera();
 };
 
-Game_Screen.prototype.startZoom = function(scale, duration) {
+Game_Screen.prototype.startBattleZoom = function(scale, duration) {
     this._zoomScaleTarget = scale;
     this._zoomDuration = duration;
 };

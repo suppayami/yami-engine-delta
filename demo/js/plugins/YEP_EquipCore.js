@@ -11,7 +11,7 @@ Yanfly.Equip = Yanfly.Equip || {};
 
 //=============================================================================
  /*:
- * @plugindesc v1.04a Allows for the equipment system to be more flexible to
+ * @plugindesc v1.07 Allows for the equipment system to be more flexible to
  * allow for unique equipment slots per class.
  * @author Yanfly Engine Plugins
  *
@@ -152,6 +152,16 @@ Yanfly.Equip = Yanfly.Equip || {};
  * ============================================================================
  * Changelog
  * ============================================================================
+ *
+ * Version 1.07:
+ * - Fixed a bug with 'Optimize' and 'Remove All' not refreshing windows.
+ *
+ * Version 1.06:
+ * - Fixed a bug with 'Change Equipment' event where it would only change the
+ * slot of the marked equipment rather than the slot type.
+ *
+ * Version 1.05:
+ * - Fixed an issue where unequipping items can kill actors.
  *
  * Version 1.04a:
  * - Fixed a bug and rewrote the initializing equipment process.
@@ -492,6 +502,19 @@ Game_Actor.prototype.evalParamPlus = function(item, paramId) {
         break;
     }
     return value + all;
+};
+
+//=============================================================================
+// Game_Interpreter
+//=============================================================================
+
+// Change Equipment
+Game_Interpreter.prototype.command319 = function() {
+    var actor = $gameActors.actor(this._params[0]);
+    if (!actor) return true;
+    var index = actor.equipSlots().indexOf(this._params[1]) + 1;
+    actor.changeEquipById(index, this._params[2]);
+    return true;
 };
 
 //=============================================================================
@@ -850,7 +873,8 @@ Scene_Equip.prototype.commandOptimize = function() {
     var mpRate = this.actor().mp / Math.max(1, this.actor().mmp);
     Yanfly.Equip.Scene_Equip_commandOptimize.call(this);
     $gameTemp._optimizeEquipments = false;
-    this.actor().setHp(parseInt(this.actor().mhp * hpRate));
+    var hpAmount = Math.max(1, parseInt(this.actor().mhp * hpRate));
+    this.actor().setHp(hpAmount);
 		this.actor().setMp(parseInt(this.actor().mmp * mpRate));
     this._compareWindow.refresh();
     this._statusWindow.refresh();
@@ -863,7 +887,8 @@ Scene_Equip.prototype.commandClear = function() {
     var mpRate = this.actor().mp / Math.max(1, this.actor().mmp);
     Yanfly.Equip.Scene_Equip_commandClear.call(this);
     $gameTemp._clearEquipments = false;
-    this.actor().setHp(parseInt(this.actor().mhp * hpRate));
+    var hpAmount = Math.max(1, parseInt(this.actor().mhp * hpRate));
+    this.actor().setHp(hpAmount);
 		this.actor().setMp(parseInt(this.actor().mmp * mpRate));
     this._compareWindow.refresh();
     this._statusWindow.refresh();
@@ -871,6 +896,7 @@ Scene_Equip.prototype.commandClear = function() {
 
 Yanfly.Equip.Scene_Equip_onSlotOk = Scene_Equip.prototype.onSlotOk;
 Scene_Equip.prototype.onSlotOk = function() {
+    this._itemWindow._slotId = -1;
     var slotId = this._slotWindow.index();
     Yanfly.Equip.Window_EquipItem_setSlotId.call(this._itemWindow, slotId);
     Yanfly.Equip.Scene_Equip_onSlotOk.call(this);
@@ -882,7 +908,8 @@ Scene_Equip.prototype.onItemOk = function() {
     var hpRate = this.actor().hp / Math.max(1, this.actor().mhp);
     var mpRate = this.actor().mp / Math.max(1, this.actor().mmp);
     Yanfly.Equip.Scene_Equip_onItemOk.call(this);
-    this.actor().setHp(parseInt(this.actor().mhp * hpRate));
+    var hpAmount = Math.max(1, parseInt(this.actor().mhp * hpRate));
+    this.actor().setHp(hpAmount);
 		this.actor().setMp(parseInt(this.actor().mmp * mpRate));
     this._itemWindow.hide();
     this._statusWindow.refresh();

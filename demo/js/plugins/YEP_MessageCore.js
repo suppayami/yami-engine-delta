@@ -11,7 +11,7 @@ Yanfly.Message = Yanfly.Message || {};
 
 //=============================================================================
  /*:
- * @plugindesc v1.03a Adds more features to the Message Window to customized
+ * @plugindesc v1.07 Adds more features to the Message Window to customized
  * the way your messages appear and functions.
  * @author Yanfly Engine Plugins
  *
@@ -46,6 +46,11 @@ Yanfly.Message = Yanfly.Message || {};
  * @param Description Wrap
  * @desc Use this to enable or disable word wrapping for descriptions.
  * OFF - false     ON - true
+ * @default false
+ *
+ * @param Word Wrap Space
+ * @desc Insert a space with manual line breaks?
+ * NO - false     YES - true
  * @default false
  *
  * @param ---Font---
@@ -276,7 +281,18 @@ Yanfly.Message = Yanfly.Message || {};
  * Changelog
  * ============================================================================
  *
- * Version 1.03a:
+ * Version 1.07:
+ * - Added 'Word Wrap Space' for word wrap users. This parameter will leave a
+ * space behind for those who want a space left behind.
+ *
+ * Version 1.06:
+ * - Fixed a bug that would cause masking problems with mobile devices.
+ *
+ * Version 1.05:
+ * - Fixed a bug that would cause the namebox window to appear distorted.
+ *
+ * Version 1.04:
+ * - Fixed a bug that captured too many text codes with the namebox window.
  * - Timed Name Window's closing speed with main window's closing speed.
  *
  * Verison 1.03:
@@ -311,6 +327,7 @@ Yanfly.Param.MSGFaceIndent = String(Yanfly.Parameters['Face Indent']);
 Yanfly.Param.MSGFastForward = String(Yanfly.Parameters['Fast Forward']);
 Yanfly.Param.MSGWordWrap = String(Yanfly.Parameters['Word Wrapping']);
 Yanfly.Param.MSGDescWrap = String(Yanfly.Parameters['Description Wrap']);
+Yanfly.Param.MSGWrapSpace = eval(String(Yanfly.Parameters['Word Wrap Space']));
 Yanfly.Param.MSGFontName = String(Yanfly.Parameters['Font Name']);
 Yanfly.Param.MSGFontSize = Number(Yanfly.Parameters['Font Size']);
 Yanfly.Param.MSGFontSizeChange = String(Yanfly.Parameters['Font Size Change']);
@@ -469,7 +486,8 @@ Window_Base.prototype.setWordWrap = function(text) {
 			text = text.replace(/<(?:WordWrap)>/gi, '\n');
 		}
 		if (this._wordWrap) {
-			text = text.replace(/[\n\r]+/g, '');
+      var replace = Yanfly.Param.MSGWrapSpace ? ' ' : '';
+			text = text.replace(/[\n\r]+/g, replace);
 			text = text.replace(/<(?:BR|line break)>/gi, '\n');
 		}
 		return text;
@@ -573,7 +591,7 @@ Window_Base.prototype.escapeIconItem = function(n, database) {
 };
 
 Window_Base.prototype.obtainEscapeString = function(textState) {
-    var arr = /^\<(.*)\>/.exec(textState.text.slice(textState.index));
+    var arr = /^\<(.*?)\>/.exec(textState.text.slice(textState.index));
     if (arr) {
         textState.index += arr[0].length;
         return String(arr[0].slice(1, arr[0].length - 1));
@@ -796,7 +814,6 @@ Window_NameBox.prototype.constructor = Window_NameBox;
 
 Window_NameBox.prototype.initialize = function(parentWindow) {
     this._parentWindow = parentWindow;
-		this._ignoreMask = true
     Window_Base.prototype.initialize.call(this, 0, 0, 240, this.windowHeight());
 		this._text = '';
 		this._openness = 0;
@@ -806,6 +823,7 @@ Window_NameBox.prototype.initialize = function(parentWindow) {
 			this.backOpacity = 0;
 			this.opacity = 0;
 		}
+		this.hide();
 };
 
 Yanfly.Message.WindowLayer_webglMaskWindow =
@@ -819,7 +837,8 @@ Window_NameBox.prototype.windowWidth = function() {
 		this.resetFontSettings();
     var dw = this.textWidthEx(this._text);
 		dw += this.padding * 2;
-		return dw + eval(Yanfly.Param.MSGNameBoxPadding);
+		var width = dw + eval(Yanfly.Param.MSGNameBoxPadding)
+		return Math.ceil(width);
 };
 
 Window_NameBox.prototype.textWidthEx = function(text) {
@@ -855,6 +874,7 @@ Window_NameBox.prototype.update = function() {
 };
 
 Window_NameBox.prototype.refresh = function(text, position) {
+		this.show();
 		this._text = Yanfly.Param.MSGNameBoxText + text;
 		this._position = position;
 		this.width = this.windowWidth();
@@ -913,19 +933,14 @@ Window_NameBox.prototype.adjustPositionY = function() {
 // Window_Message
 //=============================================================================
 
-Yanfly.Message.Window_Message_subWindows = Window_Message.prototype.subWindows;
-Window_Message.prototype.subWindows = function() {
-    var subWindows = Yanfly.Message.Window_Message_subWindows.call(this);
-		subWindows = subWindows.concat([this._nameWindow]);
-		return subWindows;
-};
-
 Yanfly.Message.Window_Message_createSubWindows =
 		Window_Message.prototype.createSubWindows;
 Window_Message.prototype.createSubWindows = function() {
     Yanfly.Message.Window_Message_createSubWindows.call(this);
 		this._nameWindow = new Window_NameBox(this);
 		Yanfly.nameWindow = this._nameWindow;
+		var scene = SceneManager._scene;
+		scene.addChild(this._nameWindow);
 };
 
 Window_Message.prototype.numVisibleRows = function() {
@@ -1036,28 +1051,28 @@ Window_Message.prototype.convertEscapeCharacters = function(text) {
 };
 
 Window_Message.prototype.convertNameBox = function(text) {
-		text = text.replace(/\x1bN\<(.*)\>/gi, function() {
+		text = text.replace(/\x1bN\<(.*?)\>/gi, function() {
 				return Yanfly.nameWindow.refresh(arguments[1], 1);
 		}, this);
-		text = text.replace(/\x1bN1\<(.*)\>/gi, function() {
+		text = text.replace(/\x1bN1\<(.*?)\>/gi, function() {
 				return Yanfly.nameWindow.refresh(arguments[1], 1);
 		}, this);
-		text = text.replace(/\x1bN2\<(.*)\>/gi, function() {
+		text = text.replace(/\x1bN2\<(.*?)\>/gi, function() {
 				return Yanfly.nameWindow.refresh(arguments[1], 2);
 		}, this);
-		text = text.replace(/\x1bN3\<(.*)\>/gi, function() {
+		text = text.replace(/\x1bN3\<(.*?)\>/gi, function() {
 				return Yanfly.nameWindow.refresh(arguments[1], 3);
 		}, this);
-		text = text.replace(/\x1bNC\<(.*)\>/gi, function() {
+		text = text.replace(/\x1bNC\<(.*?)\>/gi, function() {
 				return Yanfly.nameWindow.refresh(arguments[1], 3);
 		}, this);
-		text = text.replace(/\x1bN4\<(.*)\>/gi, function() {
+		text = text.replace(/\x1bN4\<(.*?)\>/gi, function() {
 				return Yanfly.nameWindow.refresh(arguments[1], 4);
 		}, this);
-		text = text.replace(/\x1bN5\<(.*)\>/gi, function() {
+		text = text.replace(/\x1bN5\<(.*?)\>/gi, function() {
 				return Yanfly.nameWindow.refresh(arguments[1], 5);
 		}, this);
-		text = text.replace(/\x1bNR\<(.*)\>/gi, function() {
+		text = text.replace(/\x1bNR\<(.*?)\>/gi, function() {
 				return Yanfly.nameWindow.refresh(arguments[1], 5);
 		}, this);
     return text;

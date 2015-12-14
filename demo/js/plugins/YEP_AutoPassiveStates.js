@@ -11,7 +11,7 @@ Yanfly.APS = Yanfly.APS || {};
 
 //=============================================================================
  /*:
- * @plugindesc v1.00 This plugin allows for some states to function as
+ * @plugindesc v1.05a This plugin allows for some states to function as
  * passives for actors, enemies, skills, and equips.
  * @author Yanfly Engine Plugins
  *
@@ -28,6 +28,9 @@ Yanfly.APS = Yanfly.APS || {};
  * Notetags
  * ============================================================================
  *
+ * For those who would like to allocate passive states to your battlers, use
+ * the notetags below:
+ *
  * Actor, Class, Skills, Weapon, Armor, Enemy Notetags:
  *   <Passive State: x>
  *   <Passive State: x, x, x>
@@ -39,6 +42,87 @@ Yanfly.APS = Yanfly.APS || {};
  *   This will add the states x through y (in a sequence) for the actor or
  *   enemy to have as a passive state. If placed inside a weapon or armor
  *   notebox, the user will have that passive state.
+ *
+ * For those who don't want their passive states to always be on, you can use
+ * the following notetags to introduce conditions for your passive states. All
+ * conditions must be fulfilled in order for the passive state to appear.
+ *
+ * State Notetags:
+ *   <Passive Condition: HP Above x%>
+ *   <Passive Condition: HP Below x%>
+ *   <Passive Condition: MP Above x%>
+ *   <Passive Condition: MP Below x%>
+ *   If the user's HP or MP is above/below x% of the MaxHP or MaxMP, this
+ *   condition will be met for the passive state to appear.
+ *
+ *   <Passive Condition: Stat Above x>
+ *   <Passive Condition: Stat Below x>
+ *   Replace 'stat' with 'HP', 'MP', 'TP', 'MAXHP', 'MAXMP', 'ATK', 'DEF',
+ *   'MAT', 'MDF', 'AGI', 'LUK'. If the above stat is above/below x, then the
+ *   condition is met for the passive state to appear.
+ *
+ *   <Passive Condition: Switch x ON>
+ *   <Passive Condition: Switch x OFF>
+ *   If switch x is either ON/OFF, then the condition is met for the passive
+ *   state to appear.
+ *
+ *   <Passive Condition: Variable x Above y>
+ *   <Passive Condition: Variable x Below y>
+ *   Replace x with the variable you wish to check to see if it's above/below
+ *   y, then the condition is met for the passive state to appear.
+ *
+ * ============================================================================
+ * Lunatic Mode - Conditional Passives
+ * ============================================================================
+ *
+ * For those who understand a bit of JavaScript and would like for their
+ * passive states to appear under specific conditions, you can use this notetag
+ * to accomplish conditional factors.
+ *
+ * State Notetags:
+ *   <Custom Passive Condition>
+ *   if (user.hp / user.mhp <= 0.25) {
+ *     condition = true;
+ *   } else {
+ *     condition = false;
+ *   }
+ *   </Custom Passive Condition>
+ *   This enables you to input conditions to be met in order for the passive
+ *   state to appear. If the 'condition' variable returns true, the passive
+ *   state will appear. If the 'condition' returns false, it won't appear. If
+ *   condition is not defined, it will return true and the passive state will
+ *   appear on the battler.
+ *   * Note: All non-custom passive conditions must be met before this one can
+ *   be fulfilled and allow the custom condition to appear.
+ *   * Note: If you decide to use a condition that requires the actor to have a
+ *   particular state, it cannot be a passive state to prevent infinite loops.
+ *
+ * ============================================================================
+ * Changelog
+ * ============================================================================
+ *
+ * Version 1.05a:
+ * - Added Lunatic Mode - <Custom Passive Condition> notetag for states.
+ * - Fixed a bug that would cause infinite loops.
+ *
+ * Version 1.04:
+ * - Added a lot of passive condition notetags for states.
+ * --- <Passive Condition: HP/MP Above/Below x%>
+ * --- <Passive Condition: Stat Above/Below x>
+ * --- <Passive Condition: Switch x ON/OFF>
+ * --- <Passive Condition: Variable x Above/Below y>
+ *
+ * Version 1.03:
+ * - Added refreshing whenever a new skill is learned to update passives.
+ *
+ * Version 1.02:
+ * - Optimized passive state calculations to reduce lag.
+ *
+ * Version 1.01:
+ * - Fixed a bug with having multiple passive states of the same ID.
+ *
+ * Version 1.00:
+ * - Finished plugin!
  */
 //=============================================================================
 
@@ -49,47 +133,143 @@ Yanfly.APS = Yanfly.APS || {};
 Yanfly.APS.DataManager_isDatabaseLoaded = DataManager.isDatabaseLoaded;
 DataManager.isDatabaseLoaded = function() {
     if (!Yanfly.APS.DataManager_isDatabaseLoaded.call(this)) return false;
-		this.processAPSNotetags($dataActors);
-		this.processAPSNotetags($dataClasses);
-		this.processAPSNotetags($dataEnemies);
-    this.processAPSNotetags($dataSkills);
-		this.processAPSNotetags($dataWeapons);
-		this.processAPSNotetags($dataArmors);
-		return true;
+    this.processAPSNotetags1($dataActors);
+    this.processAPSNotetags1($dataClasses);
+    this.processAPSNotetags1($dataEnemies);
+    this.processAPSNotetags1($dataSkills);
+    this.processAPSNotetags1($dataWeapons);
+    this.processAPSNotetags1($dataArmors);
+    this.processAPSNotetags2($dataStates);
+    return true;
 };
 
-DataManager.processAPSNotetags = function(group) {
+DataManager.processAPSNotetags1 = function(group) {
   var note1 = /<(?:PASSIVE STATE):[ ]*(\d+(?:\s*,\s*\d+)*)>/i;
   var note2 = /<(?:PASSIVE STATE):[ ](\d+)[ ](?:THROUGH|to)[ ](\d+)>/i;
-	for (var n = 1; n < group.length; n++) {
-		var obj = group[n];
-		var notedata = obj.note.split(/[\r\n]+/);
+  for (var n = 1; n < group.length; n++) {
+    var obj = group[n];
+    var notedata = obj.note.split(/[\r\n]+/);
 
     obj.passiveStates = [];
 
-		for (var i = 0; i < notedata.length; i++) {
-			var line = notedata[i];
-			if (line.match(note1)) {
+    for (var i = 0; i < notedata.length; i++) {
+      var line = notedata[i];
+      if (line.match(note1)) {
         var array = JSON.parse('[' + RegExp.$1.match(/\d+/g) + ']');
         obj.passiveStates = obj.passiveStates.concat(array);
       } else if (line.match(note2)) {
         var range = Yanfly.Util.getRange(parseInt(RegExp.$1),
-					parseInt(RegExp.$2));
+          parseInt(RegExp.$2));
         obj.passiveStates = obj.passiveStates.concat(range);
       }
-		}
-	}
+    }
+  }
+};
+
+DataManager.processAPSNotetags2 = function(group) {
+  var note1a = /<(?:PASSIVE CONDITION):[ ](.*)[ ](?:ABOVE)[ ](\d+)([%％])>/i;
+  var note1b = /<(?:PASSIVE CONDITION):[ ](.*)[ ](?:BELOW)[ ](\d+)([%％])>/i;
+  var note2a = /<(?:PASSIVE CONDITION):[ ](.*)[ ](?:ABOVE)[ ](\d+)>/i;
+  var note2b = /<(?:PASSIVE CONDITION):[ ](.*)[ ](?:BELOW)[ ](\d+)>/i;
+  var note3a = /<(?:PASSIVE CONDITION):[ ]SWITCH[ ](\d+)[ ](.*)>/i;
+  var notez1 = /<(?:CUSTOM PASSIVE CONDITION)>/i;
+  var notez2 = /<\/(?:CUSTOM PASSIVE CONDITION)>/i;
+  for (var n = 1; n < group.length; n++) {
+    var obj = group[n];
+    var notedata = obj.note.split(/[\r\n]+/);
+
+    obj.passiveCondition = '';
+    obj.passiveConditionEval = '';
+    var evalMode = 'none';
+
+    for (var i = 0; i < notedata.length; i++) {
+      var line = notedata[i];
+      if (line.match(note1a)) {
+        var rate = parseFloat(RegExp.$2) * 0.01;
+        var param = this.getPassiveConditionParamRate(String(RegExp.$1));
+        var pass = 'if (' + param + ' <= ' + rate + ') condition = false;';
+        obj.passiveCondition = obj.passiveCondition + pass + '\n';
+      } else if (line.match(note1b)) {
+        var rate = parseFloat(RegExp.$2) * 0.01;
+        var param = this.getPassiveConditionParamRate(String(RegExp.$1));
+        var pass = 'if (' + param + ' >= ' + rate + ') condition = false;';
+        obj.passiveCondition = obj.passiveCondition + pass + '\n';
+      } else if (line.match(note2a)) {
+        var rate = parseInt(RegExp.$2);
+        var param = this.getPassiveConditionParam(String(RegExp.$1));
+        var pass = 'if (' + param + ' <= ' + rate + ') condition = false;';
+        obj.passiveCondition = obj.passiveCondition + pass + '\n';
+      } else if (line.match(note2b)) {
+        var rate = parseInt(RegExp.$2);
+        var param = this.getPassiveConditionParam(String(RegExp.$1));
+        var pass = 'if (' + param + ' >= ' + rate + ') condition = false;';
+        obj.passiveCondition = obj.passiveCondition + pass + '\n';
+      } else if (line.match(note3a)) {
+        var id = parseInt(RegExp.$1);
+        var value = String(RegExp.$2).toUpperCase();
+        var pass = ''
+        if (['ON', 'TRUE', 'ENABLE', 'ENABLED'].contains(value)) {
+          pass = 'if (!$gameSwitches.value(' + id + ')) condition = false;'
+        }
+        if (['OFF', 'FALSE', 'DISABLE', 'DISABLED'].contains(value)) {
+          pass = 'if ($gameSwitches.value(' + id + ')) condition = false;'
+        }
+        if (pass === '') continue;
+        obj.passiveCondition = obj.passiveCondition + pass + '\n';
+      } else if (line.match(notez1)) {
+        evalMode = 'custom passive condition';
+      } else if (line.match(notez2)) {
+        evalMode = 'none';
+      } else if (evalMode === 'custom passive condition') {
+        obj.passiveConditionEval = obj.passiveConditionEval + line + '\n';
+      }
+    }
+  }
+};
+
+DataManager.getPassiveConditionParam = function(string) {
+    string = string.toUpperCase();
+    var text = 'user.';
+    if (['HP'].contains(string)) text += 'hp';
+    if (['MP', 'SP'].contains(string)) text += 'mp';
+    if (['TP'].contains(string)) text += 'tp';
+    if (['ATK'].contains(string)) text += 'param(2)';
+    if (['DEF'].contains(string)) text += 'param(3)';
+    if (['MAT', 'INT'].contains(string)) text += 'param(4)';
+    if (['MDF', 'RES'].contains(string)) text += 'param(5)';
+    if (['AGI'].contains(string)) text += 'param(6)';
+    if (['LUK'].contains(string)) text += 'param(7)';
+    if (['MAX HP', 'MAXHP'].contains(string)) text += 'mhp';
+    if (['MAX MP', 'MAX SP', 'MAXMP', 'MAXSP'].contains(string)) text += 'mmp';
+    if (string.match(/VARIABLE[ ](\d+)/i)) {
+      text = '$gameVariables.value(' + parseInt(RegExp.$1) + ')';
+    }
+    return text;
+};
+
+DataManager.getPassiveConditionParamRate = function(string) {
+    string = string.toUpperCase();
+    var text = '0';
+    if (['HP'].contains(string)) return 'user.hpRate()';
+    if (['MP'].contains(string)) return 'user.mpRate()';
+    return text;
 };
 
 //=============================================================================
 // Game_BattlerBase
 //=============================================================================
 
+Yanfly.APS.Game_BattlerBase_refresh = Game_BattlerBase.prototype.refresh;
+Game_BattlerBase.prototype.refresh = function() {
+    this._passiveStatesRaw = undefined;
+    Yanfly.APS.Game_BattlerBase_refresh.call(this);
+};
+
 Yanfly.APS.Game_BattlerBase_states = Game_BattlerBase.prototype.states;
 Game_BattlerBase.prototype.states = function() {
     var array = Yanfly.APS.Game_BattlerBase_states.call(this);
     array = array.concat(this.passiveStates());
-    this.sortPassiveStates(array.filter(Yanfly.Util.onlyUnique));
+    this.sortPassiveStates(array);
     return array;
 };
 
@@ -104,7 +284,8 @@ Game_BattlerBase.prototype.passiveStates = function() {
     var array = [];
     for (var i = 0; i < this.passiveStatesRaw().length; ++i) {
       var state = $dataStates[this.passiveStatesRaw()[i]];
-      if (state) array.push(state);
+      if (state && array.contains(state)) continue;
+      array.push(state);
     }
     return array;
 };
@@ -119,9 +300,48 @@ Game_BattlerBase.prototype.getPassiveStateData = function(obj) {
     if (!obj.passiveStates) return [];
     var array = [];
     for (var i = 0; i < obj.passiveStates.length; ++i) {
-      array.push(obj.passiveStates[i]);
+      var stateId = obj.passiveStates[i];
+      if (!this.meetPassiveStateCondition(stateId)) continue;
+      array.push(stateId);
     }
     return array;
+};
+
+Game_BattlerBase.prototype.meetPassiveStateCondition = function(stateId) {
+    if (this._checkingPassiveStateCondition) return false;
+    var state = $dataStates[stateId];
+    if (!state) return false;
+    if (state.passiveCondition !== '') {
+      if (!this.passiveStateConditions(state)) return false;
+    }
+    if (state.passiveConditionEval === '') return true;
+    return this.passiveStateConditionEval(state);
+};
+
+Game_BattlerBase.prototype.passiveStateConditions = function(state) {
+    this._checkingPassiveStateCondition = state.id;
+    var condition = true;
+    var a = this;
+    var user = this;
+    var subject = this;
+    var s = $gameSwitches._data;
+    var v = $gameVariables._data;
+    eval(state.passiveCondition);
+    this._checkingPassiveStateCondition = 0;
+    return condition;
+};
+
+Game_BattlerBase.prototype.passiveStateConditionEval = function(state) {
+    this._checkingPassiveStateCondition = state.id;
+    var condition = true;
+    var a = this;
+    var user = this;
+    var subject = this;
+    var s = $gameSwitches._data;
+    var v = $gameVariables._data;
+    eval(state.passiveConditionEval);
+    this._checkingPassiveStateCondition = 0;
+    return condition;
 };
 
 Game_BattlerBase.prototype.sortPassiveStates = function(array) {
@@ -143,13 +363,13 @@ Game_BattlerBase.prototype.isPassiveStateAffected = function(stateId) {
 
 Yanfly.APS.Game_Battler_isStateAddable = Game_Battler.prototype.isStateAddable;
 Game_Battler.prototype.isStateAddable = function(stateId) {
-		if (this.isPassiveStateAffected(stateId)) return false;
+    if (this.isPassiveStateAffected(stateId)) return false;
     return Yanfly.APS.Game_Battler_isStateAddable.call(this, stateId);
 };
 
 Yanfly.APS.Game_Battler_removeState = Game_Battler.prototype.removeState;
 Game_Battler.prototype.removeState = function(stateId) {
-		if (this.isPassiveStateAffected(stateId)) return;
+    if (this.isPassiveStateAffected(stateId)) return;
     Yanfly.APS.Game_Battler_removeState.call(this, stateId);
 };
 
@@ -158,6 +378,7 @@ Game_Battler.prototype.removeState = function(stateId) {
 //=============================================================================
 
 Game_Actor.prototype.passiveStatesRaw = function() {
+    if (this._passiveStatesRaw !== undefined) return this._passiveStatesRaw;
     var array = Game_BattlerBase.prototype.passiveStatesRaw.call(this);
     array = array.concat(this.getPassiveStateData(this.actor()));
     array = array.concat(this.getPassiveStateData(this.currentClass()));
@@ -169,7 +390,20 @@ Game_Actor.prototype.passiveStatesRaw = function() {
       var skill = $dataSkills[this._skills[i]];
       array = array.concat(this.getPassiveStateData(skill));
     }
-    return array;
+    this._passiveStatesRaw = array.filter(Yanfly.Util.onlyUnique)
+    return this._passiveStatesRaw;
+};
+
+Yanfly.APS.Game_Actor_learnSkill = Game_Actor.prototype.learnSkill;
+Game_Actor.prototype.learnSkill = function(skillId) {
+    Yanfly.APS.Game_Actor_learnSkill.call(this, skillId);
+    this._passiveStatesRaw = undefined;
+};
+
+Yanfly.APS.Game_Actor_forgetSkill = Game_Actor.prototype.forgetSkill;
+Game_Actor.prototype.forgetSkill = function(skillId) {
+    Yanfly.APS.Game_Actor_forgetSkill.call(this, skillId);
+    this._passiveStatesRaw = undefined;
 };
 
 //=============================================================================
@@ -177,24 +411,26 @@ Game_Actor.prototype.passiveStatesRaw = function() {
 //=============================================================================
 
 Game_Enemy.prototype.passiveStatesRaw = function() {
+    if (this._passiveStatesRaw !== undefined) return this._passiveStatesRaw;
     var array = Game_BattlerBase.prototype.passiveStatesRaw.call(this);
     array = array.concat(this.getPassiveStateData(this.enemy()));
     for (var i = 0; i < this.skills().length; ++i) {
       var skill = this.skills()[i];
       array = array.concat(this.getPassiveStateData(skill));
     }
-    return array;
+    this._passiveStatesRaw = array.filter(Yanfly.Util.onlyUnique)
+    return this._passiveStatesRaw;
 };
 
 if (!Game_Enemy.prototype.skills) {
-		Game_Enemy.prototype.skills = function() {
-			var skills = []
-			for (var i = 0; i < this.enemy().actions.length; ++i) {
-				var skill = $dataSkills[this.enemy().actions[i].skillId]
-				if (skill) skills.push(skill);
-			}
-			return skills;
-		}
+    Game_Enemy.prototype.skills = function() {
+      var skills = []
+      for (var i = 0; i < this.enemy().actions.length; ++i) {
+        var skill = $dataSkills[this.enemy().actions[i].skillId];
+        if (skill) skills.push(skill);
+      }
+      return skills;
+    }
 };
 
 //=============================================================================

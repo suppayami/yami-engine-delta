@@ -11,7 +11,7 @@ Yanfly.Item = Yanfly.Item || {};
 
 //=============================================================================
  /*:
- * @plugindesc v1.06 Changes the way Items are handled for your game
+ * @plugindesc v1.16 Changes the way Items are handled for your game
  * and the Item Scene, too.
  * @author Yanfly Engine Plugins
  *
@@ -42,6 +42,11 @@ Yanfly.Item = Yanfly.Item || {};
  * @desc Randomize the stats found for non shop items by this value
  * either positive or negative. Set as 0 for no random.
  * @default 5
+ *
+ * @param Negative Variance
+ * @desc If using random variance, allow random variance equipment
+ * stats to go under 0? NO - false     YES - true
+ * @default false
  *
  * @param Name Format
  * @desc How item names will be ordered and structured.
@@ -252,8 +257,78 @@ Yanfly.Item = Yanfly.Item || {};
  * name is 'Legendary Blade', then 'Legendary Blade' will take priority.
  *
  * ============================================================================
+ * Lunatic Mode - Custom Info Window Display
+ * ============================================================================
+ *
+ * If you want to display unique and custom stuff into your info window on the
+ * side, you can use the following notetags:
+ *
+ *   <Info Text Top>
+ *    text
+ *    text
+ *   </Info Text Top>
+ *   Type in extra information you wish to type in for the item info window
+ *   here, whether it is lore or other information. Text codes can be used.
+ *   Information here is is displayed towards the top of the info window.
+ *
+ *   <Info Text Bottom>
+ *    text
+ *    text
+ *   </Info Text Bottom>
+ *   Type in extra information you wish to type in for the item info window
+ *   here, whether it is lore or other information. Text codes can be used.
+ *   Information here is is displayed towards the bottom of the info window.
+ *
+ *   <Info Eval>
+ *    var variableId = 1;
+ *    var value = 500;
+ *    $gameVariables.setValue(variableId, value);
+ *   </Info Eval>
+ *   If you know JavaScript, you can use these notetags to run some code before
+ *   displaying any new info. This way, if you plan on using text codes that
+ *   display variable values, you can run a bit of code before displaying them
+ *   to synch up what's shown in the item info window.
+ *
+ * ============================================================================
  * Changelog
  * ============================================================================
+ *
+ * Version 1.16:
+ * - Fixed a bug that made mid-game actor initialization not display items
+ * correctly in the item menu.
+ *
+ * Version 1.15:
+ * - Fixed a bug with independent items getting values that crash the game.
+ *
+ * Version 1.14:
+ * - Fixed an unintended function of the game not granting a piece of equipment
+ * through events.
+ *
+ * Version 1.13:
+ * - Fixed a bug that didn't unequip items properly.
+ *
+ * Version 1.12:
+ * - Added 'Negative Variance' parameter.
+ *
+ * Version 1.11:
+ * - Fixed a bug that caused random variance to not calculate correctly.
+ * - Fixed a bug that didn't return the correct conditional branch results.
+ * - Fixed the display in the shop window to show number of independent items
+ * owned by the player rather than just 0.
+ *
+ * Version 1.10:
+ * - Added Lunatic Mode - Custom Info Window Display.
+ *
+ * Version 1.09:
+ * - Fixed a bug with evented item removal that didn't remove equipped items if
+ * the 'Include Equipment' checkbox was checked.
+ *
+ * Version 1.08:
+ * - Fixed a bug with the Control Variable event that would not gather the
+ * right amount of independent items.
+ *
+ * Version 1.07:
+ * - Fixed a bug with the Change Equipment event where armors wouldn't equip.
  *
  * Version 1.06:
  * - Fixed a bug and rewrote the initializing equipment process.
@@ -295,9 +370,11 @@ Yanfly.Param.ItemMaxWeapons = Number(Yanfly.Parameters['Max Weapons']);
 Yanfly.Param.ItemMaxArmors = Number(Yanfly.Parameters['Max Armors']);
 Yanfly.Param.ItemStartingId = Number(Yanfly.Parameters['Starting ID']);
 Yanfly.Param.ItemRandomVariance = Number(Yanfly.Parameters['Random Variance']);
+Yanfly.Param.ItemNegVar = eval(String(Yanfly.Parameters['Negative Variance']));
 Yanfly.Param.ItemNameFmt = String(Yanfly.Parameters['Name Format']);
 Yanfly.Param.ItemNameSpacing = String(Yanfly.Parameters['Name Spacing']);
 Yanfly.Param.ItemBoostFmt = String(Yanfly.Parameters['Boost Format']);
+
 Yanfly.Param.ItemSceneItem = String(Yanfly.Parameters['Updated Scene Item']);
 Yanfly.Param.ItemShEquipped = String(Yanfly.Parameters['List Equipped Items']);
 Yanfly.Param.ItemShowIcon = String(Yanfly.Parameters['Show Icon']);
@@ -328,16 +405,20 @@ DataManager.isDatabaseLoaded = function() {
 };
 
 DataManager.processItemCoreNotetags = function(group) {
- var note1 = /<(?:RANDOM VARIANCE):[ ](\d+)>/i;
+  var note1 = /<(?:RANDOM VARIANCE):[ ](\d+)>/i;
   var note2 = /<(?:NONINDEPENDENT ITEM|not independent item)>/i;
   var note3 = /<(?:PRIORITY NAME)>/i;
- for (var n = 1; n < group.length; n++) {
-   var obj = group[n];
-   var notedata = obj.note.split(/[\r\n]+/);
+  for (var n = 1; n < group.length; n++) {
+    var obj = group[n];
+    var notedata = obj.note.split(/[\r\n]+/);
 
     obj.randomVariance = Yanfly.Param.ItemRandomVariance;
     obj.nonIndepdent = false;
     obj.setPriorityName = false;
+    obj.infoEval = '';
+    obj.infoTextTop = '';
+    obj.infoTextBottom = '';
+    var evalMode = 'none';
 
    for (var i = 0; i < notedata.length; i++) {
      var line = notedata[i];
@@ -347,9 +428,29 @@ DataManager.processItemCoreNotetags = function(group) {
         obj.nonIndepdent = true;
       } else if (line.match(note3)) {
         obj.setPriorityName = true;
+      } else if (line.match(/<(?:INFO EVAL)>/i)) {
+        evalMode = 'info eval';
+      } else if (line.match(/<\/(?:INFO EVAL)>/i)) {
+        evalMode = 'none';
+      } else if (line.match(/<(?:INFO TEXT TOP)>/i)) {
+        evalMode = 'info text top';
+      } else if (line.match(/<\/(?:INFO TEXT TOP)>/i)) {
+        evalMode = 'none';
+      } else if (line.match(/<(?:INFO TEXT BOTTOM)>/i)) {
+        evalMode = 'info text bottom';
+      } else if (line.match(/<\/(?:INFO TEXT BOTTOM)>/i)) {
+        evalMode = 'none';
+      } else if (evalMode === 'info eval') {
+        obj.infoEval = obj.infoEval + line + '\n';
+      } else if (evalMode === 'info text top') {
+        if (obj.infoTextTop !== '') obj.infoTextTop += '\n';
+        obj.infoTextTop = obj.infoTextTop + line;
+      } else if (evalMode === 'info text bottom') {
+        if (obj.infoTextBottom !== '') obj.infoTextBottom += '\n';
+        obj.infoTextBottom = obj.infoTextBottom + line;
       }
-   }
- }
+    }
+  }
 };
 
 DataManager.setDatabaseLengths = function() {
@@ -549,15 +650,15 @@ ItemManager.randomizeInitialItem = function(baseItem, newItem) {
 
 ItemManager.randomizeInitialEffects = function(baseItem, newItem) {
     if (baseItem.randomVariance <= 0) return;
-    var randomValue = (baseItem.randomVariance + 1) * 2;
+    var randomValue = baseItem.randomVariance * 2 + 1;
     var offset = baseItem.randomVariance;
     newItem.effects.forEach(function(effect) {
       if (effect.code === Game_Action.EFFECT_RECOVER_HP) {
         if (effect.value1 !== 0) {
           var boost = Math.floor(Math.random() * randomValue - offset);
           effect.value1 += boost * 0.01;
-          effect.value1 = effect.value1.toFixed(2);
-          effect.value1 = Math.max(0.00, Math.min(1.00, effect.value1));
+          effect.value1 = parseFloat(effect.value1.toFixed(2));
+          effect.value1 = effect.value1.clamp(0, 1);
         }
         if (effect.value2 !== 0) {
           effect.value2 += Math.floor(Math.random() * randomValue - offset);
@@ -567,8 +668,8 @@ ItemManager.randomizeInitialEffects = function(baseItem, newItem) {
         if (effect.value1 !== 0) {
           var boost = Math.floor(Math.random() * randomValue - offset);
           effect.value1 += boost * 0.01;
-          effect.value1 = effect.value1.toFixed(2);
-          effect.value1 = Math.max(0.00, Math.min(1.00, effect.value1));
+          effect.value1 = parseFloat(effect.value1.toFixed(2));
+          effect.value1 = effect.value1.clamp(0, 1);
         }
         if (effect.value2 !== 0) {
           effect.value2 += Math.floor(Math.random() * randomValue - offset);
@@ -579,11 +680,14 @@ ItemManager.randomizeInitialEffects = function(baseItem, newItem) {
 
 ItemManager.randomizeInitialStats = function(baseItem, newItem) {
     if (baseItem.randomVariance <= 0) return;
-    var randomValue = (baseItem.randomVariance + 1) * 2;
+    var randomValue = baseItem.randomVariance * 2 + 1;
     var offset = baseItem.randomVariance;
     for (var i = 0; i < 8; ++i) {
       if (newItem.params[i] === 0) continue;
       newItem.params[i] += Math.floor(Math.random() * randomValue - offset);
+      if (!Yanfly.Param.ItemNegVar && baseItem.params[i] >= 0) {
+        newItem.params[i] = Math.max(newItem.params[i], 0);
+      }
     }
 };
 
@@ -655,6 +759,13 @@ Game_Temp.prototype.varianceStock = function() {
 //=============================================================================
 // Game_Actor
 //=============================================================================
+
+Yanfly.Item.Game_Actor_setup = Game_Actor.prototype.setup;
+Game_Actor.prototype.setup = function(actorId) {
+    Yanfly.Item.Game_Actor_setup.call(this, actorId);
+    if ($gameTemp._initializeStartingMemberEquipment) return;
+    this.initIndependentEquips($dataActors[actorId].equips);
+};
 
 Game_Actor.prototype.initIndependentEquips = function(equips) {
     var equips = this.convertInitEquips(equips);
@@ -755,7 +866,10 @@ Game_Actor.prototype.changeEquipById = function(etypeId, itemId) {
       if (this.equipSlots()[slotId] === 1) {
         var baseItem = $dataWeapons[itemId];
       } else {
-        var baseItem = $dataWeapons[itemId];
+        var baseItem = $dataArmors[itemId];
+      }
+      if (!$gameParty.hasItem(baseItem)) {
+        $gameParty.gainItem(baseItem, 1);
       }
       if (DataManager.isIndependent(baseItem)) {
         if (this.hasBaseItem(baseItem)) return;
@@ -773,6 +887,15 @@ Game_Actor.prototype.changeEquipById = function(etypeId, itemId) {
     Yanfly.Item.Game_Actor_changeEquipById.call(this, etypeId, itemId)
 };
 
+Game_Actor.prototype.unequipItem = function(item) {
+    for (var i = 0; i < this.equips().length; ++i) {
+      var equip = this.equips()[i];
+      if (!equip) continue;
+      if (equip !== item) continue;
+      this.changeEquip(i, null);
+    }
+};
+
 //=============================================================================
 // Game_Party
 //=============================================================================
@@ -787,6 +910,7 @@ Game_Party.prototype.setupStartingMembers = function() {
 };
 
 Game_Party.prototype.initActorEquips = function() {
+    $gameTemp._initializeStartingMemberEquipment = true;
     for (var i = 0; i < $dataActors.length; ++i) {
       var actor = $gameActors.actor(i);
       if (actor) {
@@ -794,6 +918,7 @@ Game_Party.prototype.initActorEquips = function() {
         actor.initIndependentEquips(baseActor.equips);
       }
     }
+    $gameTemp._initializeStartingMemberEquipment = undefined;
 };
 
 Yanfly.Item.Game_Party_gainItem = Game_Party.prototype.gainItem;
@@ -817,10 +942,10 @@ Game_Party.prototype.gainIndependentItem = function(item, amount, includeEquip) 
       amount = Math.abs(amount);
       for (var i = 0; i < amount; ++i) {
         if (item.baseItemId) {
-          this.removeIndependentItem(item);
+          this.removeIndependentItem(item, includeEquip);
         } else if (DataManager.isIndependent(item)) {
           var target = $gameParty.getMatchingBaseItem(item, includeEquip);
-          if (target !== null) this.removeIndependentItem(target);
+          if (target !== null) this.removeIndependentItem(target, includeEquip);
         } else {
           this.removeBaseItem(item, includeEquip);
         }
@@ -851,10 +976,19 @@ Game_Party.prototype.registerNewItem = function(baseItem, newItem) {
     }
 };
 
-Game_Party.prototype.removeIndependentItem = function(item) {
+Game_Party.prototype.removeIndependentItem = function(item, includeEquip) {
+    if (includeEquip && this.checkItemIsEquipped(item)) {
+      for (var i = 1; i < $gameActors._data.length; ++i) {
+        var actor = $gameActors.actor(i);
+        if (!actor) continue;
+        if (!actor.equips().contains(item)) continue;
+        actor.unequipItem(item);
+      }
+    }
     var container = this.itemContainer(item);
     container[item.id] = 0;
     if (container[item.id] <= 0) delete container[item.id];
+
 };
 
 Game_Party.prototype.removeBaseItem = function(item, includeEquip) {
@@ -869,14 +1003,19 @@ Game_Party.prototype.getMatchingBaseItem = function(baseItem, equipped) {
     if (DataManager.isItem(baseItem)) var group = this.items();
     if (DataManager.isWeapon(baseItem)) var group = this.weapons();
     if (DataManager.isArmor(baseItem)) var group = this.armors();
+    if (equipped) {
+      for (var a = 0; a < this.members().length; ++a) {
+        var actor = this.members()[a];
+        if (!actor) continue;
+        group = group.concat(actor.equips());
+      }
+    }
     var baseItemId = baseItem.id;
     for (var i = 0; i < group.length; ++i) {
       var item = group[i];
       if (!item) continue;
       if (!item.baseItemId) continue;
       if (item.baseItemId !== baseItemId) continue;
-      if (equipped) return item;
-      if (this.checkItemIsEquipped(item)) continue;
       return item;
     }
     return null;
@@ -929,8 +1068,7 @@ Game_Party.prototype.maxItems = function(item) {
 Yanfly.Item.Game_Party_hasItem = Game_Party.prototype.hasItem;
 Game_Party.prototype.hasItem = function(item, includeEquip) {
     if (DataManager.isIndependent(item)) {
-      var result = this.getMatchingBaseItem(item, true);
-      if (result !== null) return true;
+      if (this.numIndependentItems(item) > 0) return true;
     }
     return Yanfly.Item.Game_Party_hasItem.call(this, item, includeEquip);
 };
@@ -948,6 +1086,21 @@ Game_Party.prototype.isAnyMemberEquipped = function(item) {
     return Yanfly.Item.Game_Party_isAnyMemberEquipped.call(this, item);
 };
 
+Game_Party.prototype.numIndependentItems = function(baseItem) {
+    var value = 0;
+    if (!DataManager.isIndependent(baseItem)) return this.numItems(baseItem);
+    var id = baseItem.id;
+    if (DataManager.isItem(baseItem)) var group = this.items();
+    if (DataManager.isWeapon(baseItem)) var group = this.weapons();
+    if (DataManager.isArmor(baseItem)) var group = this.armors();
+    for (var i = 0; i < group.length; ++i) {
+      var item = group[i];
+      if (!item) continue;
+      if (item.baseItemId && item.baseItemId === id) value += 1;
+    }
+    return value;
+};
+
 //=============================================================================
 // Game_Interpreter
 //=============================================================================
@@ -958,6 +1111,24 @@ Game_Interpreter.prototype.pluginCommand = function(command, args) {
     Yanfly.Item.Game_Interpreter_pluginCommand.call(this, command, args)
     if (command === 'EnableVarianceStock') $gameTemp.enableVarianceStock();
     if (command === 'DisableVarianceStock') $gameTemp.disableVarianceStock();
+};
+
+Yanfly.Item.Game_Interpreter_gDO = Game_Interpreter.prototype.gameDataOperand;
+Game_Interpreter.prototype.gameDataOperand = function(type, param1, param2) {
+  switch (type) {
+  case 0:
+    return $gameParty.numIndependentItems($dataItems[param1]);
+    break;
+  case 1:
+    return $gameParty.numIndependentItems($dataWeapons[param1]);
+    break;
+  case 2:
+    return $gameParty.numIndependentItems($dataArmors[param1]);
+    break;
+  default:
+    return Yanfly.Item.Game_Interpreter_gDO.call(this, type, param1, param2);
+    break;
+  }
 };
 
 //=============================================================================
@@ -1063,6 +1234,30 @@ Window_ShopBuy.prototype.isEnabled = function(item) {
       if (typeCur >= typeMax) return false;
     }
     return Yanfly.Item.Window_ShopBuy_isEnabled.call(this, item);
+};
+
+//=============================================================================
+// Window_ShopStatus
+//=============================================================================
+
+Yanfly.Item.Window_ShopStatus_drawPossession =
+    Window_ShopStatus.prototype.drawPossession;
+Window_ShopStatus.prototype.drawPossession = function(x, y) {
+    if (DataManager.isIndependent(this._item)) {
+      return this.drawIndependentPossession(x, y);
+    }
+    Yanfly.Item.Window_ShopStatus_drawPossession.call(this, x, y);
+};
+
+Window_ShopStatus.prototype.drawIndependentPossession = function(x, y) {
+    var width = this.contents.width - this.textPadding() - x;
+    var value = $gameParty.numIndependentItems(this._item);
+    value = Yanfly.Util.toGroup(value);
+    var possessionWidth = this.textWidth(value);
+    this.changeTextColor(this.systemColor());
+    this.drawText(TextManager.possession, x, y, width - possessionWidth);
+    this.resetTextColor();
+    this.drawText(value, x, y, width, 'right');
 };
 
 //=============================================================================
@@ -1455,6 +1650,7 @@ Window_ItemInfo.prototype.refresh = function() {
     this.contents.clear();
     var dy = 0;
     if (!this._item) return dy;
+    this.preInfoEval();
     dy = this.drawPreItemInfo(dy);
     dy = this.drawItemInfo(dy);
     dy = this.drawItemInfoA(dy);
@@ -1463,6 +1659,19 @@ Window_ItemInfo.prototype.refresh = function() {
     dy = this.drawItemInfoD(dy);
     dy = this.drawItemInfoE(dy);
     return this.drawItemInfoF(dy);
+};
+
+Window_ItemInfo.prototype.preInfoEval = function() {
+    var item = this._item;
+    if (item.infoEval === undefined) {
+      item.infoEval = DataManager.getBaseItem(item).infoEval;
+    }
+    if (item.infoEval === '') return;
+    var weapon = this._item;
+    var armor = this._item;
+    var s = $gameSwitches._data;
+    var v = $gameVariables._data;
+    eval(item.infoEval);
 };
 
 Window_ItemInfo.prototype.drawPreItemInfo = function(dy) {
@@ -1478,6 +1687,7 @@ Window_ItemInfo.prototype.drawItemInfo = function(dy) {
 };
 
 Window_ItemInfo.prototype.drawItemInfoA = function(dy) {
+    dy = this.drawInfoTextTop(dy);
     return dy;
 };
 
@@ -1498,6 +1708,7 @@ Window_ItemInfo.prototype.drawItemInfoE = function(dy) {
 };
 
 Window_ItemInfo.prototype.drawItemInfoF = function(dy) {
+    dy = this.drawInfoTextBottom(dy);
     return dy;
 };
 
@@ -1506,6 +1717,36 @@ Window_ItemInfo.prototype.drawDarkRect = function(dx, dy, dw, dh) {
     this.changePaintOpacity(false);
     this.contents.fillRect(dx + 1, dy + 1, dw - 2, dh - 2, color);
     this.changePaintOpacity(true);
+};
+
+Window_ItemInfo.prototype.drawInfoTextTop = function(dy) {
+    var item = this._item;
+    if (item.infoTextTop === undefined) {
+      item.infoTextTop = DataManager.getBaseItem(item).infoTextTop;
+    }
+    if (item.infoTextTop === '') return dy;
+    var info = item.infoTextTop.split(/[\r\n]+/);
+    for (var i = 0; i < info.length; ++i) {
+      var line = info[i];
+      this.drawTextEx(line, this.textPadding(), dy)
+      dy += this.lineHeight();
+    }
+    return dy;
+};
+
+Window_ItemInfo.prototype.drawInfoTextBottom = function(dy) {
+    var item = this._item;
+    if (item.infoTextBottom === undefined) {
+      item.infoTextBottom = DataManager.getBaseItem(item).infoTextBottom;
+    }
+    if (item.infoTextBottom === '') return dy;
+    var info = item.infoTextBottom.split(/[\r\n]+/);
+    for (var i = 0; i < info.length; ++i) {
+      var line = info[i];
+      this.drawTextEx(line, this.textPadding(), dy)
+      dy += this.lineHeight();
+    }
+    return dy;
 };
 
 //=============================================================================

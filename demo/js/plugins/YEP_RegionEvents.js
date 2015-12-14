@@ -11,7 +11,7 @@ Yanfly.RCE = Yanfly.RCE || {};
 
 //=============================================================================
  /*:
- * @plugindesc v1.01 Make it so that whenever players step on certain
+ * @plugindesc v1.01a Make it so that whenever players step on certain
  * Region ID's, the game will play certain common events.
  * @author Yanfly Engine Plugins
  *
@@ -1321,7 +1321,7 @@ Yanfly.RCE = Yanfly.RCE || {};
  * Changelog
  * ============================================================================
  *
- * Version 1.01:
+ * Version 1.01a:
  * - Fixed a bug with region event notetags that stopped working if it was used
  * to teleport onto the same map.
  *
@@ -1375,6 +1375,9 @@ Game_Map.prototype.isRegionEvent = function(mx, my) {
 };
 
 Game_Map.prototype.getUniqueRegionCommonEvent = function(regionId) {
+    if ($dataMap.regionCommonEvents === undefined) {
+      DataManager.processRECNotetags();
+    }
     if ($dataMap.regionCommonEvents && $dataMap.regionCommonEvents[regionId]) {
       return $dataMap.regionCommonEvents[regionId];
     }
@@ -1421,7 +1424,6 @@ Game_Player.prototype.processRegionEvent = function() {
     if (Input.isTriggered('ok')) return;
     if (TouchInput.isPressed()) return;
     var regionId = $gameMap.regionId(this.x, this.y)
-    if (!$dataMap.regionCommonEvents) DataManager.processRECNotetags();
     if ($gameMap.getUniqueRegionCommonEvent(regionId) > 0) {
       var commonEventId = $gameMap.getUniqueRegionCommonEvent(regionId);
     } else {

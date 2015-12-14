@@ -11,7 +11,7 @@ Yanfly.SCD = Yanfly.SCD || {};
 
 //=============================================================================
  /*:
- * @plugindesc v1.03a (Requires YEP_SkillCore.js) Cooldowns can be applied
+ * @plugindesc v1.05 (Requires YEP_SkillCore.js) Cooldowns can be applied
  * to skills to prevent them from being used continuously.
  * @author Yanfly Engine Plugins
  *
@@ -79,7 +79,7 @@ Yanfly.SCD = Yanfly.SCD || {};
  * @param Time Based
  * @desc If a battle system is Tick-based, use time instead
  * of turns for cooldowns? NO - false   YES - true
- * @default true
+ * @default false
  *
  * @param Turn Time
  * @desc How many ticks must pass to equal 1 cooldown turn?
@@ -349,8 +349,13 @@ Yanfly.SCD = Yanfly.SCD || {};
  * Changelog
  * ============================================================================
  *
- * Version 1.03a:
+ * Version 1.05:
+ * - Fixed a bug that prevented <Cooldown Eval> from running properly.
+ *
+ * Version 1.04:
  * - Fixed a bug that didn't alter cooldowns correctly.
+ *
+ * Version 1.03:
  * - Optimized for Battle Engine Core v1.08.
  *
  * Version 1.02a:
@@ -453,6 +458,7 @@ DataManager.processSCDNotetags1 = function(group) {
 			} else if (line.match(/<(?:BYPASS COOLDOWN)>/i)) {
 				obj.bypassCooldown = true;
 			} else if (line.match(/<(?:COOLDOWN EVAL)>/i)) {
+        obj.cooldown[obj.id] = obj.cooldown[obj.id] || 0;
 				evalMode = 'cooldown';
 			} else if (line.match(/<\/(?:COOLDOWN EVAL)>/i)) {
 				evalMode = 'none';
@@ -892,7 +898,6 @@ Game_BattlerBase.prototype.updateCooldownSteps = function() {
 
 Game_BattlerBase.prototype.applyCooldownEffect = function(skill) {
 		this.applyGlobalCooldownChange(skill);
-		return;
 		this.applyStypeCooldownChange(skill);
 		this.applyCooldownChange(skill);
 };

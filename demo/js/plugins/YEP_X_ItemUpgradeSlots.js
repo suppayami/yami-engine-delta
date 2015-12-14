@@ -11,7 +11,7 @@ Yanfly.IUS = Yanfly.IUS || {};
 
 //=============================================================================
  /*:
- * @plugindesc v1.01 (Requires YEP_ItemCore.js) Allows independent items to
+ * @plugindesc v1.03 (Requires YEP_ItemCore.js) Allows independent items to
  * be upgradeable and gain better stats.
  * @author Yanfly Engine Plugins
  *
@@ -154,7 +154,9 @@ Yanfly.IUS = Yanfly.IUS || {};
  *   Reset Full            - Resets every single aspect about item. *Note3
  *   Slots: x              - Changes the slot consumption cost to x. *Note1
  *   Stat: +x              - Increases 'Stat' by x. *Note1
+ *   Stat: +x%             - Increases 'Stat' by x% of base stat. *Note1
  *   Stat: -x              - Decreases 'Stat' by x. *Note1
+ *   Stat: -x%             - Decreases 'Stat' by x% of base stat. *Note1
  *   Suffix: x             - Changes item's suffix to x. *Note2
  *
  * Note1: 'Stat' is to be replaced by 'MaxHP', 'MaxMP', 'ATK', 'DEF', 'MAT',
@@ -187,6 +189,13 @@ Yanfly.IUS = Yanfly.IUS || {};
  * ============================================================================
  * Changelog
  * ============================================================================
+ *
+ * Version 1.03:
+ * - Fixed a bug that caused slot variance to not calculate correctly.
+ * - Added 'stat +x%' and 'stat -x%' to upgrade effects.
+ *
+ * Version 1.02:
+ * - Fixed a bug that prevented upgrading if the only effect is boosting.
  *
  * Version 1.01:
  * - Added 'Show Only' parameter. This will cause the upgrade command to only
@@ -311,8 +320,10 @@ ItemManager.initSlotUpgradeNotes = function(item) {
         upgradeEffect = false;
       } else if (upgradeEffect && line.match(note4)) {
         item.upgradeSlotCost = parseInt(RegExp.$1);
+        item.upgradeEffect.push('');
       } else if (upgradeEffect && line.match(note5)) {
         item.boostCountValue = parseInt(RegExp.$1);
+        item.upgradeEffect.push('');
       } else if (upgradeEffect) {
         item.upgradeEffect.push(line);
       } else if (line.match(note6)) {
@@ -357,7 +368,7 @@ ItemManager.randomizeInitialItem = function(baseItem, newItem) {
 ItemManager.randomizeSlots = function(baseItem, newItem) {
     if (baseItem.upgradeSlots <= 0) return;
     if (baseItem.upgradeSlotsVariance <= 0) return;
-    var randomValue = (baseItem.upgradeSlotsVariance + 1) * 2;
+    var randomValue = baseItem.upgradeSlotsVariance * 2 + 1;
     var offset = baseItem.upgradeSlotsVariance;
     newItem.upgradeSlots += Math.floor(Math.random() * randomValue - offset);
     newItem.upgradeSlots = Math.max(newItem.upgradeSlots, 0);
@@ -444,6 +455,12 @@ ItemManager.processIUSEffect = function(line, mainItem, effectItem) {
     if (line.match(/RESET[ ](.*)/i)) {
       var stat = String(RegExp.$1).toUpperCase();
       return this.effectIUSResetStat(mainItem, stat);
+    }
+    // STAT: +/-X%
+    if (line.match(/(.*):[ ]([\+\-]\d+)([%％])/i)) {
+      var stat = String(RegExp.$1).toUpperCase();
+      var value = parseInt(RegExp.$2);
+      return this.effectIUSParamRateChange(mainItem, stat, value);
     }
     // STAT: +/-X
     if (line.match(/(.*):[ ]([\+\-]\d+)/i)) {
@@ -701,6 +718,63 @@ ItemManager.effectIUSResetStat = function(item, stat) {
         ItemManager.setNewIndependentItem(baseItem, item);
         this._fullReset = true;
         this._resetItem = item;
+        break;
+    }
+};
+
+ItemManager.effectIUSParamRateChange = function(item, stat, value) {
+    var baseItem = DataManager.getBaseItem(item);
+    switch (stat) {
+      case 'HP':
+      case 'MAXHP':
+      case 'MAX HP':
+        item.params[0] += value * 0.01 * baseItem.params[0];
+        break;
+      case 'MP':
+      case 'MAXMP':
+      case 'MAX MP':
+      case 'SP':
+      case 'MAXSP':
+      case 'MAX SP':
+        item.params[1] += value * 0.01 * baseItem.params[1];
+        break;
+      case 'ATK':
+      case 'STR':
+        item.params[2] += value * 0.01 * baseItem.params[2];
+        break;
+      case 'DEF':
+        item.params[3] += value * 0.01 * baseItem.params[3];
+        break;
+      case 'MAT':
+      case 'INT':
+      case 'SPI':
+        item.params[4] += value * 0.01 * baseItem.params[4];
+        break;
+      case 'MDF':
+      case 'RES':
+        item.params[5] += value * 0.01 * baseItem.params[5];
+        break;
+      case 'AGI':
+      case 'SPD':
+        item.params[6] += value * 0.01 * baseItem.params[6];
+        break;
+      case 'LUK':
+        item.params[7] += value * 0.01 * baseItem.params[7];
+        break;
+      case 'ALL':
+        for (var i = 0; i < 8; ++i) {
+          item.params[i] += value * 0.01 * baseItem.params[i];
+        }
+        break;
+      case 'CURRENT':
+        for (var i = 0; i < 8; ++i) {
+          if (item.params[i] === 0) continue;
+          item.params[i] += value * 0.01 * baseItem.params[i];
+        }
+        break;
+      case 'SLOT':
+      case 'SLOTS':
+        item.upgradeSlots += value * 0.01 * baseItem.upgradeSlots;
         break;
     }
 };

@@ -1750,7 +1750,7 @@ Window_MenuStatus.prototype.drawItemImage = function(index) {
     var actor = $gameParty.members()[index];
     var rect = this.itemRect(index);
     this.changePaintOpacity(actor.isBattleMember());
-    this.drawActorFace(actor, rect.x + 1, rect.y + 1, 144, 144);
+    this.drawActorFace(actor, rect.x + 1, rect.y + 1, 144, rect.height - 2);
     this.changePaintOpacity(true);
 };
 

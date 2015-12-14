@@ -11,7 +11,7 @@ Yanfly.Instant = Yanfly.Instant || {};
 
 //=============================================================================
  /*:
- * @plugindesc v1.01 Allows skills/items to be instantly cast after being
+ * @plugindesc v1.03 Allows skills/items to be instantly cast after being
  * selected in the battle menu.
  * @author Yanfly Engine Plugins
  *
@@ -148,6 +148,12 @@ Yanfly.Instant = Yanfly.Instant || {};
  * ============================================================================
  * Changelog
  * ============================================================================
+ *
+ * Version 1.03:
+ * - Fixed a bug with Forced Actions locking out the battle.
+ *
+ * Version 1.02:
+ * - Fixed a bug that caused common events after a forced action to interrupt.
  *
  * Version 1.01:
  * - Compatibility update with ChangeWeaponOnBattle.js.
@@ -292,7 +298,11 @@ BattleManager.endAction = function() {
 };
 
 BattleManager.endActorInstantCast = function() {
-    if (Imported.YEP_BattleEngineCore) this._processingForcedAction = false;
+    if (Imported.YEP_BattleEngineCore) {
+      if (this._processingForcedAction) this._phase = this._preForcePhase;
+      this._processingForcedAction = false;
+    }
+    if (this.updateEventMain()) return;
     Yanfly.Instant.BattleManager_endAction.call(this);
     this._instantCasting = undefined;
     var user = this._subject;

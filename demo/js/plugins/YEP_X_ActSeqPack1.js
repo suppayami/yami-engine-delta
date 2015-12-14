@@ -11,7 +11,7 @@ Yanfly.ASP1 = Yanfly.ASP1 || {};
 
 //=============================================================================
  /*:
- * @plugindesc v1.07 (Requires YEP_BattleEngineCore.js) Basic functions are
+ * @plugindesc v1.09 (Requires YEP_BattleEngineCore.js) Basic functions are
  * added to the Battle Engine Core's action sequences.
  * @author Yanfly Engine Plugins
  *
@@ -286,6 +286,15 @@ Yanfly.ASP1 = Yanfly.ASP1 || {};
  *                bgs: memory
  *                bgs: City
  *                bgs: Darkness, 80, 100, 0
+ *=============================================================================
+ *
+ *=============================================================================
+ * BREAK ACTION
+ *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ * This will force the remainder of the action sequences for the part of the
+ * skill/item to shut down and be skipped.
+ *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ * Usage Example: break action
  *=============================================================================
  *
  *=============================================================================
@@ -697,6 +706,13 @@ Yanfly.ASP1 = Yanfly.ASP1 || {};
  * Changelog
  * ============================================================================
  *
+ * Version 1.09:
+ * - Fixed a bug that didn't allow for HP and MP buff/debuff removal.
+ *
+ * Version 1.08:
+ * - Added 'Break Action' action sequence effect to completely cancel out all
+ * of the remaining action effects.
+ *
  * Version 1.07:
  * - Fixed a bug with the forcing a Collapse action sequence.
  *
@@ -769,6 +785,10 @@ BattleManager.processActionSequence = function(actionName, actionArgs) {
   if (['BGS', 'AMBIENCE'].contains(actionName)) {
     return this.actionBgsPlay(actionArgs);
   }
+  // BREAK ACTION
+  if (actionName === 'BREAK ACTION') {
+    return this.actionBreakAction();
+  }
   // COLLAPSE: target, (force)
   if (actionName === 'COLLAPSE') {
     return this.actionCollapse(actionArgs);
@@ -798,17 +818,9 @@ BattleManager.processActionSequence = function(actionName, actionArgs) {
   if (actionName.match(/GOLD[ ]([\+\-]\d+)/i)) {
     return this.actionGoldModify(parseInt(RegExp.$1));
   }
-  // HP +/- VALUE
-  if (actionName.match(/HP[ ](.*)/i)) {
-    return this.actionHpModify(actionName, actionArgs);
-  }
   // ME, FANFARE
   if (['ME', 'FANFARE'].contains(actionName)) {
     return this.actionMePlay(actionArgs);
-  }
-  // MP +/- VALUE
-  if (actionName.match(/MP[ ](.*)/i)) {
-    return this.actionMpModify(actionName, actionArgs);
   }
   // REFRESH STATUS, REFRESH WINDOW
   if (['REFRESH STATUS', 'REFRESH WINDOW'].contains(actionName)) {
@@ -830,6 +842,14 @@ BattleManager.processActionSequence = function(actionName, actionArgs) {
   // SE, SOUND, SFX
   if (['SE', 'SOUND', 'SFX'].contains(actionName)) {
     return this.actionSePlay(actionArgs);
+  }
+  // HP +/- VALUE
+  if (actionName.match(/HP[ ](.*)/i)) {
+    return this.actionHpModify(actionName, actionArgs);
+  }
+  // MP +/- VALUE
+  if (actionName.match(/MP[ ](.*)/i)) {
+    return this.actionMpModify(actionName, actionArgs);
   }
   // TP +/- VALUE
   if (actionName.match(/TP[ ](.*)/i)) {
@@ -1022,6 +1042,14 @@ BattleManager.actionBgsPlay = function(actionArgs) {
     AudioManager.playBgs(bgs);
   }
   return true;
+};
+
+BattleManager.actionBreakAction = function() {
+    this._targets = [];
+    this._actionList = [];
+    this._individualTargets = [];
+    this._phase = 'phaseChange';
+    return false;
 };
 
 BattleManager.actionCollapse = function(actionArgs) {

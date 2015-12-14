@@ -11,7 +11,7 @@ Yanfly.VA = Yanfly.VA || {};
 
 //=============================================================================
  /*:
- * @plugindesc v1.00 Display an informative window after a battle is over
+ * @plugindesc v1.05 Display an informative window after a battle is over
  * instead of message box text stating what the party earned.
  * @author Yanfly Engine Plugins
  *
@@ -61,6 +61,11 @@ Yanfly.VA = Yanfly.VA || {};
  * @param ---EXP Window---
  * @default
  *
+ * @param Font Size
+ * @desc This is the font size used for the EXP Window.
+ * Default: 28
+ * @default 28
+ *
  * @param Level Up Text
  * @desc The text to be used when leveling up.
  * @default LEVEL UP!
@@ -68,6 +73,11 @@ Yanfly.VA = Yanfly.VA || {};
  * @param Max Level Text
  * @desc The text to be used when the actor is Max Level.
  * @default MAX LEVEL
+ *
+ * @param Show Skills Learned
+ * @desc Display skills learned at level up?
+ * NO - false     YES - true
+ * @default false
  *
  * @param Gained EXP Text
  * @desc The text to label how much EXP was gained in battle.
@@ -159,6 +169,33 @@ Yanfly.VA = Yanfly.VA || {};
  *                               continue playing whatever was playing.
  *   EnableVictoryMusic        - Enables the Victory Aftermath music if it has
  *                               been previously disabled.
+ *
+ * ============================================================================
+ * Changelog
+ * ============================================================================
+ *
+ * Version 1.05:
+ * - Added 'Font Size' plugin parameter to alter the font size for the battle
+ * results page.
+ *
+ * Version 1.04:
+ * - Updated the plugin so it doesn't break visually when party sizes are too
+ * large. That said, if the party size is beyond a certain amount, this plugin
+ * will not support that many faces for it and will fit just the bare minimum.
+ *
+ * Version 1.03:
+ * - Added parameter 'Show Skills Learned'.
+ *
+ * Version 1.02:
+ * - If the Battle HUD has been hidden for whatever reason during the victory
+ * sequence, it will be returned.
+ *
+ * Version 1.01:
+ * - Fixed a bug plugin commands that would cause some victory sequences to
+ * loop forever.
+ *
+ * Version 1.00:
+ * - Finished plugin!
  */
 //=============================================================================
 
@@ -170,34 +207,52 @@ Yanfly.Parameters = PluginManager.parameters('YEP_VictoryAftermath');
 Yanfly.Param = Yanfly.Param || {};
 
 Yanfly.Param.VAOrder = String(Yanfly.Parameters['Victory Order']);
+
 Yanfly.Param.VACheerWait = Number(Yanfly.Parameters['Cheer Wait']);
+Yanfly.Param.VABattleResults = String(Yanfly.Parameters['Battle Results Text']);
+Yanfly.Param.VABattleDrops = String(Yanfly.Parameters['Battle Drops Text']);
+
 Yanfly.Param.VABgmName = String(Yanfly.Parameters['Victory BGM']);
 Yanfly.Param.VABgmVol = Number(Yanfly.Parameters['BGM Volume']);
 Yanfly.Param.VABgmPitch = Number(Yanfly.Parameters['BGM Pitch']);
 Yanfly.Param.VABgmPan = Number(Yanfly.Parameters['BGM Pan']);
-Yanfly.Param.VATickName = String(Yanfly.Parameters['Tick SE']);
-Yanfly.Param.VATickVol = Number(Yanfly.Parameters['Tick Volume']);
-Yanfly.Param.VATickPitch = Number(Yanfly.Parameters['Tick Pitch']);
-Yanfly.Param.VATickPan = Number(Yanfly.Parameters['Tick Pan']);
-Yanfly.Param.VAGaugeTicks = Number(Yanfly.Parameters['Gauge Ticks']);
+
+Yanfly.Param.VAFontSize = Number(Yanfly.Parameters['Font Size']);
+Yanfly.Param.VALevelUp = String(Yanfly.Parameters['Level Up Text']);
+Yanfly.Param.VAMaxLv = String(Yanfly.Parameters['Max Level Text']);
+Yanfly.Param.VAShowSkills = String(Yanfly.Parameters['Show Skills Learned']);
+Yanfly.Param.VAGainedExp = String(Yanfly.Parameters['Gained EXP Text']);
+Yanfly.Param.VAGainedExpfmt = String(Yanfly.Parameters['Gained EXP Format']);
 Yanfly.Param.ColorExp1 = Number(Yanfly.Parameters['EXP Gauge Color 1']);
 Yanfly.Param.ColorExp2 = Number(Yanfly.Parameters['EXP Gauge Color 2']);
 Yanfly.Param.ColorLv1 = Number(Yanfly.Parameters['Level Gauge Color 1']);
 Yanfly.Param.ColorLv2 = Number(Yanfly.Parameters['Level Gauge Color 2']);
-Yanfly.Param.VALevelUp = String(Yanfly.Parameters['Level Up Text']);
-Yanfly.Param.VAMaxLv = String(Yanfly.Parameters['Max Level Text']);
-Yanfly.Param.VAGainedExp = String(Yanfly.Parameters['Gained EXP Text']);
-Yanfly.Param.VABattleResults = String(Yanfly.Parameters['Battle Results Text']);
-Yanfly.Param.VAGainedExpfmt = String(Yanfly.Parameters['Gained EXP Format']);
-Yanfly.Param.VABattleDrops = String(Yanfly.Parameters['Battle Drops Text']);
+Yanfly.Param.VAGaugeTicks = Number(Yanfly.Parameters['Gauge Ticks']);
+Yanfly.Param.VATickName = String(Yanfly.Parameters['Tick SE']);
+Yanfly.Param.VATickVol = Number(Yanfly.Parameters['Tick Volume']);
+Yanfly.Param.VATickPitch = Number(Yanfly.Parameters['Tick Pitch']);
+Yanfly.Param.VATickPan = Number(Yanfly.Parameters['Tick Pan']);
 
 //=============================================================================
 // BattleManager
 //=============================================================================
 
+Yanfly.VA.BattleManager_initMembers = BattleManager.initMembers;
+BattleManager.initMembers = function() {
+    Yanfly.VA.BattleManager_initMembers.call(this);
+    this.initVictoryData();
+};
+
+BattleManager.initVictoryData = function() {
+    this._victoryPhase = false;
+    this._victoryCheerWait = 0;
+    this._victoryStep = 0;
+};
+
 BattleManager.processVictory = function() {
     $gameParty.performVictory();
     if (this.isVictoryPhase()) return;
+    if (this._windowLayer) this._windowLayer.x = 0;
     $gameParty.removeBattleStates();
     this._victoryPhase = true;
     if ($gameSystem.skipVictoryAftermath()) {
@@ -255,6 +310,8 @@ BattleManager.prepareVictoryInfo = function() {
         ImageManager.loadFace(actor.faceName());
         actor._preVictoryExp = actor.currentExp();
         actor._preVictoryLv = actor._level;
+        actor._victoryPhase = true;
+        actor._victorySkills = [];
     }, this);
     this.gainRewards();
     $gameParty.battleMembers().forEach(function(actor) {
@@ -305,6 +362,16 @@ Game_Actor.prototype.clearVictoryData = function() {
     this._preVictoryLv = undefined;
     this._expGained = undefined;
     this._postVictoryLv = undefined;
+    this._victoryPhase = undefined;
+    this._victorySkills = undefined;
+};
+
+Yanfly.VA.Game_Actor_learnSkill = Game_Actor.prototype.learnSkill;
+Game_Actor.prototype.learnSkill = function(skillId) {
+    if (!this.isLearnedSkill(skillId) && this._victoryPhase) {
+      this._victorySkills.push(skillId);
+    }
+    Yanfly.VA.Game_Actor_learnSkill.call(this, skillId);
 };
 
 //=============================================================================
@@ -411,6 +478,7 @@ Window_VictoryExp.prototype.initialize = function() {
     var wy = this.fittingHeight(1);
     var width = this.windowWidth();
     var height = this.windowHeight();
+    this._showGainedSkills = eval(Yanfly.Param.VAShowSkills);
     Window_Selectable.prototype.initialize.call(this, 0, wy, width, height);
     this.defineTickSound();
     this.refresh();
@@ -431,11 +499,24 @@ Window_VictoryExp.prototype.maxItems = function() {
     return $gameParty.maxBattleMembers();
 };
 
-Window_VictoryExp.prototype.itemHeight = function() {
-    var clientHeight = this.height - this.padding * 2;
-    return Math.floor(clientHeight / this.maxItems());
+Window_VictoryExp.prototype.standardFontSize = function() {
+    return Yanfly.Param.VAFontSize;
 };
 
+Window_VictoryExp.prototype.lineHeight = function() {
+    return this.standardFontSize() + 8;
+};
+
+Window_VictoryExp.prototype.itemHeight = function() {
+    var clientHeight = this.height - this.padding * 2;
+    var clientHeight = Math.floor(clientHeight / this.maxItems());
+    var clientHeight = Math.max(clientHeight, this.lineHeight() * 2);
+    return clientHeight;
+};
+
+Window_VictoryExp.prototype.textWidthEx = function(text) {
+    return this.drawTextEx(text, 0, this.contents.height);
+};
 
 Window_VictoryExp.prototype.defineTickSound = function() {
     this._tickSound = {
@@ -510,6 +591,7 @@ Window_VictoryExp.prototype.drawActorGauge = function(actor, index) {
     this.drawExpGauge(actor, rect);
     this.drawExpValues(actor, rect);
     this.drawExpGained(actor, rect);
+    this.drawGainedSkills(actor, rect);
 };
 
 Window_VictoryExp.prototype.drawLevel = function(actor, rect) {
@@ -568,6 +650,7 @@ Window_VictoryExp.prototype.drawExpValues = function(actor, rect) {
 
 Window_VictoryExp.prototype.drawExpGained = function(actor, rect) {
     var wy = rect.y + this.lineHeight() * 2;
+    if (wy >= rect.y + rect.height) return;
     this.changeTextColor(this.systemColor());
     this.drawText(Yanfly.Param.VAGainedExp, rect.x + 2, wy, rect.width - 4,
       'left');
@@ -577,6 +660,40 @@ Window_VictoryExp.prototype.drawExpGained = function(actor, rect) {
     var expText = Yanfly.Param.VAGainedExpfmt.format(expParse);
     this.changeTextColor(this.normalColor());
     this.drawText(expText, rect.x + 2, wy, rect.width - 4, 'right');
+};
+
+Window_VictoryExp.prototype.drawGainedSkills = function(actor, rect) {
+    if (actor._victorySkills.length <= 0) return;
+    if (!this.meetDrawGainedSkillsCondition(actor)) return;
+    var wy = rect.y;
+    for (var i = 0; i < actor._victorySkills.length; ++i) {
+      if (wy + this.lineHeight() > rect.y + rect.height) break;
+      var skillId = actor._victorySkills[i];
+      var skill = $dataSkills[skillId];
+      if (!skill) continue;
+      var text = '\\i[' + skill.iconIndex + ']' + skill.name;
+      text = TextManager.obtainSkill.format(text);
+      var ww = this.textWidthEx(text);
+      var wx = rect.x + (rect.width - ww) / 2;
+      this.drawTextEx(text, wx, wy);
+      wy += this.lineHeight();
+    }
+};
+
+Window_VictoryExp.prototype.meetDrawGainedSkillsCondition = function(actor) {
+    if (!this._showGainedSkills) return;
+    var actorLv = actor._preVictoryLv;
+    var bonusExp = 1.0 * actor._expGained * this._tick /
+      Yanfly.Param.VAGaugeTicks;
+    var nowExp = actor._preVictoryExp - actor.expForLevel(actorLv) + bonusExp;
+    var nextExp = actor.expForLevel(actorLv + 1) - actor.expForLevel(actorLv);
+    if (actorLv === actor.maxLevel()) {
+      return false;
+    } else if (nowExp >= nextExp) {
+      return true;
+    } else {
+      return false;
+    }
 };
 
 Window_VictoryExp.prototype.isReady = function() {
@@ -666,7 +783,7 @@ Window_VictoryDrop.prototype.drawDrop = function(item, index) {
 
 Window_VictoryDrop.prototype.drawItemNumber = function(item, x, y, width) {
     if (!this.needsNumber()) return;
-		var numItems = Yanfly.Util.toGroup(this.numItems(item));
+    var numItems = Yanfly.Util.toGroup(this.numItems(item));
     var size = Yanfly.Param.ItemQuantitySize || 28;
     this.contents.fontSize = size;
     this.drawText('\u00d7' + numItems, x, y, width, 'right');
@@ -822,9 +939,9 @@ Scene_Battle.prototype.victoryTriggerContinue = function() {
 Yanfly.Util = Yanfly.Util || {};
 
 if (!Yanfly.Util.toGroup) {
-		Yanfly.Util.toGroup = function(inVal) {
-				return inVal;
-		}
+    Yanfly.Util.toGroup = function(inVal) {
+        return inVal;
+    }
 };
 
 Yanfly.Util.getCount = function(value, arr){

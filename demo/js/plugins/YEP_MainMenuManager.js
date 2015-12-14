@@ -11,7 +11,7 @@ Yanfly.MMM = Yanfly.MMM || {};
 
 //=============================================================================
  /*:
- * @plugindesc v1.01 This plugin allows you to manage the various aspects
+ * @plugindesc v1.02 This plugin allows you to manage the various aspects
  * of your main menu.
  * @author Yanfly Engine Plugins
  *
@@ -3702,6 +3702,9 @@ Yanfly.MMM = Yanfly.MMM || {};
  * Changelog
  * ============================================================================
  *
+ * Version 1.02:
+ * - The gold window will now match the command window's width.
+ *
  * Version 1.01:
  * - Added 'Hide Actor Window', 'Hide Gold Window', 'Blurry Background'
  * parameters for the plugin settings.
@@ -3892,7 +3895,14 @@ Scene_Menu.prototype.createCommandWindowBinds = function() {
   }
 };
 
+Scene_Menu.prototype.resizeGoldWindow = function() {
+    this._goldWindow.width = this._commandWindow.width;
+    this._goldWindow.createContents();
+    this._goldWindow.refresh();
+};
+
 Scene_Menu.prototype.repositionWindows = function() {
+    this.resizeGoldWindow();
     if (Yanfly.Param.MMMCmdPosition === 'right') {
       this._commandWindow.x = Graphics.boxWidth - this._commandWindow.width;
       this._goldWindow.x = Graphics.boxWidth - this._goldWindow.width;
