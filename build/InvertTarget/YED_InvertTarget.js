@@ -1,7 +1,7 @@
 /*:
  * Yami Engine Delta - Invert Target
  *
- * @plugindesc v1.0.0 This plugin allows player to use skill on the other team, for example use healing on an enemy.
+ * @plugindesc v1.0.1 This plugin allows player to use skill on the other team, for example use healing on an enemy.
  * @author Yami Engine Delta [Dr.Yami]
  *
  * @param Invert Keys (Keyboard)
@@ -360,12 +360,16 @@ YED.InvertTarget = {};
                 this._actorWindow.deactivate();
                 this._actorWindow.hide();
                 this.selectEnemySelection();
+                
+                return;
             }
 
             if (this._enemyWindow.active) {
                 this._enemyWindow.deactivate();
                 this._enemyWindow.hide();
                 this.selectActorSelection();
+                
+                return;
             }
         }
     };
