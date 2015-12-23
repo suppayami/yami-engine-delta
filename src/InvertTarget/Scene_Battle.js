@@ -60,12 +60,16 @@
                 this._actorWindow.deactivate();
                 this._actorWindow.hide();
                 this.selectEnemySelection();
+                
+                return;
             }
 
             if (this._enemyWindow.active) {
                 this._enemyWindow.deactivate();
                 this._enemyWindow.hide();
                 this.selectActorSelection();
+                
+                return;
             }
         }
     };

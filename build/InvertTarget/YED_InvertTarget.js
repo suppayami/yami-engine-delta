@@ -1,7 +1,7 @@
 /*:
  * Yami Engine Delta - Invert Target
  *
- * @plugindesc v1.0.0 This plugin allows player to use skill on the other team, for example use healing on an enemy.
+ * @plugindesc v1.0.1 This plugin allows player to use skill on the other team, for example use healing on an enemy.
  * @author Yami Engine Delta [Dr.Yami]
  *
  * @param Invert Keys (Keyboard)
@@ -106,20 +106,24 @@ YED.InvertTarget = {};
      * @memberof YED.InvertTarget.Utils
      */
     Utils.processNotetags = function() {
-        var group = $dataSkills,    // shorten group name
+        var groups = [$dataSkills, $dataItems], group,
             obj,
             notedata, line;
 
-        for (var i = 1; i < group.length; i++) {
-            obj = group[i];
-            notedata = obj.note.split(/[\r\n]+/);
-
-            Utils._processProperties.call(this, obj);
-            Utils._processMethods.call(this, obj);
-
-            for (var n = 0; n < notedata.length; n++) {
-                line = notedata[n];
-                Utils._processNotetag.call(this, obj, line);
+        for (var j = 0; j < groups.length; j++) {
+            group = groups[j];
+            
+            for (var i = 1; i < group.length; i++) {
+                obj = group[i];
+                notedata = obj.note.split(/[\r\n]+/);
+    
+                Utils._processProperties.call(this, obj);
+                Utils._processMethods.call(this, obj);
+    
+                for (var n = 0; n < notedata.length; n++) {
+                    line = notedata[n];
+                    Utils._processNotetag.call(this, obj, line);
+                }
             }
         }
     };
@@ -360,12 +364,16 @@ YED.InvertTarget = {};
                 this._actorWindow.deactivate();
                 this._actorWindow.hide();
                 this.selectEnemySelection();
+                
+                return;
             }
 
             if (this._enemyWindow.active) {
                 this._enemyWindow.deactivate();
                 this._enemyWindow.hide();
                 this.selectActorSelection();
+                
+                return;
             }
         }
     };
