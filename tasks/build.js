@@ -13,4 +13,5 @@ gulp.task('build', ['lint-engine'], function() {
     gulp.start('make:single-state');
     gulp.start('make:enemy-position');
     gulp.start('make:invert-target');
+    gulp.start('make:aura-state');
 });
