@@ -11,7 +11,7 @@ Yanfly.SCD = Yanfly.SCD || {};
 
 //=============================================================================
  /*:
- * @plugindesc v1.05 (Requires YEP_SkillCore.js) Cooldowns can be applied
+ * @plugindesc v1.06a (Requires YEP_SkillCore.js) Cooldowns can be applied
  * to skills to prevent them from being used continuously.
  * @author Yanfly Engine Plugins
  *
@@ -349,6 +349,11 @@ Yanfly.SCD = Yanfly.SCD || {};
  * Changelog
  * ============================================================================
  *
+ * Version 1.06a:
+ * - Fixed a bug with cooldown duration modifiers not modifying by the correct
+ * value indicated.
+ * - Added a fail safe for when there are no targets.
+ *
  * Version 1.05:
  * - Fixed a bug that prevented <Cooldown Eval> from running properly.
  *
@@ -533,9 +538,11 @@ DataManager.processSCDNotetags3 = function(group) {
 		for (var i = 0; i < notedata.length; i++) {
 			var line = notedata[i];
 			if (line.match(note1)) {
-				obj.cooldownDuration[parseInt(RegExp.$1)] = parseInt(RegExp.$2);
+				obj.cooldownDuration[parseInt(RegExp.$1)] = 
+          parseFloat(RegExp.$2) * 0.01;
 			} else if (line.match(note2)) {
-				obj.stypeCooldownDuration[parseInt(RegExp.$1)] = parseInt(RegExp.$2);
+				obj.stypeCooldownDuration[parseInt(RegExp.$1)] = 
+          parseFloat(RegExp.$2) * 0.01;
 			} else if (line.match(note3)) {
 				obj.globalCooldownDuration = parseFloat(RegExp.$1 * 0.01);
 			} else if (line.match(note4)) {
@@ -1283,7 +1290,7 @@ Yanfly.SCD.Game_Action_applyItemUserEffect =
 		Game_Action.prototype.applyItemUserEffect;
 Game_Action.prototype.applyItemUserEffect = function(target) {
     Yanfly.SCD.Game_Action_applyItemUserEffect.call(this, target);
-		target.applyCooldownEffect(this.item());
+    if (target) target.applyCooldownEffect(this.item());
 };
 
 //=============================================================================

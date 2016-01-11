@@ -11,7 +11,7 @@ Yanfly.Subclass = Yanfly.Subclass || {};
 
 //=============================================================================
  /*:
- * @plugindesc v1.04 (Requires YEP_ClassChangeCore.js) Allow your actors
+ * @plugindesc v1.05 (Requires YEP_ClassChangeCore.js) Allow your actors
  * to subclass into a secondary class!
  * @author Yanfly Engine Plugins
  *
@@ -242,6 +242,9 @@ Yanfly.Subclass = Yanfly.Subclass || {};
  * ============================================================================
  * Changelog
  * ============================================================================
+ *
+ * Version 1.05:
+ * - Fixed a bug where changing a dead actor's subclass would revive them.
  *
  * Version 1.04:
  * - Fixed an issue that would turn the ATB gauge in battle a different color.
@@ -874,7 +877,8 @@ Scene_Class.prototype.onSubclassOk = function() {
     var hpRate = this.actor().hp / this.actor().mhp;
     var mpRate = this.actor().mp / Math.max(1, this.actor().mmp);
     this.actor().changeSubclass(classId);
-    var hpAmount = Math.max(1, parseInt(this.actor().mhp * hpRate));
+    var max = this.actor().isDead() ? 0 : 1;
+    var hpAmount = Math.max(max, parseInt(this.actor().mhp * hpRate));
     this.actor().setHp(hpAmount);
     this.actor().setMp(parseInt(this.actor().mmp * mpRate));
     this._itemWindow.activate();

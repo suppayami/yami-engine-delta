@@ -11,8 +11,8 @@ Yanfly.Status = Yanfly.Status || {};
 
 //=============================================================================
  /*:
- * @plugindesc v1.01 Changes the Status menu for your characters into a
- * hub that displays more character information.
+ * @plugindesc v1.01a Changes the Status menu for your characters into
+ * a hub that displays more character information.
  * @author Yanfly Engine Plugins
  *
  * @param ---Settings---
@@ -396,7 +396,7 @@ Yanfly.Status = Yanfly.Status || {};
  * Changelog
  * ============================================================================
  *
- * Version 1.01:
+ * Version 1.01a:
  * - Converted Window_StatusInfo to Window_Selectable for those who would like
  * to use it as such.
  *
@@ -642,8 +642,6 @@ Window_StatusInfo.prototype.resetTextColor = function() {
 
 Window_StatusInfo.prototype.refresh = function() {
     this.contents.clear();
-    this._scrollX = 0;
-    this._scrollY = 0;
 		this.drawInfoContents(this._symbol);
 };
 
@@ -1196,6 +1194,28 @@ Window_StatusInfo.prototype.drawAttributeValue = function(value, dx, dy, dw) {
     this.drawText(value, dx, dy, dw, 'right');
 };
 
+Window_StatusInfo.prototype.maxPageItems = function() {
+    return this.maxItems();
+};
+
+Window_Selectable.prototype.maxItems = function() {
+    return 1;
+};
+
+Window_StatusInfo.prototype.drawItem = function(index) {
+    this.clearItem(index);
+};
+
+Window_StatusInfo.prototype.drawAllItems = function() {
+    var topIndex = this.topIndex();
+    for (var i = 0; i < this.maxPageItems(); i++) {
+        var index = topIndex + i;
+        if (index < this.maxItems()) {
+            this.drawItem(index);
+        }
+    }
+};
+
 //=============================================================================
 // Scene_Status
 //=============================================================================
@@ -1249,6 +1269,12 @@ Scene_Status.prototype.createInfoWindow = function() {
 		this._infoWindow = new Window_StatusInfo(wy, this._commandWindow);
 		this._commandWindow.setInfoWindow(this._infoWindow);
 		this.addWindow(this._infoWindow);
+    this._infoWindow.setHandler('cancel', this.onInfoCancel.bind(this));
+};
+
+Scene_Status.prototype.onInfoCancel = function() {
+    this._commandWindow.activate();
+    this._infoWindow.deselect();
 };
 
 //=============================================================================

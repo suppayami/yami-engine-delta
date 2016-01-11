@@ -1251,7 +1251,8 @@ Window_ShopStatus.prototype.drawPossession = function(x, y) {
 
 Window_ShopStatus.prototype.drawIndependentPossession = function(x, y) {
     var width = this.contents.width - this.textPadding() - x;
-    var value = $gameParty.numIndependentItems(this._item);
+    var baseItem = DataManager.getBaseItem(this._item);
+    var value = $gameParty.numIndependentItems(baseItem);
     value = Yanfly.Util.toGroup(value);
     var possessionWidth = this.textWidth(value);
     this.changeTextColor(this.systemColor());

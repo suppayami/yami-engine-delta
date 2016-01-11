@@ -11,7 +11,7 @@ Yanfly.BEC = Yanfly.BEC || {};
 
 //=============================================================================
  /*:
- * @plugindesc v1.25b Have more control over the flow of the battle system
+ * @plugindesc v1.26 Have more control over the flow of the battle system
  * with this plugin and alter various aspects to your liking.
  * @author Yanfly Engine Plugins
  *
@@ -237,6 +237,11 @@ Yanfly.BEC = Yanfly.BEC || {};
  *
  * @param ---Selection Help---
  * @default
+ *
+ * @param Mouse Over
+ * @desc Allows you to mouse over the enemies to auto-select them.
+ * OFF - false     ON - true
+ * @default true
  *
  * @param Select Help Window
  * @desc When selecting actors and enemies, show the help window?
@@ -612,10 +617,21 @@ Yanfly.BEC = Yanfly.BEC || {};
  * Changelog
  * ============================================================================
  *
- * Version 1.25b:
+ * Version 1.26:
+ * - Added 'Mouse Over' parameter to Selection Help. This parameter enables
+ * mouse users to simply hover over the enemy to select them rather than having
+ * to click an enemy twice to select them.
+ *
+ * Version 1.25f:
  * - Added failsafes for Forced Action queues.
  * - Added 'Show Select Box' parameter when selecting enemies.
  * - Fixed a bug that caused End Turn events to not function properly.
+ * - Battle animations, by default, are positioned relative to the base bitmap
+ * for its target sprite. However, actor sprites do not have a base bitmap and
+ * therefore, battle animations, regardless of position, will always target the
+ * actor sprite's feet. This update now gives actor sprites a base bitmap.
+ * - Readjusted sprite width and sprite height calculations.
+ * - Added a failsafe for when no sideview actor graphics are used.
  *
  * Version 1.24:
  * - Implemented a Forced Action queue list. This means if a Forced Action
@@ -814,6 +830,7 @@ Yanfly.Param.BECTimeBuffs = String(Yanfly.Parameters['Timed Buffs']);
 Yanfly.Param.BECTurnTime = Number(Yanfly.Parameters['Turn Time']);
 Yanfly.Param.BECAISelfTurn = eval(String(Yanfly.Parameters['AI Self Turns']));
 Yanfly.Param.BECLowerWindows = String(Yanfly.Parameters['Lower Windows']);
+Yanfly.Param.BECSelectMouseOver = eval(String(Yanfly.Parameters['Mouse Over']));
 Yanfly.Param.BECEnemySelect = String(Yanfly.Parameters['Visual Enemy Select']);
 Yanfly.Param.BECActorSelect = String(Yanfly.Parameters['Visual Actor Select']);
 Yanfly.Param.BECWindowRows = String(Yanfly.Parameters['Window Rows']);
@@ -1173,6 +1190,17 @@ DataManager.processBECNotetags6 = function(group) {
       }
     }
   }
+};
+
+//=============================================================================
+// TouchInput
+//=============================================================================
+
+Yanfly.BEC.TouchInput_onMouseMove = TouchInput._onMouseMove;
+TouchInput._onMouseMove = function(event) {
+    Yanfly.BEC.TouchInput_onMouseMove.call(this, event);
+    this._mouseOverX = Graphics.pageToCanvasX(event.pageX);
+    this._mouseOverY = Graphics.pageToCanvasY(event.pageY);
 };
 
 //=============================================================================
@@ -2537,6 +2565,18 @@ Sprite_Actor.prototype.adjustAnchor = function() {
     this._mainSprite.anchor.y = this._actor.anchorY();
 };
 
+Yanfly.BEC.Sprite_Actor_updateFrame = Sprite_Actor.prototype.updateFrame;
+Sprite_Actor.prototype.updateFrame = function() {
+    Yanfly.BEC.Sprite_Actor_updateFrame.call(this);
+    if (!this._mainSprite) return;
+    if (!this._mainSprite.bitmap) return;
+    if (this._mainSprite.bitmap.width > 0 && !this.bitmap) {
+      var sw = this._mainSprite.bitmap.width / 9;
+      var sh = this._mainSprite.bitmap.height / 6;
+      this.bitmap = new Bitmap(sw, sh);
+    }
+};
+
 //=============================================================================
 // Sprite_Enemy
 //=============================================================================
@@ -3218,20 +3258,20 @@ Game_Battler.prototype.spritePosY = function() {
 };
 
 Game_Battler.prototype.spriteWidth = function() {
-    if ($gameSystem.isSideView() && this.battler()) {
-      return this.battler().width;
+    if ($gameSystem.isSideView() && this.battler() && this.battler().bitmap) {
+      return this.battler().bitmap.width;
     } else if (this.battler()) {
-      return this.battler().width;
+      return this.battler().bitmap.width;
     } else {
       return 1;
     }
 };
 
 Game_Battler.prototype.spriteHeight = function() {
-    if ($gameSystem.isSideView() && this.battler()) {
-      return this.battler().height;
+    if ($gameSystem.isSideView() && this.battler() && this.battler().bitmap) {
+      return this.battler().bitmap.height;
     } else if (this.battler()) {
-      return this.battler().height;
+      return this.battler().bitmap.height;
     } else {
       return 1;
     }
@@ -3924,6 +3964,13 @@ Window_BattleActor.prototype.processTouch = function() {
           }
         }
       }
+      if (Yanfly.Param.BECSelectMouseOver) {
+        var index = this.getMouseOverActor();
+        if (index >= 0 && this.index() !== index) {
+          SoundManager.playCursor();
+          return this.select(index);
+        }
+      }
     }
     Yanfly.BEC.Window_BattleActor_processTouch.call(this);
 };
@@ -3947,6 +3994,34 @@ Window_BattleActor.prototype.isClickedActor = function(actor) {
     if (!actor.isAppeared()) return false;
     var x = TouchInput.x;
     var y = TouchInput.y;
+    var rect = new Rectangle();
+    rect.width = actor.spriteWidth();
+    rect.height = actor.spriteHeight();
+    rect.x = actor.spritePosX() - rect.width / 2;
+    rect.y = actor.spritePosY() - rect.height;
+    return (x >= rect.x && y >= rect.y && x < rect.x + rect.width &&
+      y < rect.y + rect.height);
+};
+
+Window_BattleActor.prototype.getMouseOverActor = function() {
+    for (var i = 0; i < $gameParty.battleMembers().length; ++i) {
+      var actor = $gameParty.battleMembers().reverse()[i];
+      if (!actor) continue;
+      if (this.isMouseOverActor(actor)) {
+        if (this._selectDead && !actor.isDead()) continue;
+        if (this._inputLock && actor.index() !== this.index()) continue;
+        return actor.index();
+      }
+    }
+    return -1;
+};
+
+Window_BattleActor.prototype.isMouseOverActor = function(actor) {
+    if (!actor) return false;
+    if (!actor.isSpriteVisible()) return false;
+    if (!actor.isAppeared()) return false;
+    var x = TouchInput._mouseOverX;
+    var y = TouchInput._mouseOverY;
     var rect = new Rectangle();
     rect.width = actor.spriteWidth();
     rect.height = actor.spriteHeight();
@@ -4045,6 +4120,13 @@ Window_BattleEnemy.prototype.processTouch = function() {
           }
         }
       }
+      if (Yanfly.Param.BECSelectMouseOver) {
+        var index = this.getMouseOverEnemy();
+        if (index >= 0 && this.index() !== index) {
+          SoundManager.playCursor();
+          return this.select(index);
+        }
+      }
     };
     Yanfly.BEC.Window_BattleEnemy_processTouch.call(this);
 };
@@ -4068,6 +4150,34 @@ Window_BattleEnemy.prototype.isClickedEnemy = function(enemy) {
     if (!enemy.isSpriteVisible()) return false;
     var x = TouchInput.x;
     var y = TouchInput.y;
+    var rect = new Rectangle();
+    rect.width = enemy.spriteWidth();
+    rect.height = enemy.spriteHeight();
+    rect.x = enemy.spritePosX() - rect.width / 2;
+    rect.y = enemy.spritePosY() - rect.height;
+    return (x >= rect.x && y >= rect.y && x < rect.x + rect.width &&
+      y < rect.y + rect.height);
+};
+
+Window_BattleEnemy.prototype.getMouseOverEnemy = function() {
+    for (var i = 0; i < this._enemies.length; ++i) {
+      var enemy = this._enemies[i];
+      if (!enemy) continue;
+      if (this.isClickedEnemy(enemy)) {
+        if (this._selectDead && !enemy.isDead()) continue;
+        var index = this._enemies.indexOf(enemy)
+        if (this._inputLock && index !== this.index()) continue;
+        return index;
+      }
+    }
+    return -1;
+};
+
+Window_BattleEnemy.prototype.isClickedEnemy = function(enemy) {
+    if (!enemy) return false;
+    if (!enemy.isSpriteVisible()) return false;
+    var x = TouchInput._mouseOverX;
+    var y = TouchInput._mouseOverY;
     var rect = new Rectangle();
     rect.width = enemy.spriteWidth();
     rect.height = enemy.spriteHeight();

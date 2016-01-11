@@ -11,7 +11,7 @@ Yanfly.SLS = Yanfly.SLS || {};
 
 //=============================================================================
  /*:
- * @plugindesc v1.04 Allows actors to learn skills from the skill menu
+ * @plugindesc v1.06b Allows actors to learn skills from the skill menu
  * through crafting them via items or otherwise.
  * @author Yanfly Engine Plugins
  *
@@ -37,6 +37,27 @@ Yanfly.SLS = Yanfly.SLS || {};
  * @desc Integrate Learn Skills into the Skill scene?
  * NO - false     YES - true
  * @default false
+ *
+ * @param ---Confirm Learn---
+ * @default
+ *
+ * @param Confirm Window
+ * @desc For non-integrated menu, show a learn confirmation?
+ * NO - false     YES - true
+ * @default true
+ *
+ * @param Confirm Text
+ * @desc If using the confirm window, this is the text used.
+ * %1 - Actor     %2 - Skill Name
+ * @default Have %1 learn %2?
+ *
+ * @param Confirm Yes
+ * @desc Text used to display yes.
+ * @default Yes
+ *
+ * @param Confirm No
+ * @desc Text used to display no.
+ * @default No
  *
  * @param ---Skill Learn---
  * @default
@@ -207,6 +228,17 @@ Yanfly.SLS = Yanfly.SLS || {};
  * Changelog
  * ============================================================================
  *
+ * Version 1.06b:
+ * - Added 'Confirm Window', 'Confirm Text', 'Confirm Yes', 'Confirm No' to the
+ * plugin's parameters. This confirm window only appears for non-integrated
+ * menus as the integrated menus have a class confirmation window already.
+ * - Confirm Text now supports text codes.
+ * - Fixed a visual bug when learning skills.
+ *
+ * Version 1.05:
+ * - Fixed a bug with the 'OpenLearnSkill party x' plugin command not opening
+ * the correct party member.
+ *
  * Version 1.04:
  * - Fixed a bug that would duplicate non-independent items.
  * - Fixed a bug with class portraits not updating properly.
@@ -238,12 +270,19 @@ Yanfly.Param.SLSCommand = String(Yanfly.Parameters['Learn Command']);
 Yanfly.Param.SLSShowLearn = String(Yanfly.Parameters['Show Command']);
 Yanfly.Param.SLSEnableLearn = String(Yanfly.Parameters['Enable Command']);
 Yanfly.Param.SLSIntegrate = String(Yanfly.Parameters['Integrate']);
+
+Yanfly.Param.SLSConfirmWin = eval(String(Yanfly.Parameters['Confirm Window']));
+Yanfly.Param.SLSConfirmText = String(Yanfly.Parameters['Confirm Text']);
+Yanfly.Param.SLSConfirmYes = String(Yanfly.Parameters['Confirm Yes']);
+Yanfly.Param.SLSConfirmNo = String(Yanfly.Parameters['Confirm No']);
+
 Yanfly.Param.SLSLearnText = String(Yanfly.Parameters['Learned Text']);
 Yanfly.Param.SLSLearnSize = Number(Yanfly.Parameters['Learned Size']);
 Yanfly.Param.SLSLearnCost = String(Yanfly.Parameters['Learn Cost']);
 Yanfly.Param.SLSCostSize = Number(Yanfly.Parameters['Cost Size']);
 Yanfly.Param.SLSItemCostFmt = String(Yanfly.Parameters['Item Cost']);
 Yanfly.Param.SLSGoldWindow = String(Yanfly.Parameters['Show Gold Window']);
+
 Yanfly.Param.SLSDefaultGold = Number(Yanfly.Parameters['Default Gold Cost']);
 Yanfly.Param.SLSDefaultJp = Number(Yanfly.Parameters['Default JP Cost']);
 
@@ -615,8 +654,8 @@ Game_Interpreter.prototype.openLearnSkill = function(args) {
       var actorId = parseInt(args[1]);
       var actor = $gameActors.actor(actorId)
     } else if (args[0].toLowerCase() === 'party') {
-      var index = parseInt(args[1]) + 1;
-      index = index.clamp(1, $gameParty.members().length + 1);
+      var index = parseInt(args[1]) - 1;
+      index = index.clamp(0, $gameParty.members().length - 1);
       var actor = $gameParty.members()[index];
     } else {
       return;
@@ -1186,7 +1225,8 @@ Window_SkillLearnCommand.prototype.update = function() {
       } else {
         actor.changeClass(classId, false);
       }
-      var hpAmount = Math.max(1, parseInt(actor.mhp * hpRate));
+      var max = actor.isDead() ? 0 : 1;
+      var hpAmount = Math.max(max, parseInt(actor.mhp * hpRate));
       actor.setHp(hpAmount);
       actor.setMp(parseInt(actor.mmp * mpRate));
       this._statusWindow.setActor(actor);
@@ -1203,7 +1243,7 @@ Window_SkillLearnCommand.prototype.drawItem = function(index) {
     }
 };
 
-Window_Command.prototype.drawItemEx = function(index) {
+Window_SkillLearnCommand.prototype.drawItemEx = function(index) {
     var rect = this.itemRectForText(index);
     var align = this.itemTextAlign();
     this.resetTextColor();
@@ -1213,6 +1253,56 @@ Window_Command.prototype.drawItemEx = function(index) {
     rect.x += Window_Base._iconWidth + 4;
     rect.width -= Window_Base._iconWidth + 4;
     this.drawText(this.commandName(index), rect.x, rect.y, rect.width);
+};
+
+//=============================================================================
+// Window_SkillLearnConfirm
+//=============================================================================
+
+function Window_SkillLearnConfirm() {
+    this.initialize.apply(this, arguments);
+}
+
+Window_SkillLearnConfirm.prototype = Object.create(Window_Command.prototype);
+Window_SkillLearnConfirm.prototype.constructor = Window_SkillLearnConfirm;
+
+Window_SkillLearnConfirm.prototype.initialize = function() {
+    Window_Command.prototype.initialize.call(this, 0, 0);
+    this.openness = 0;
+};
+
+Window_SkillLearnConfirm.prototype.makeCommandList = function() {
+    this.addCommand(Yanfly.Param.SLSConfirmYes, 'confirm');
+    this.addCommand(Yanfly.Param.SLSConfirmNo, 'cancel');
+};
+
+Window_SkillLearnConfirm.prototype.setData = function(actor, skill) {
+    var fmt = Yanfly.Param.SLSConfirmText;
+    this._text = fmt.format(actor.name(), skill.name);
+    var ww = this.textWidthEx(this._text) + this.standardPadding() * 4;
+    this.width = ww;
+    this.refresh();
+    this.x = (Graphics.boxWidth - this.width) / 2;
+    this.y = (Graphics.boxHeight - this.height) / 2;
+    this.drawTextEx(this._text, this.textPadding(), 0);
+};
+
+Window_SkillLearnConfirm.prototype.textWidthEx = function(text) {
+    return this.drawTextEx(text, 0, this.contents.height);
+};
+
+Window_SkillLearnConfirm.prototype.itemTextAlign = function() {
+    return 'center';
+};
+
+Window_SkillLearnConfirm.prototype.windowHeight = function() {
+    return this.fittingHeight(3);
+};
+
+Window_SkillLearnConfirm.prototype.itemRect = function(index) {
+    var rect = Window_Selectable.prototype.itemRect.call(this, index);
+    rect.y += this.lineHeight();
+    return rect;
 };
 
 //=============================================================================
@@ -1465,6 +1555,7 @@ Scene_LearnSkill.prototype.create = function() {
     this.createSkillLearnWindow();
     this.createGoldWindow();
     this.createSkillLearnDataWindow();
+    this.createConfirmWindow();
     this.refreshActor();
     this.adjustSelection();
 };
@@ -1543,6 +1634,14 @@ Scene_LearnSkill.prototype.createSkillLearnDataWindow = function() {
     this.addWindow(this._skillLearnDataWindow);
 };
 
+Scene_LearnSkill.prototype.createConfirmWindow = function() {
+    this._confirmWindow = new Window_SkillLearnConfirm();
+    var win = this._confirmWindow;
+    win.setHandler('confirm', this.onConfirmOk.bind(this));
+    win.setHandler('cancel',  this.onConfirmCancel.bind(this));
+    this.addWindow(this._confirmWindow);
+};
+
 Scene_LearnSkill.prototype.commandClass = function() {
     var item = this._commandWindow.currentExt();
     this._skillLearnWindow.setClass(item);
@@ -1554,7 +1653,7 @@ Scene_LearnSkill.prototype.commandClass = function() {
 Scene_LearnSkill.prototype.onLearnOk = function() {
     var skill = this._skillLearnWindow.item();
     var classId = this._commandWindow.currentExt();
-    this.processLearnSkill(skill, classId);
+    this.confirmLearnSkill(skill, classId);
 };
 
 Scene_LearnSkill.prototype.refreshStatus = function() {
@@ -1570,7 +1669,8 @@ Scene_LearnSkill.prototype.refreshStatus = function() {
     } else {
       actor.changeClass(classId, false);
     }
-    var hpAmount = Math.max(1, parseInt(actor.mhp * hpRate));
+    var max = actor.isDead() ? 0 : 1;
+    var hpAmount = Math.max(max, parseInt(actor.mhp * hpRate));
     actor.setHp(hpAmount);
     actor.setMp(parseInt(actor.mmp * mpRate));
     this._statusWindow.setActor(actor);
@@ -1593,6 +1693,14 @@ Scene_LearnSkill.prototype.processLearnSkill = function(skill, classId) {
   if (this._classListWindow) this._classListWindow.refresh();
   this._skillLearnDataWindow.refresh();
   this._commandWindow.refresh();
+};
+
+Scene_LearnSkill.prototype.confirmLearnSkill = function(skill, classId) {
+    if (Yanfly.Param.SLSConfirmWin) {
+      this.startConfirmWindow(skill)
+    } else {
+      this.processLearnSkill(skill, classId);
+    }
 };
 
 Scene_LearnSkill.prototype.processLearnCostEval = function(skill, classId) {
@@ -1622,6 +1730,26 @@ Scene_LearnSkill.prototype.onLearnPageDn = function() {
 
 Scene_LearnSkill.prototype.onLearnPageUp = function() {
     this.previousActor();
+};
+
+Scene_LearnSkill.prototype.startConfirmWindow = function(skill) {
+    this._confirmWindow.setData(this._actor, skill);
+    this._confirmWindow.open();
+    this._confirmWindow.activate();
+    this._confirmWindow.select(0);
+};
+
+Scene_LearnSkill.prototype.onConfirmOk = function() {
+    var skill = this._skillLearnWindow.item();
+    var classId = this._commandWindow.currentExt();
+    this.processLearnSkill(skill, classId);
+    this._confirmWindow.close();
+};
+
+Scene_LearnSkill.prototype.onConfirmCancel = function() {
+    this._confirmWindow.deactivate();
+    this._confirmWindow.close();
+    this._skillLearnWindow.activate();
 };
 
 //=============================================================================

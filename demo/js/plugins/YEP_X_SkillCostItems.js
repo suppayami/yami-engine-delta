@@ -11,7 +11,7 @@ Yanfly.SCI = Yanfly.SCI || {};
 
 //=============================================================================
  /*:
- * @plugindesc v1.00 (Requires YEP_SkillCore.js) Skills can now have an
+ * @plugindesc v1.01 (Requires YEP_SkillCore.js) Skills can now have an
  * item cost attached to them.
  * @author Yanfly Engine Plugins
  *
@@ -210,6 +210,16 @@ Yanfly.SCI = Yanfly.SCI || {};
  *   your database with the same name, priority will be given to the item with
  *   the highest ID in the order of items, weapons, and armors.
  *
+ * ============================================================================
+ * Changelog
+ * ============================================================================
+ * 
+ * Version 1.01:
+ * - Fixed a bug that would display the wrong cost amount for multiple items.
+ * - Shifted item icon cost 2 pixels down to match the skill icon Y level.
+ *
+ * Version 1.00:
+ * - Finished Plugin!
  */
 //=============================================================================
 
@@ -938,8 +948,9 @@ Window_SkillList.prototype.drawSkillItemCost = function(skill, wx, wy, dw) {
     this.contents.fontSize = Yanfly.Param.SCIFontSize;
     dw -= 2;
     for (var i = 0; i < max; ++i) {
-      var item = array.reverse()[i][0];
-      var cost = array.reverse()[i][1];
+      var arr = array[max - i - 1];
+      var item = arr[0];
+      var cost = arr[1];
       dw = this.drawSoloItemCost(item, cost, wx, wy, dw);
     }
     var returnWidth = dw - Yanfly.Param.SCCCostPadding;
@@ -949,7 +960,7 @@ Window_SkillList.prototype.drawSkillItemCost = function(skill, wx, wy, dw) {
 
 Window_SkillList.prototype.drawSoloItemCost = function(item, cost, wx, wy, dw) {
     var x = wx + dw - Window_Base._iconWidth;
-    this.drawIcon(item.iconIndex, x, wy);
+    this.drawIcon(item.iconIndex, x, wy + 2);
     var amt1 = Yanfly.Util.toGroup(cost);
     var amt2 = Yanfly.Util.toGroup(this._actor.numItems(item));
     var fmt = Yanfly.Param.SCIAmountFmt;

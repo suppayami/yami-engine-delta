@@ -11,7 +11,7 @@ Yanfly.Instant = Yanfly.Instant || {};
 
 //=============================================================================
  /*:
- * @plugindesc v1.03 Allows skills/items to be instantly cast after being
+ * @plugindesc v1.05 Allows skills/items to be instantly cast after being
  * selected in the battle menu.
  * @author Yanfly Engine Plugins
  *
@@ -148,6 +148,16 @@ Yanfly.Instant = Yanfly.Instant || {};
  * ============================================================================
  * Changelog
  * ============================================================================
+ *
+ * Version 1.05:
+ * - Added a fail safe to keep an action that once it's being used, it will
+ * maintain its current status of being an instant or non-instant until the
+ * action is finished to prevent inconsistencies if a skill were to change
+ * mid-action from instant to non-instant or vice versa.
+ *
+ * Version 1.04:
+ * - Fixed a bug that would cause the game to lock up if using an Instant
+ * action after a common event that would jump labels.
  *
  * Version 1.03:
  * - Fixed a bug with Forced Actions locking out the battle.
@@ -287,6 +297,12 @@ BattleManager.performInstantCast = function() {
     this.startAction();
 };
 
+Yanfly.Instant.BattleManager_startAction = BattleManager.startAction;
+BattleManager.startAction = function() {
+    this._startedInstantCasting = true;
+    Yanfly.Instant.BattleManager_startAction.call(this);
+};
+
 Yanfly.Instant.BattleManager_endAction = BattleManager.endAction;
 BattleManager.endAction = function() {
     if (this._instantCasting) {
@@ -295,9 +311,11 @@ BattleManager.endAction = function() {
       this.endEnemyInstantCastAction();
       Yanfly.Instant.BattleManager_endAction.call(this);
     }
+    this._startedInstantCasting = false;
 };
 
 BattleManager.endActorInstantCast = function() {
+    var user = this._subject;
     if (Imported.YEP_BattleEngineCore) {
       if (this._processingForcedAction) this._phase = this._preForcePhase;
       this._processingForcedAction = false;
@@ -305,7 +323,6 @@ BattleManager.endActorInstantCast = function() {
     if (this.updateEventMain()) return;
     Yanfly.Instant.BattleManager_endAction.call(this);
     this._instantCasting = undefined;
-    var user = this._subject;
     user.makeActions();
     if (this.checkBattleEnd()) return;
     this._phase = 'input';
@@ -406,6 +423,9 @@ Game_Actor.prototype.endInstantCast = function() {
 
 Game_Actor.prototype.isInstantCast = function(item) {
     if (!item) return false;
+    if ($gameParty.inBattle() && BattleManager._startedInstantCasting) {
+      return BattleManager._instantCasting;
+    }
     if (item.instantEval.length > 0) {
       var outcome = this.performInstantEval(item);
       if (outcome === true || outcome === false) return outcome;

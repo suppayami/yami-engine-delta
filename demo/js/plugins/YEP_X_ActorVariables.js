@@ -11,7 +11,7 @@ Yanfly.AVar = Yanfly.AVar || {};
 
 //=============================================================================
  /*:
- * @plugindesc v1.01 (Requires YEP_StatusMenuCore.js) Allows you to
+ * @plugindesc v1.01a (Requires YEP_StatusMenuCore.js) Allows you to
  * display variables for each actor.
  * @author Yanfly Engine Plugins
  *
@@ -112,7 +112,7 @@ Yanfly.AVar = Yanfly.AVar || {};
  * Changelog
  * ============================================================================
  *
- * Version 1.01:
+ * Version 1.01a:
  * - Added 'Hidden Variables' plugin parameter.
  * - Added 'HideActorVariable' and 'ShowActorVariable' plugin command.
  *
@@ -251,7 +251,7 @@ Game_System.prototype.showActorStatusVariable = function(varId) {
     }
     for (var i = 0; i < this._hiddenActorStatusVariables.length; ++i) {
       if (this._hiddenActorStatusVariables[i] === varId) {
-        array.splice(i, 1);
+        this._hiddenActorStatusVariables.splice(i, 1);
         --i;
       }
     }

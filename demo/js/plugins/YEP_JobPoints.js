@@ -11,7 +11,7 @@ Yanfly.JP = Yanfly.JP || {};
 
 //=============================================================================
  /*:
- * @plugindesc v1.04 This plugin by itself doesn't do much, but it enables
+ * @plugindesc v1.04a This plugin by itself doesn't do much, but it enables
  * actors to acquire JP (job points) used for other plugins.
  * @author Yanfly Engine Plugins
  *
@@ -186,8 +186,9 @@ Yanfly.JP = Yanfly.JP || {};
  * Changelog
  * ============================================================================
  *
- * Version 1.04:
+ * Version 1.04a:
  * - Added failsafes to prevent JP from turning into NaN midbattle.
+ * - Added failsafes to prevent no-target scopes from crashing the game.
  *
  * Version 1.03:
  * - Added 'Show Results' parameter to show/hide JP earned after battle for
@@ -494,7 +495,7 @@ Yanfly.JP.Game_Action_applyItemUserEffect =
     Game_Action.prototype.applyItemUserEffect;
 Game_Action.prototype.applyItemUserEffect = function(target) {
     Yanfly.JP.Game_Action_applyItemUserEffect.call(this, target);
-    this.applyItemJpEffect(target);
+    if (target) this.applyItemJpEffect(target);
 };
 
 Game_Action.prototype.applyItemJpEffect = function(target) {

@@ -11,7 +11,7 @@ Yanfly.CoreAI = Yanfly.CoreAI || {};
 
 //=============================================================================
  /*:
- * @plugindesc v1.02 This plugin allows you to structure battle A.I.
+ * @plugindesc v1.04 This plugin allows you to structure battle A.I.
  * patterns with more control.
  * @author Yanfly Engine Plugins
  *
@@ -371,6 +371,12 @@ Yanfly.CoreAI = Yanfly.CoreAI || {};
  * ============================================================================
  * Changelog
  * ============================================================================
+ *
+ * Version 1.04:
+ * - Fixed a bug that would cause a crash with the None scope for skills.
+ *
+ * Version 1.03:
+ * - Fixed a bug that returned the wrong MP% rate.
  *
  * Version 1.02:
  * - Fixed a bug that targeted the highest parameter enemy instead of lowest.
@@ -793,6 +799,7 @@ AIManager.getActionGroup = function() {
 AIManager.setProperTarget = function(group) {
     var action = this.action();
     var randomTarget = group[Math.floor(Math.random() * group.length)];
+    if (!randomTarget) return action.setTarget(0);
     if (group.length <= 0) return action.setTarget(randomTarget.index());
     var line = this._aiTarget.toUpperCase();
     if (line.match(/FIRST/i)) {
@@ -1273,7 +1280,7 @@ AIManager.conditionParamEval = function(paramId, condition) {
     } else if (paramId === 10) {
       condition = 'target.hp / target.mhp ' + condition;
     } else if (paramId === 11) {
-      condition = 'target.hp / target.mmp ' + condition;
+      condition = 'target.mp / target.mmp ' + condition;
     } else if (paramId === 12) {
       condition = 'target.level ' + condition;
     }

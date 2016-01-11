@@ -11,7 +11,7 @@ Yanfly.SVE = Yanfly.SVE || {};
 
 //=============================================================================
  /*:
- * @plugindesc v1.00 (Requires YEP_BattleEngineCore.js) This plugin lets
+ * @plugindesc v1.03 (Requires YEP_BattleEngineCore.js) This plugin lets
  * you use Animated Sideview Actors for enemies!
  * @author Yanfly Engine Plugins
  *
@@ -93,6 +93,11 @@ Yanfly.SVE = Yanfly.SVE || {};
  * @desc The default breathing Y rate for enemies.
  * Lower - Static     Larger - Dynamic
  * @default 0.02
+ *
+ * @param HP Link Breathing
+ * @desc Link breathing rate to HP Rate?
+ * NO - false     YES - true
+ * @default false
  *
  * @param ---Floating---
  * @default
@@ -493,6 +498,11 @@ Yanfly.SVE = Yanfly.SVE || {};
  *   Sets the horizontal and vertical breathing rate to x.y. 1.0 is a 100%
  *   variance change while 0.0 is a 0% variance.
  *
+ *   <Enable HP Link Breathing>
+ *   <Disable HP Link Breathing>
+ *   Will enable/disable HP Link Breathing. The lower the HP on the enemy, the
+ *   slower the enemy will breathe.
+ *
  *   <Floating>
  *   Sets the enemy to be animated as if it was floating.
  *
@@ -691,6 +701,18 @@ Yanfly.SVE = Yanfly.SVE || {};
  * Changelog
  * ============================================================================
  *
+ * Version v1.03:
+ * - Fixed a bug that would cause <Sideview Width: x> & <Sideview Height: x>
+ * notetags to crash the game.
+ *
+ * Version v1.02:
+ * - Synchronized state icons and overlays with floating enemies.
+ *
+ * Version v1.01:
+ * - Added 'HP Link Breathing' plugin parameter. If enabled, the lower the HP,
+ * the slower the enemy breathes.
+ * - Added <Enable HP Link Breathing> and <Disable HP Link Breathing> notetags.
+ *
  * Version v1.00:
  * - Finished plugin! Hooray!
  */
@@ -717,6 +739,7 @@ Yanfly.Param.SVEBreathing = Number(Yanfly.Parameters['Enable Breathing']);
 Yanfly.Param.SVEBreathSpeed = Number(Yanfly.Parameters['Breathing Speed']);
 Yanfly.Param.SVEBreathXRate = Number(Yanfly.Parameters['Breathing X Rate']);
 Yanfly.Param.SVEBreathYRate = Number(Yanfly.Parameters['Breathing Y Rate']);
+Yanfly.Param.SVELinkBreathing = eval(Yanfly.Parameters['HP Link Breathing']);
 
 Yanfly.Param.SVEFloatSpeed = Number(Yanfly.Parameters['Floating Speed']);
 Yanfly.Param.SVEFloatRate = Number(Yanfly.Parameters['Floating Rate']);
@@ -795,6 +818,7 @@ DataManager.processSVENotetags1 = function(group) {
     obj.sideviewBreathSpeed = Math.max(1, Yanfly.Param.SVEBreathSpeed);
     obj.sideviewBreathXRate = Math.max(0, Yanfly.Param.SVEBreathXRate);
     obj.sideviewBreathYRate = Math.max(0, Yanfly.Param.SVEBreathYRate);
+    obj.sideviewLinkBreathing = Yanfly.Param.SVELinkBreathing;
     obj.sideviewFloating = false;
     obj.sideviewFloatSpeed = Yanfly.Param.SVEFloatSpeed;
     obj.sideviewFloatRate = Yanfly.Param.SVEFloatRate;
@@ -892,6 +916,10 @@ DataManager.processSVENotetags1 = function(group) {
       } else if (line.match(/<(?:BREATHING RATE Y):[ ](\d+)[.](\d+)>/i)) {
         var rate = eval(String(RegExp.$1) + '.' + String(RegExp.$2));
         obj.sideviewBreathYRate = rate;
+      } else if (line.match(/<(?:ENABLE HP LINK BREATHING)>/i)) {
+        obj.sideviewLinkBreathing = true;
+      } else if (line.match(/<(?:DISABLE HP LINK BREATHING)>/i)) {
+        obj.sideviewLinkBreathing = false;
       }
     }
 		// Create Defaults
@@ -1174,6 +1202,10 @@ Game_Enemy.prototype.breathYRate = function() {
     return this.enemy().sideviewBreathYRate;
 };
 
+Game_Enemy.prototype.linkBreathing = function() {
+    return this.enemy().sideviewLinkBreathing;
+};
+
 Game_Enemy.prototype.isFloating = function() {
     if (this.isDead()) return false;
     return this.enemy().sideviewFloating;
@@ -1312,12 +1344,22 @@ Sprite_Enemy.prototype.updateStateSprite = function() {
     } else {
       Yanfly.SVE.Sprite_Enemy_updateStateSprite.call(this);
     }
+    this.updateFloatingStateSprite();
 };
 
 Sprite_Enemy.prototype.updateSVStateSprite = function() {
     var height = this._mainSprite.height * -1;
     height -= Sprite_StateIcon._iconHeight;
     this._stateIconSprite.y = height;
+    this._stateSprite.y = 0;
+};
+
+Sprite_Enemy.prototype.updateFloatingStateSprite = function() {
+    if (this._enemy && this._enemy.isFloating()) {
+      var heightRate = this.addFloatingHeight();
+      this._stateIconSprite.y += heightRate * this.height;
+      this._stateSprite.y += heightRate * this.height;
+    };
 };
 
 Sprite_Enemy.prototype.updateBreathing = function() {
@@ -1327,6 +1369,7 @@ Sprite_Enemy.prototype.updateBreathing = function() {
       var s = this._enemy.breathingSpeed();
       var rateX = this._enemy.breathXRate();
       var rateY = this._enemy.breathYRate();
+      if (this._enemy.linkBreathing()) s /= this._enemy.hpRate();
       var scaleX = Math.cos(c / s) * rateX;
       var scaleY = Math.cos(c / s) * rateY;
     } else {
@@ -1411,7 +1454,7 @@ Sprite_Enemy.prototype.updateFrame = function() {
 Sprite_Enemy.prototype.updateSVFrame = function() {
     Sprite_Battler.prototype.updateFrame.call(this);
     var bitmap = this._mainSprite.bitmap;
-    if (!bitmap) return;
+    if (bitmap.width <= 0) return;
     this._effectTarget = this._mainSprite;
     var motionIndex = this._motion ? this._motion.index : 0;
     var pattern = this._pattern < 3 ? this._pattern : 1;
@@ -1434,8 +1477,10 @@ Sprite_Enemy.prototype.adjustMainBitmapSettings = function(bitmap) {
     this._adjustMainBitmapSettings = true;
     var svw = this._enemy.sideviewWidth();
     var svh = this._enemy.sideviewHeight();
-    if (svw.toLowerCase() === 'auto') svw = bitmap.width / 9;
-    if (svh.toLowerCase() === 'auto') svh = bitmap.height / 6;
+    if (svw === 'auto') svw = bitmap.width / 9;
+    if (svh === 'auto') svh = bitmap.height / 6;
+    svw = Math.floor(Math.abs(svw * this._enemy.spriteScaleX()));
+    svh = Math.floor(Math.abs(svh * this._enemy.spriteScaleY()));
     this.bitmap = new Bitmap(svw, svh);
 };
 

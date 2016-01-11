@@ -11,7 +11,7 @@ Yanfly.ASP2 = Yanfly.ASP2 || {};
 
 //=============================================================================
  /*:
- * @plugindesc v1.05 (Requires YEP_BattleEngineCore.js) Visual functions
+ * @plugindesc v1.07a (Requires YEP_BattleEngineCore.js) Visual functions
  * are added to the Battle Engine Core's action sequences.
  * @author Yanfly Engine Plugins
  *
@@ -424,6 +424,13 @@ Yanfly.ASP2 = Yanfly.ASP2 || {};
  * Changelog
  * ============================================================================
  *
+ * Version 1.07a:
+ * - Synchronized battle animations to floating and jumping battlers.
+ * 
+ * Version 1.06:
+ * - Updated weapon motions for YEP_X_AnimatedSVEnemies to work with sideview
+ * enemies.
+ *
  * Version 1.05:
  * - Creating compatibility for a future plugin.
  *
@@ -778,6 +785,12 @@ BattleManager.actionMotionTarget = function(name, actionArgs) {
           var attackMotion = $dataSystem.attackMotions[wtypeId];
           if (attackMotion && [0, 1, 2].contains(attackMotion.type)) {
             mover.startWeaponAnimation(attackMotion.weaponImageId);
+          }
+        }
+        if (Imported.YEP_X_AnimatedSVEnemies) {
+          if (mover.isEnemy() && mover.hasSVBattler() && showWeapon) {
+            var attackMotion = $dataSystem.attackMotions[wtypeId];
+            mover.startWeaponAnimation(mover.weaponImageId());
           }
         }
       });
@@ -1169,6 +1182,39 @@ Sprite_Battler.prototype.isJumping = function() {
 
 Sprite_Battler.prototype.isChangingOpacity = function() {
     return this._opacityDur > 0;
+};
+
+//=============================================================================
+// Sprite_Animation
+//=============================================================================
+
+Yanfly.ASP2.Sprite_Animation_updatePosition =
+    Sprite_Animation.prototype.updatePosition;
+Sprite_Animation.prototype.updatePosition = function() {
+    Yanfly.ASP2.Sprite_Animation_updatePosition.call(this);
+    if (this._animation.position === 3) return;
+    if (this.isBattlerRelated()) this.updateBattlerPosition();
+};
+
+Sprite_Animation.prototype.isBattlerRelated = function() {
+    if (this._target instanceof Sprite_Battler) return true;
+    if (this._target.parent instanceof Sprite_Battler) return true;
+    return false;
+};
+
+Sprite_Animation.prototype.updateBattlerPosition = function() {
+    if (this._target instanceof Sprite_Battler) {
+      var target = this._target;
+    } else if (this._target.parent instanceof Sprite_Battler) {
+      var target = this._target.parent;
+    } else {
+      return;
+    }
+    if (!target.bitmap) return;
+    if (target.bitmap.height <= 0) return;
+    var heightRate = target.getFloatHeight() + target.getJumpHeight();
+    var height = heightRate * target.bitmap.height;
+    this.y -= height;
 };
 
 //=============================================================================

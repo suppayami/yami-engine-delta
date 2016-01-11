@@ -11,7 +11,7 @@ Yanfly.Equip = Yanfly.Equip || {};
 
 //=============================================================================
  /*:
- * @plugindesc v1.07 Allows for the equipment system to be more flexible to
+ * @plugindesc v1.08 Allows for the equipment system to be more flexible to
  * allow for unique equipment slots per class.
  * @author Yanfly Engine Plugins
  *
@@ -152,6 +152,9 @@ Yanfly.Equip = Yanfly.Equip || {};
  * ============================================================================
  * Changelog
  * ============================================================================
+ *
+ * Version 1.08:
+ * - Fixed a bug where changing an actor's equips would revive them if dead.
  *
  * Version 1.07:
  * - Fixed a bug with 'Optimize' and 'Remove All' not refreshing windows.
@@ -873,7 +876,8 @@ Scene_Equip.prototype.commandOptimize = function() {
     var mpRate = this.actor().mp / Math.max(1, this.actor().mmp);
     Yanfly.Equip.Scene_Equip_commandOptimize.call(this);
     $gameTemp._optimizeEquipments = false;
-    var hpAmount = Math.max(1, parseInt(this.actor().mhp * hpRate));
+    var max = this.actor().isDead() ? 0 : 1;
+    var hpAmount = Math.max(max, parseInt(this.actor().mhp * hpRate));
     this.actor().setHp(hpAmount);
 		this.actor().setMp(parseInt(this.actor().mmp * mpRate));
     this._compareWindow.refresh();
@@ -887,7 +891,8 @@ Scene_Equip.prototype.commandClear = function() {
     var mpRate = this.actor().mp / Math.max(1, this.actor().mmp);
     Yanfly.Equip.Scene_Equip_commandClear.call(this);
     $gameTemp._clearEquipments = false;
-    var hpAmount = Math.max(1, parseInt(this.actor().mhp * hpRate));
+    var max = this.actor().isDead() ? 0 : 1;
+    var hpAmount = Math.max(max, parseInt(this.actor().mhp * hpRate));
     this.actor().setHp(hpAmount);
 		this.actor().setMp(parseInt(this.actor().mmp * mpRate));
     this._compareWindow.refresh();
@@ -908,7 +913,8 @@ Scene_Equip.prototype.onItemOk = function() {
     var hpRate = this.actor().hp / Math.max(1, this.actor().mhp);
     var mpRate = this.actor().mp / Math.max(1, this.actor().mmp);
     Yanfly.Equip.Scene_Equip_onItemOk.call(this);
-    var hpAmount = Math.max(1, parseInt(this.actor().mhp * hpRate));
+    var max = this.actor().isDead() ? 0 : 1;
+    var hpAmount = Math.max(max, parseInt(this.actor().mhp * hpRate));
     this.actor().setHp(hpAmount);
 		this.actor().setMp(parseInt(this.actor().mmp * mpRate));
     this._itemWindow.hide();

@@ -11,7 +11,7 @@ Yanfly.VA = Yanfly.VA || {};
 
 //=============================================================================
  /*:
- * @plugindesc v1.05 Display an informative window after a battle is over
+ * @plugindesc v1.05a Display an informative window after a battle is over
  * instead of message box text stating what the party earned.
  * @author Yanfly Engine Plugins
  *
@@ -174,9 +174,11 @@ Yanfly.VA = Yanfly.VA || {};
  * Changelog
  * ============================================================================
  *
- * Version 1.05:
+ * Version 1.05a:
  * - Added 'Font Size' plugin parameter to alter the font size for the battle
  * results page.
+ * - Fixed a graphical issue where an actor in crisis would display its level
+ * in the crisis color.
  *
  * Version 1.04:
  * - Updated the plugin so it doesn't break visually when party sizes are too
@@ -595,6 +597,7 @@ Window_VictoryExp.prototype.drawActorGauge = function(actor, index) {
 };
 
 Window_VictoryExp.prototype.drawLevel = function(actor, rect) {
+    this.changeTextColor(this.normalColor());
     if (this.actorExpRate(actor) >= 1.0) {
       var text = Yanfly.Util.toGroup(actor._postVictoryLv);
     } else {

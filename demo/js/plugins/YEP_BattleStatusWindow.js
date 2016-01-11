@@ -11,7 +11,7 @@ Yanfly.BSW = Yanfly.BSW || {};
 
 //=============================================================================
  /*:
- * @plugindesc v1.01a A simple battle status window that shows the
+ * @plugindesc v1.03 A simple battle status window that shows the
  * faces of your party members in horizontal format.
  * @author Yanfly Engine Plugins
  *
@@ -39,6 +39,11 @@ Yanfly.BSW = Yanfly.BSW || {};
  *
  * @param Param Current Max
  * @desc Draw current / max format?
+ * NO - false     YES - true
+ * @default false
+ *
+ * @param Adjust Columns
+ * @desc Adjust column amount to party size?
  * NO - false     YES - true
  * @default false
  *
@@ -97,6 +102,16 @@ Yanfly.BSW = Yanfly.BSW || {};
  * Changelog
  * ============================================================================
  *
+ * Version 1.03:
+ * - Added a failsafe check to make frontview animations work regardless of
+ * having RPG Maker MV 1.0.1 update.
+ *
+ * Version 1.02a:
+ * - Added 'Adjust Columns' parameter.
+ * - Updated functionality for 'Adjust Columns' to alter where the animations
+ * are played.
+ * - Added a timed refresh for the face loading to show at faster intervals.
+ *
  * Version 1.01a:
  * - Added refresh modifiers to update an actor's face whenever an event to
  * change the actor's face graphic.
@@ -120,6 +135,7 @@ Yanfly.Param.BSWNameFontSize = Number(Yanfly.Parameters['Name Font Size']);
 Yanfly.Param.BSWParamFontSize = Number(Yanfly.Parameters['Param Font Size']);
 Yanfly.Param.BSWParamYBuffer = Number(Yanfly.Parameters['Param Y Buffer']);
 Yanfly.Param.BSWCurrentMax = String(Yanfly.Parameters['Param Current Max']);
+Yanfly.Param.BSWAdjustCol = eval(String(Yanfly.Parameters['Adjust Columns']));
 
 Yanfly.Param.BSWLfRt = eval(String(Yanfly.Parameters['Left / Right']));
 Yanfly.Param.BSWPageUpDn = eval(String(Yanfly.Parameters['PageUp / PageDown']));
@@ -218,6 +234,14 @@ Game_Actor.prototype.battleStatusWindowRefresh = function() {
 // Sprite_Actor
 //=============================================================================
 
+Yanfly.BSW.Sprite_Actor_createMainSprite =
+    Sprite_Actor.prototype.createMainSprite;
+Sprite_Actor.prototype.createMainSprite = function() {
+    Yanfly.BSW.Sprite_Actor_createMainSprite.call(this);
+    if ($gameSystem.isSideView()) return;
+    this._effectTarget = this;
+};
+
 Yanfly.BSW.Sprite_Actor_setActorHome = Sprite_Actor.prototype.setActorHome;
 Sprite_Actor.prototype.setActorHome = function(index) {
     if (Yanfly.Param.BSWAlignAni && !$gameSystem.isSideView()) {
@@ -239,7 +263,12 @@ Sprite_Actor.prototype.setActorHomeFrontView = function(index) {
     var windowW = Window_PartyCommand.prototype.windowWidth.call(this);
     screenW -= windowW;
     windowW /= 2;
-    var size = $gameParty.battleMembers().length;
+    if (Yanfly.Param.BSWAdjustCol) {
+      var size = $gameParty.battleMembers().length;
+    } else {
+      var size = $gameParty.maxBattleMembers();
+    }
+    
     var homeX = screenW / size * index + windowW + screenW / (size * 2);
     homeX += Yanfly.Param.BSWXOffset;
     var homeY = Graphics.boxHeight - statusHeight;
@@ -369,6 +398,11 @@ Window_BattleStatus.prototype.drawAllItems = function() {
 
 Window_BattleStatus.prototype.drawAllFaces = function() {
     this._faceContents.bitmap.clear();
+    for (var i = 0; i < $gameParty.battleMembers().length; ++i) {
+      var member = $gameParty.battleMembers()[i];
+      var bitmap = ImageManager.loadFace(member.faceName());
+      if (bitmap.width <= 0) return setTimeout(this.drawAllFaces.bind(this), 5);
+    }
     for (var i = 0; i < this.maxItems(); ++i) {
       this.drawStatusFace(i);
     }
@@ -380,7 +414,11 @@ Window_BattleStatus.prototype.maxRows = function() {
 };
 
 Window_BattleStatus.prototype.maxCols = function() {
-    var cols = this.maxItems();
+    if (Yanfly.Param.BSWAdjustCol) {
+      return this.maxItems();
+    } else {
+      return $gameParty.maxBattleMembers();
+    }
     return cols;
 };
 

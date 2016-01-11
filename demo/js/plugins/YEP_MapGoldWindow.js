@@ -11,7 +11,7 @@ Yanfly.MGW = Yanfly.MGW || {};
 
 //=============================================================================
  /*:
- * @plugindesc v1.00 Allows you to display the gold window on your map.
+ * @plugindesc v1.01 Allows you to display the gold window on your map.
  * @author Yanfly Engine Plugins
  *
  * @param Automatic Open
@@ -62,6 +62,17 @@ Yanfly.MGW = Yanfly.MGW || {};
  *   If you set the value to 0, it will maintain its current position but will
  *   automatically move itself to a different location if it intrudes on the
  *   message window.
+ *
+ * ============================================================================
+ * Changelog
+ * ============================================================================
+ *
+ * Version 1.01:
+ * - Fixed a bug where a finished message in battle would open up the gold
+ * window if it is set to automatically open.
+ *
+ * Version 1.00:
+ * - Finished Plugin!
  */
 //=============================================================================
 
@@ -245,7 +256,7 @@ Yanfly.MGW.Window_Message_terminateMessage =
     Window_Message.prototype.terminateMessage;
 Window_Message.prototype.terminateMessage = function() {
     Yanfly.MGW.Window_Message_terminateMessage.call(this);
-    if ($gameSystem.isMapGoldWindowAutoOpen()) {
+    if ($gameSystem.isMapGoldWindowAutoOpen() && !$gameParty.inBattle()) {
       this._goldWindow.open();
     }
     this._goldWindowOpened = false;

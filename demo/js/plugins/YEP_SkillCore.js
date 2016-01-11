@@ -11,8 +11,8 @@ Yanfly.Skill = Yanfly.Skill || {};
 
 //=============================================================================
 /*:
- * @plugindesc v1.06a Skills are now given more functions and the ability to
- * require different types of costs.
+ * @plugindesc v1.06a Skills are now given more functions and the ability
+ * to require different types of costs.
  * @author Yanfly Engine Plugins
  *
  * @param ---General---

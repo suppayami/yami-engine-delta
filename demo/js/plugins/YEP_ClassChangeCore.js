@@ -11,7 +11,7 @@ Yanfly.CCC = Yanfly.CCC || {};
 
 //=============================================================================
  /*:
- * @plugindesc v1.03 This plugin creates a system where your player
+ * @plugindesc v1.05 This plugin creates a system where your player
  * can change classes through the main menu.
  * @author Yanfly Engine Plugins
  *
@@ -202,6 +202,14 @@ Yanfly.CCC = Yanfly.CCC || {};
  * ============================================================================
  * Changelog
  * ============================================================================
+ *
+ * Version 1.05:
+ * - If using the Skill Learn System and Skill Menu Integration, the
+ * "Learn Skill" command now carries over to the Skill menu itself to utilize
+ * the integrated system.
+ *
+ * Version 1.04:
+ * - Fixed a bug that would revive dead party members by changing their class.
  *
  * Version 1.03:
  * - Fixed a bug that would duplicate non-independent items.
@@ -754,6 +762,7 @@ Window_ClassCommand.prototype.addSkillLearnCommand = function() {
     if (!Imported.YEP_SkillLearnSystem) return;
     if (!eval(Yanfly.Param.CCCShowLearn)) return;
     var name = Yanfly.Param.SLSCommand;
+    if (eval(Yanfly.Param.SLSIntegrate)) name = TextManager.skill;
     var enabled = $gameSystem.isEnableLearnSkill();
     this.addCommand(name, 'learnSkill', enabled);
 };
@@ -892,6 +901,8 @@ Window_ClassList.prototype.selectLast = function() {
 };
 
 Window_ClassList.prototype.playOkSound = function() {
+    if (SceneManager._scene instanceof Scene_Class) return;
+    Window_Selectable.prototype.playOkSound.call(this);
 };
 
 //=============================================================================
@@ -1126,7 +1137,11 @@ Scene_Class.prototype.commandClass = function() {
 };
 
 Scene_Class.prototype.commandLearnSkill = function() {
-    SceneManager.push(Scene_LearnSkill);
+    if (eval(Yanfly.Param.SLSIntegrate)) {
+      SceneManager.push(Scene_Skill);
+    } else {
+      SceneManager.push(Scene_LearnSkill);
+    }
 };
 
 Scene_Class.prototype.onItemOk = function() {
@@ -1135,7 +1150,8 @@ Scene_Class.prototype.onItemOk = function() {
     var hpRate = this.actor().hp / this.actor().mhp;
     var mpRate = this.actor().mp / Math.max(1, this.actor().mmp);
     this.actor().changeClass(classId, eval(Yanfly.Param.CCCMaintainLv));
-    var hpAmount = Math.max(1, parseInt(this.actor().mhp * hpRate));
+    var max = this.actor().isDead() ? 0 : 1;
+    var hpAmount = Math.max(max, parseInt(this.actor().mhp * hpRate));
     this.actor().setHp(hpAmount);
     this.actor().setMp(parseInt(this.actor().mmp * mpRate));
     this._itemWindow.activate();

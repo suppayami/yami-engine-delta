@@ -11,7 +11,7 @@ Yanfly.EML = Yanfly.EML || {};
 
 //=============================================================================
  /*:
- * @plugindesc v1.02 Creates miniature-sized labels over events to allow
+ * @plugindesc v1.04 Creates miniature-sized labels over events to allow
  * you to insert whatever text you'd like in them.
  * @author Yanfly Engine Plugins
  *
@@ -88,11 +88,18 @@ Yanfly.EML = Yanfly.EML || {};
  *   ShowMiniLabel
  *   Shows all Event Mini Label.
  *
+ *   RefreshMiniLabel
+ *   Refreshes all Event Mini Labels on the map.
+ *
  * ============================================================================
  * Changelog
  * ============================================================================
  *
- * Version 1.02:
+ * Version 1.04:
+ * - Added 'RefreshMiniLabel' plugin command to allow you to manually refresh
+ * all mini labels on the map.
+ *
+ * Version 1.03:
  * - Optimized updating performance to reduce lag on maps with many events.
  *
  * Version 1.01:
@@ -149,6 +156,15 @@ Game_Interpreter.prototype.pluginCommand = function(command, args) {
   Yanfly.EML.Game_Interpreter_pluginCommand.call(this, command, args)
   if (command === 'HideMiniLabel') $gameSystem.setEventMiniLabel(false);
   if (command === 'ShowMiniLabel') $gameSystem.setEventMiniLabel(true);
+  if (command === 'RefreshMiniLabel') this.refreshEventMiniLabel();
+};
+
+Game_Interpreter.prototype.refreshEventMiniLabel = function() {
+    if ($gameParty.inBattle()) return;
+    var scene = SceneManager._scene;
+    if (scene instanceof Scene_Map) {
+      scene.refreshAllMiniLabels();
+    }
 };
 
 //=============================================================================
@@ -205,6 +221,7 @@ Window_EventMiniLabel.prototype.setCharacter = function(character) {
 
 Window_EventMiniLabel.prototype.gatherDisplayData = function() {
     this._page = this._character.page();
+    this._pageIndex = this._character._pageIndex;
     this._range = 500;
     this._bufferY = Yanfly.Param.EMWBufferY;
     this._fontSize = Yanfly.Param.EMWFontSize;
@@ -267,6 +284,10 @@ Window_EventMiniLabel.prototype.refresh = function() {
     this.drawTextEx(this._text, wx, wy);
 };
 
+Window_EventMiniLabel.prototype.forceRefresh = function() {
+    this.refresh();
+};
+
 Window_EventMiniLabel.prototype.textWidthEx = function(text) {
     return this.drawTextEx(text, 0, this.contents.height);
 };
@@ -281,7 +302,8 @@ Window_EventMiniLabel.prototype.update = function() {
 };
 
 Window_EventMiniLabel.prototype.updatePage = function() {
-    if (this._page === this._character.page()) return;
+    if (this._pageIndex === this._character._pageIndex) return;
+    this._pageIndex = this._character._pageIndex;
     this.contents.clear();
     this._text = '';
     this.gatherDisplayData();
@@ -350,6 +372,22 @@ Sprite_Character.prototype.positionMiniLabel = function() {
     var win = this._miniLabel;
     win.x = this.x + win.width / -2;
     win.y = this.y + (this.height * -1) - win.height + win.bufferY();
+};
+
+Sprite_Character.prototype.refreshMiniLabel = function() {
+    if (this._miniLabel) this._miniLabel.forceRefresh();
+};
+
+//=============================================================================
+// Scene_Map
+//=============================================================================
+
+Scene_Map.prototype.refreshAllMiniLabels = function() {
+    var length = this._spriteset._characterSprites.length;
+    for (var i = 0; i < length; ++i) {
+      var sp = this._spriteset._characterSprites[i];
+      sp.refreshMiniLabel();
+    }
 };
 
 //=============================================================================

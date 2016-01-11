@@ -14,6 +14,8 @@
     // Custom Globals
     "globals"       : {
         "PIXI"              :   false,
+        "$dataActors"       :   false,
+        "$dataEnemies"      :   false,
         "$dataAnimations"   :   false,
         "$dataWeapons"      :   false,
         "$dataArmors"       :   false,
@@ -46,10 +48,14 @@
         "Game_Action"       :   false,
         "Game_Battler"      :   false,
         "Game_Actor"        :   false,
+        "Game_Enemy"        :   false,
         "Game_Party"        :   false,
         "Game_Interpreter"  :   false,
         "Game_Map"          :   false,
         "Sprite_Base"       :   false,
+        "Sprite_Battler"    :   false,
+        "Sprite_Actor"      :   false,
+        "Sprite_Enemy"      :   false,
         "Spriteset_Map"     :   false,
         "Window"            :   false,
         "Window_Base"       :   false,

@@ -11,7 +11,7 @@ Yanfly.CTB = Yanfly.CTB || {};
 
 //=============================================================================
  /*:
- * @plugindesc v1.05 (Requires YEP_BattleEngineCore.js) Add CTB (Charge
+ * @plugindesc v1.07 (Requires YEP_BattleEngineCore.js) Add CTB (Charge
  * Turn Battle) into your game using this plugin!
  * @author Yanfly Engine Plugins
  *
@@ -388,10 +388,20 @@ Yanfly.CTB = Yanfly.CTB || {};
  * Changelog
  * ============================================================================
  *
- * Version 1.05:
+ * Version 1.07:
+ * - Made a mechanic change so that turn 0 ends immediately upon battle start
+ * rather than requiring a full turn to end.
+ *
+ * Version 1.06:
+ * - Fixed a bug that would cause a crash when a party member leaves the party.
+ *
+ * Version 1.05c:
  * - Implemented a Forced Action queue list. This means if a Forced Action
  * takes place in the middle of an action, the action will resume after the
  * forced action finishes rather than cancels it out like MV does.
+ * - Fixed a graphical issue where enemies appearing midway don't have letters
+ * attached to their icons.
+ * - Added a fail safe for loaded saves that did not have CTB installed before.
  *
  * Version 1.04:
  * - Added a speed position check for Instant Casts to maintain order position.
@@ -693,7 +703,7 @@ BattleManager.startCTB = function() {
       this._ctbMinimumSpeed = Math.max(1, eval(Yanfly.Param.CTBMinSpeed));
       this._ctbMaximumSpeed = Math.max(1, eval(Yanfly.Param.CTBMaxSpeed));
     }
-    this._ctbTicks = 0;
+    this._ctbTicks = this._ctbFullTurn;
     this._ctbReadySound = {
       name: Yanfly.Param.CTBReadyName,
       volume: Yanfly.Param.CTBReadyVol,
@@ -1114,6 +1124,16 @@ BattleManager.processFailEscapeCTB = function() {
     actor.resetAllCTB();
 };
 
+BattleManager.redrawCTBIcons = function() {
+    var max = $gameTroop.members().length;
+    for (var i = 0; i < max; ++i) {
+      var member = $gameTroop.members()[i];
+      if (!member) continue;
+      if (!member.battler()._ctbIcon) continue;
+      member.battler()._ctbIcon.forceRedraw();
+    }
+};
+
 Yanfly.CTB.BattleManager_processActionSequence =
   BattleManager.processActionSequence;
 BattleManager.processActionSequence = function(actionName, actionArgs) {
@@ -1391,6 +1411,14 @@ Game_BattlerBase.prototype.die = function() {
     if (BattleManager.isCTB() && $gameParty.inBattle()) this.resetAllCTB();
 };
 
+Yanfly.CTB.Game_BattlerBase_appear = Game_BattlerBase.prototype.appear;
+Game_BattlerBase.prototype.appear = function() {
+    Yanfly.CTB.Game_BattlerBase_appear.call(this);
+    if (BattleManager.isCTB() && this.isEnemy()) {
+      BattleManager.redrawCTBIcons();
+    }
+};
+
 //=============================================================================
 // Game_Battler
 //=============================================================================
@@ -1487,6 +1515,9 @@ Game_Battler.prototype.ctbTicksToReadyActionCheck = function() {
       } else if (symbol === 'guard') {
         this._commandWindowItem = $dataSkills[this.guardSkillId()];
         return this._commandWindowItem;
+      } else {
+        this._commandWindowItem = undefined;
+        return false;
       }
     }
     if (!this.currentAction()) return false;
@@ -1764,6 +1795,7 @@ Game_Battler.prototype.ctbAlterTurnOrder = function(value) {
     index += value;
     index = index.clamp(0, max);
     var battler = BattleManager.ctbTurnOrder()[index];
+    if (!battler) battler = this;
     var ticksTarget = battler.ctbTicksToReady();
     var ticksCurrent = this.ctbTicksToReady();
     var ticksChange = ticksTarget - ticksCurrent;
@@ -2059,8 +2091,8 @@ Window_CTBIcon.prototype.updateBattler = function() {
     if (this._battler && this._battler._ctbTransformed) changed = true;
     if (!changed) return;
     this._battler = this._mainSprite._battler;
-    this._battler._ctbTransformed = undefined;
     if (!this._battler) return this.removeCTBIcon();
+    this._battler._ctbTransformed = undefined;
     this._iconIndex = this._battler.ctbIcon();
     if (this._iconIndex > 0) {
       this._image = ImageManager.loadSystem('IconSet');
@@ -2103,6 +2135,10 @@ Window_CTBIcon.prototype.updateIconIndex = function() {
         this._iconIndex = this._battler.ctbIcon();
         this._redraw = true;
     }
+};
+
+Window_CTBIcon.prototype.forceRedraw = function() {
+    this._redraw = true;
 };
 
 Window_CTBIcon.prototype.updateRedraw = function() {

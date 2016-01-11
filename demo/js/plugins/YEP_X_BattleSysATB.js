@@ -11,7 +11,7 @@ Yanfly.ATB = Yanfly.ATB || {};
 
 //=============================================================================
  /*:
- * @plugindesc v1.15 (Requires YEP_BattleEngineCore.js) Add ATB (Active
+ * @plugindesc v1.17 (Requires YEP_BattleEngineCore.js) Add ATB (Active
  * Turn Battle) into your game using this plugin!
  * @author Yanfly Engine Plugins
  *
@@ -434,6 +434,14 @@ Yanfly.ATB = Yanfly.ATB || {};
  * Changelog
  * ============================================================================
  * 
+ * Version 1.17:
+ * - Made a mechanic change so that turn 0 ends immediately upon battle start
+ * rather than requiring a full turn to end.
+ *
+ * Version 1.16:
+ * - Added a fail safe setting up ATB Charges when the Cannot Move restriction
+ * is imposed upon an actor.
+ *
  * Verison 1.15:
  * - Implemented a Forced Action queue list. This means if a Forced Action
  * takes place in the middle of an action, the action will resume after the
@@ -803,7 +811,7 @@ BattleManager.startATB = function() {
       this._atbMinimumSpeed = Math.max(1, eval(Yanfly.Param.ATBMinSpeed));
       this._atbMaximumSpeed = Math.max(1, eval(Yanfly.Param.ATBMaxSpeed));
     }
-    this._atbTicks = 0;
+    this._atbTicks = this._atbFullTurn;
     this._atbReadySound = {
       name: Yanfly.Param.ATBReadyName,
       volume: Yanfly.Param.ATBReadyVol,
@@ -1576,12 +1584,16 @@ Game_Battler.prototype.setATBCharge = function(value) {
 Game_Battler.prototype.setupATBCharge = function() {
     this.setATBCharging(true);
     if (!this.currentAction()) this.makeActions();
-    var item = this.currentAction().item();
-    if (item) {
-      this._atbChargeMod = item.speed;
+    if (this.currentAction()) {
+      var item = this.currentAction().item();
+      if (item) {
+        this._atbChargeMod = item.speed;
+      } else {
+        this._atbChargeMod = 0;
+      }
     } else {
       this._atbChargeMod = 0;
-    }
+    }    
     this.setATBCharge(0);
     this.setActionState('waiting');
     if (BattleManager.isTickBased()) this.onTurnStart();
