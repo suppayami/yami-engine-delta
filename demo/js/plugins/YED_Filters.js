@@ -22,7 +22,11 @@ BWFilter = function() {
 BWFilter.prototype = Object.create( PIXI.AbstractFilter.prototype );
 BWFilter.prototype.constructor = BWFilter;
 
-Spriteset_Map.prototype.initialize = function() {
-    Spriteset_Base.prototype.initialize.call(this);
-    this.filters = [new BWFilter()];
-};
+(function() {
+    var _Spriteset_Map_initialize = Spriteset_Map.prototype.initialize;
+    
+    Spriteset_Map.prototype.initialize = function() {
+        _Spriteset_Map_initialize.call(this);
+        this.filters = [new BWFilter()];
+    };
+}());
