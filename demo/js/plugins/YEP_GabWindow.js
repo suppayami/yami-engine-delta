@@ -11,7 +11,7 @@ Yanfly.Gab = Yanfly.Gab || {};
 
 //=============================================================================
  /*:
- * @plugindesc v1.02a The Gab Window functions as a window for random
+ * @plugindesc v1.05 The Gab Window functions as a window for random
  * jibber jabber that does not require a message window.
  * @author Yanfly Engine Plugins
  *
@@ -162,6 +162,9 @@ Yanfly.Gab = Yanfly.Gab || {};
  * GabSwitch x
  * This will enable switch x when this gab finishes playing.
  *
+ * WaitForGab
+ * Causes the game to wait until all gabs are finished playing.
+ *
  * --- Display Commands ---
  *
  * ShowGab
@@ -186,8 +189,17 @@ Yanfly.Gab = Yanfly.Gab || {};
  * Changelog
  * ============================================================================
  *
- * Version 1.03:
+ * Version 1.05:
+ * - Added 'WaitForGab' plugin command. This plugin command causes the game to
+ * wait until all gabs are finished playing.
+ *
+ * Version 1.04:
+ * - Fixed an issue with ForceGab that didn't make it work properly with text
+ * coded Gabs.
+ *
+ * Version 1.03a:
  * - Fixed a bug with GabSound that didn't load the proper sound filenames.
+ * - Fixed the time count for Gabs to not include text codes.
  *
  * Version 1.02a:
  * - Added functionality for battle gabs to be saved when going into other
@@ -258,6 +270,7 @@ Game_Interpreter.prototype.pluginCommand = function(command, args) {
     if (command === 'ShowGab') this.showGab();
     if (command === 'ForceGab') this.forceGab();
     if (command === 'ClearGab') this.clearGab();
+    if (command === 'WaitForGab') this.waitForGab();
 };
 
 Game_Interpreter.prototype.clearGabInformation = function() {
@@ -398,6 +411,30 @@ Game_Interpreter.prototype.clearGab = function() {
     this.clearGabInformation();
 };
 
+Game_Interpreter.prototype.waitForGab = function() {
+    this.setWaitMode('gab');
+};
+
+Yanfly.Gab.Game_Interpreter_updateWaitMode =
+  Game_Interpreter.prototype.updateWaitMode;
+Game_Interpreter.prototype.updateWaitMode = function() {
+  if (this._waitMode === 'gab') {
+    return this.isGabRunning();
+  } else {
+    return Yanfly.Gab.Game_Interpreter_updateWaitMode.call(this);
+  }
+};
+
+Game_Interpreter.prototype.isGabRunning = function() {
+  var scene = SceneManager._scene;
+  var win = SceneManager._scene._gabWindow;
+  if (win) {
+    return win._gabQueue.length > 0 || win._gabRunning;
+  } else {
+    return false;
+  }
+};
+
 //=============================================================================
 // Window_Gab
 //=============================================================================
@@ -425,6 +462,7 @@ Window_Gab.prototype.initialize = function(battle) {
     this._gabQueue = [];
     this._currentGab = [];
     this._gabSwitchedOn = false;
+    this._gabRunning = false;
     Window_Base.prototype.initialize.call(this, wx, wy, ww, wh);
     this.restoreGabs();
     this.clear();
@@ -465,6 +503,8 @@ Window_Gab.prototype.update = function() {
       this.updateFadeOut();
     } else if (this._gabQueue.length > 0) {
       this.processNewGabData()
+    } else {
+      this._gabRunning = false;
     }
 };
 
@@ -495,10 +535,7 @@ Window_Gab.prototype.addGabData = function(gabData) {
 
 Window_Gab.prototype.forceGabData = function(gabData) {
     if (!gabData) return;
-    if (this.checkCurrentGab(gabData)) return;
-    this._gabQueue = [];
-    this._currentGab = [];
-    this._showCount = 0;
+    this.clearGabData();
     this._gabQueue.push(gabData);
 };
 
@@ -541,6 +578,7 @@ Window_Gab.prototype.checkQueuedGabs = function(gabData) {
 };
 
 Window_Gab.prototype.processNewGabData = function() {
+    this._gabRunning = true;
     var gabData = this._gabQueue.shift();
     this._gabSwitchedOn = false;
     this._currentGab = gabData;
@@ -586,7 +624,8 @@ Window_Gab.prototype.startCountdown = function() {
     this._graphicLoading = false;
     this.contentsOpacity = 255;
     this._showCount = Yanfly.Param.GabBaseTime;
-    this._showCount += this._text.length * Yanfly.Param.GabTimePerChar;
+    var text = this._text.replace(/\\(.*?)\[(.*?)\]/gi, '');
+    this._showCount += text.length * Yanfly.Param.GabTimePerChar;
 };
 
 Window_Gab.prototype.drawGabBackground = function() {

@@ -11,7 +11,7 @@ Yanfly.SwE = Yanfly.SwE || {};
 
 //=============================================================================
  /*:
- * @plugindesc v1.00 This is utility plugin made to help randomize sets of
+ * @plugindesc v1.02 This is utility plugin made to help randomize sets of
  * enemies for battle.
  * @author Yanfly Engine Plugins
  *
@@ -50,6 +50,20 @@ Yanfly.SwE = Yanfly.SwE || {};
  *   above format. Enemies with matching names will be added to the random swap
  *   pool for the swap dummy. If you have multiple enemies in the database with
  *   the same name, priority will be given to the enemy with the highest ID.
+ *
+ * ============================================================================
+ * Changelog
+ * ============================================================================
+ *
+ * Version 1.02:
+ * - Feature update. If a swap enemy swaps into another swap enemy, it will
+ * then draw out a swap target from that enemy for up to 100 loops.
+ *
+ * Version 1.01:
+ * - Updated for RPG Maker MV version 1.1.0.
+ *
+ * Version 1.00:
+ * - Finished Plugin!
  */
 //=============================================================================
 
@@ -59,10 +73,13 @@ Yanfly.SwE = Yanfly.SwE || {};
 
 Yanfly.SwE.DataManager_isDatabaseLoaded = DataManager.isDatabaseLoaded;
 DataManager.isDatabaseLoaded = function() {
-    if (!Yanfly.SwE.DataManager_isDatabaseLoaded.call(this)) return false;
+  if (!Yanfly.SwE.DataManager_isDatabaseLoaded.call(this)) return false;
+  if (!Yanfly._loaded_YEP_SwapEnemies) {
     this.processSwENotetagsE($dataEnemies);
     this.processSwENotetags1($dataEnemies);
-    return true;
+    Yanfly._loaded_YEP_SwapEnemies = true;
+  }
+  return true;
 };
 
 DataManager.processSwENotetagsE = function(group) {
@@ -104,6 +121,10 @@ DataManager.processSwENotetags1 = function(group) {
         if (id) obj.swapEnemies.push(id);
       }
     }
+    if (obj.swapEnemies.length > 0) {
+      obj.battlerName = '';
+      obj.battlerHue = 0;
+    }
   }
 };
 
@@ -113,12 +134,19 @@ DataManager.processSwENotetags1 = function(group) {
 
 Yanfly.SwE.Game_Enemy_initialize = Game_Enemy.prototype.initialize;
 Game_Enemy.prototype.initialize = function(enemyId, x, y) {
-    if ($dataEnemies[enemyId].swapEnemies.length > 0) {
-      var pool = $dataEnemies[enemyId].swapEnemies;
-      var index = Math.floor(Math.random() * pool.length);
-      enemyId = pool[index];
+  var loops = 100;
+  var originalEnemyId = enemyId;
+  while ($dataEnemies[enemyId].swapEnemies.length > 0) {
+    var pool = $dataEnemies[enemyId].swapEnemies;
+    var index = Math.floor(Math.random() * pool.length);
+    enemyId = pool[index];
+    loops--;
+    if (loops <= 0) {
+      console.log('Enemy ID ' + originalEnemyId + ' has a faulty swap pool.');
+      break;
     }
-    Yanfly.SwE.Game_Enemy_initialize.call(this, enemyId, x, y);
+  }
+  Yanfly.SwE.Game_Enemy_initialize.call(this, enemyId, x, y);
 };
 
 //=============================================================================

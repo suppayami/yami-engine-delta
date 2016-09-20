@@ -11,7 +11,7 @@ Yanfly.Party = Yanfly.Party || {};
 
 //=============================================================================
  /*:
- * @plugindesc v1.06 Replaces the default 'Formation' command with a new
+ * @plugindesc v1.09 Replaces the default 'Formation' command with a new
  * menu for players to easily change party formations.
  * @author Yanfly Engine Plugins
  *
@@ -41,6 +41,11 @@ Yanfly.Party = Yanfly.Party || {};
  * @desc Maximum number of followers on the map.
  * Default: 4
  * @default 4
+ *
+ * @param EXP Distribution
+ * @desc Divide battle EXP gained across live members?
+ * NO - false     YES - true
+ * @default false
  *
  * @param ---Menu---
  * @default
@@ -210,6 +215,20 @@ Yanfly.Party = Yanfly.Party || {};
  * Changelog
  * ============================================================================
  *
+ * Version 1.09:
+ * - Fixed a bug that caused party members to not index themselves properly in
+ * battle. When in battle, actor index will now refer to the index of their
+ * battle member positions.
+ *
+ * Version 1.08:
+ * - Added 'EXP Distribution' parameter into the plugin parameters. Enabling
+ * this will cause the EXP distributed to party members to be divided based on
+ * the number of alive members at the end of battle.
+ *
+ * Version 1.07:
+ * - Fixed a bug that caused music to not replay properly when accessing the
+ * Party change menu from battle.
+ *
  * Version 1.06:
  * - Fixed a bug with certain actors not drawing properly.
  * 
@@ -255,6 +274,8 @@ Yanfly.Param.PartyShowBattle = String(Yanfly.Parameters['Show Battle Command']);
 Yanfly.Param.PartyEnBattle = String(Yanfly.Parameters['Enable Battle Command']);
 Yanfly.Param.PartyCooldown = Number(Yanfly.Parameters['Battle Cooldown']);
 Yanfly.Param.PartyMaxFollower = Number(Yanfly.Parameters['Maximum Followers']);
+Yanfly.Param.ParamExpDis = eval(String(Yanfly.Parameters['EXP Distribution']));
+
 Yanfly.Param.PartyHelpWindow = String(Yanfly.Parameters['Help Window']);
 Yanfly.Param.PartyLockFirst = String(Yanfly.Parameters['Lock First Actor']);
 Yanfly.Param.PartyTextAlign = String(Yanfly.Parameters['Text Alignment']);
@@ -274,6 +295,21 @@ Yanfly.Param.PartyDetailWin = String(Yanfly.Parameters['Enable Detail Window']);
 Yanfly.Param.PartyListWidth = Number(Yanfly.Parameters['List Width']);
 Yanfly.Param.PartyDetailParam = String(Yanfly.Parameters['Actor Parameters']);
 Yanfly.Param.PartyDetailEquip = String(Yanfly.Parameters['Actor Equipment']);
+
+//=============================================================================
+// BattleManager
+//=============================================================================
+
+if (Yanfly.Param.ParamExpDis) {
+
+Yanfly.Party.BattleManager_gainExp = BattleManager.gainExp;
+BattleManager.gainExp = function() {
+  var alive = $gameParty.aliveMembers().length;
+  this._rewards.exp = Math.ceil(this._rewards.exp / alive);
+  Yanfly.Party.BattleManager_gainExp.call(this);
+};
+
+}; // Yanfly.Param.ParamExpDis
 
 //=============================================================================
 // Game_System
@@ -349,6 +385,16 @@ Yanfly.Party.Game_Actor_isFormationChangeOk =
 Game_Actor.prototype.isFormationChangeOk = function() {
     if (this._locked) return false;
     return Yanfly.Party.Game_Actor_isFormationChangeOk.call(this);
+};
+
+Yanfly.Party.Game_Actor_index = Game_Actor.prototype.index;
+Game_Actor.prototype.index = function() {
+    if ($gameParty.inBattle()) {
+      return $gameParty.battleMembers().indexOf(this);
+    } else {
+      return Yanfly.Party.Game_Actor_index.call(this);
+    }
+    return $gameParty.members().indexOf(this);
 };
 
 //=============================================================================
@@ -1299,7 +1345,7 @@ BattleManager.playBattleBgm = function() {
     }
     if (Yanfly.Party.SavedBattleBgs) {
       AudioManager.playBgs(Yanfly.Party.SavedBattleBgs);
-      Yanfly.Party.SavedBattleBgm = undefined;
+      Yanfly.Party.SavedBattleBgs = undefined;
       restartBgm = false;
     }
     if (restartBgm) Yanfly.Party.BattleManager_playBattleBgm.call(this);

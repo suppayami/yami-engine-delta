@@ -11,7 +11,7 @@ Yanfly.ATB = Yanfly.ATB || {};
 
 //=============================================================================
  /*:
- * @plugindesc v1.17 (Requires YEP_BattleEngineCore.js) Add ATB (Active
+ * @plugindesc v1.24 (Requires YEP_BattleEngineCore.js) Add ATB (Active
  * Turn Battle) into your game using this plugin!
  * @author Yanfly Engine Plugins
  *
@@ -433,7 +433,34 @@ Yanfly.ATB = Yanfly.ATB || {};
  * ============================================================================
  * Changelog
  * ============================================================================
- * 
+ *
+ * Version 1.24:
+ * - During action end, a single tick will be forced to occur to prevent clash
+ * amongst actors with similar AGI values and make tick values more unique.
+ *
+ * Version 1.23:
+ * - Timing has been changed for states that update turns at Turn Start. Now,
+ * the states will update prior to the actor's command box opening or the enemy
+ * make a decision on which action it will use.
+ *
+ * Version 1.22:
+ * - Updated for RPG Maker MV version 1.1.0.
+ *
+ * Version 1.21:
+ * - Counterattacks no longer cause interrupts if attack actions have interrupt
+ * functionality.
+ *
+ * Version 1.20:
+ * - Updated plugin to update the AI more accordingly with Battle AI Core.
+ *
+ * Version 1.19:
+ * - Fixed a bug where forced actions clear out an action's effects before the
+ * turn is over, making post-turn effects to not occur.
+ *
+ * Version 1.18:
+ * - Fixed a bug where changing back and forth between the Fight/Escape window
+ * would prompt on turn start effects.
+ *
  * Version 1.17:
  * - Made a mechanic change so that turn 0 ends immediately upon battle start
  * rather than requiring a full turn to end.
@@ -560,16 +587,19 @@ Yanfly.Param.ATBColorChar2 = Number(Yanfly.Parameters['Charge Gauge Color 2']);
 
 Yanfly.ATB.DataManager_isDatabaseLoaded = DataManager.isDatabaseLoaded;
 DataManager.isDatabaseLoaded = function() {
-    if (!Yanfly.ATB.DataManager_isDatabaseLoaded.call(this)) return false;
-    DataManager.processATBNotetags1($dataSkills);
-    DataManager.processATBNotetags1($dataItems);
-    DataManager.processATBNotetags2($dataActors);
-    DataManager.processATBNotetags2($dataClasses);
-    DataManager.processATBNotetags2($dataEnemies);
-    DataManager.processATBNotetags2($dataWeapons);
-    DataManager.processATBNotetags2($dataArmors);
-    DataManager.processATBNotetags2($dataStates);
-    return true;
+  if (!Yanfly.ATB.DataManager_isDatabaseLoaded.call(this)) return false;
+  if (!Yanfly._loaded_YEP_X_BattleSysATB) {
+    this.processATBNotetags1($dataSkills);
+    this.processATBNotetags1($dataItems);
+    this.processATBNotetags2($dataActors);
+    this.processATBNotetags2($dataClasses);
+    this.processATBNotetags2($dataEnemies);
+    this.processATBNotetags2($dataWeapons);
+    this.processATBNotetags2($dataArmors);
+    this.processATBNotetags2($dataStates);
+    Yanfly._loaded_YEP_X_BattleSysATB = true;
+  }
+  return true;
 };
 
 DataManager.processATBNotetags1 = function(group) {
@@ -790,6 +820,7 @@ BattleManager.startBattle = function() {
     Yanfly.ATB.BattleManager_startBattle.call(this);
     if (this.isATB()) {
       this._phase = null;
+      this._counterAttacking = false;
       this.startATB();
     }
 };
@@ -1015,15 +1046,17 @@ BattleManager.isBattlerATBReady = function(battler) {
     if (battler.atbRate() < 1) return false;
     if (battler.isATBCharging()) return false;
     if (battler.currentAction() && battler.currentAction().item()) {
+      battler.makeActions();
       battler.setupATBCharge();
       return false;
     }
     return true;
 };
 
-BattleManager.updateBattlerATB = function() {
+BattleManager.updateBattlerATB = function(ignore) {
     $gameParty.updateTick();
     $gameTroop.updateTick();
+    if (ignore) return;
     if (this._statusWindow) this.statusUpdateATB();
 };
 
@@ -1075,10 +1108,12 @@ BattleManager.selectPreviousCommand = function() {
     if (this.isATB()) {
       var actorIndex = this._actorIndex;
       var scene = SceneManager._scene;
+      this._bypassAtbEndTurn = true;
       scene.startPartyCommandSelection();
       this._actorIndex = actorIndex;
       BattleManager.actor().setActionState('undecided');
       BattleManager.actor().requestMotionRefresh();
+      this._bypassAtbEndTurn = undefined;
     } else {
       Yanfly.ATB.BattleManager_selectPreviousCommand.call(this);
     }
@@ -1101,6 +1136,7 @@ BattleManager.updateTurnEnd = function() {
 
 BattleManager.startATBInput = function(battler) {
     if (battler.isDead()) return;
+    battler.onTurnStart();
     battler.makeActions();
     if (battler.isEnemy()) {
       battler.setupATBCharge();
@@ -1136,6 +1172,18 @@ BattleManager.startATBAction = function(battler) {
     }
 };
 
+Yanfly.ATB.BattleManager_processForcedAction =
+    BattleManager.processForcedAction;
+BattleManager.processForcedAction = function() {
+    var forced = false;
+    if (this._actionForcedBattler && this.isATB()) {
+      var action = this._actionForcedBattler.currentAction();
+      forced = true;
+    }
+    Yanfly.ATB.BattleManager_processForcedAction.call(this);
+    if (forced) this._subject.setAction(0, action);
+};
+
 Yanfly.ATB.BattleManager_endAction = BattleManager.endAction;
 BattleManager.endAction = function() {
     if (this.isATB()) {
@@ -1154,12 +1202,25 @@ BattleManager.endATBAction = function() {
     if (this.updateEventMain()) return;
     this._subject.endTurnAllATB();
     if (this.loadPreForceActionSettings()) return;
+    this.updateBattlerATB(true);
     var chargedBattler = this.getChargedATBBattler();
     if (chargedBattler) {
       this.startATBAction(chargedBattler);
     } else {
       this.setATBPhase();
     }
+};
+
+Yanfly.ATB.BattleManager_invokeCounterAttack =
+    BattleManager.invokeCounterAttack;
+BattleManager.invokeCounterAttack = function(subject, target) {
+    if (this.isATB()) this._counterAttacking = true;
+    Yanfly.ATB.BattleManager_invokeCounterAttack.call(this, subject, target);
+    if (this.isATB()) this._counterAttacking = false;
+};
+
+BattleManager.isCounterAttacking = function() {
+    return this._counterAttacking;
 };
 
 BattleManager.statusUpdateATB = function() {
@@ -1364,6 +1425,7 @@ Game_Action.prototype.applyItemATBEffect = function(target) {
   this.applyItemATBSetEffects(target);
   this.applyItemATBAddEffects(target);
   this.applyItemATBEvalEffect(target);
+  if (BattleManager.isCounterAttacking()) return;
   this.applyItemATBInterrupt(target);
   this.applyItemATBInterruptEval(target);
 };
@@ -1582,6 +1644,7 @@ Game_Battler.prototype.setATBCharge = function(value) {
 };
 
 Game_Battler.prototype.setupATBCharge = function() {
+    if (this._bypassAtbEndTurn) return;
     this.setATBCharging(true);
     if (!this.currentAction()) this.makeActions();
     if (this.currentAction()) {
@@ -1596,7 +1659,6 @@ Game_Battler.prototype.setupATBCharge = function() {
     }    
     this.setATBCharge(0);
     this.setActionState('waiting');
-    if (BattleManager.isTickBased()) this.onTurnStart();
 };
 
 Yanfly.ATB.Game_Battler_updateTick = Game_Battler.prototype.updateTick;
@@ -2214,10 +2276,12 @@ Yanfly.ATB.Scene_Battle_startActorCommandSelection =
 Scene_Battle.prototype.startActorCommandSelection = function() {
     Yanfly.ATB.Scene_Battle_startActorCommandSelection.call(this);
     if (BattleManager.isATB()) {
+      BattleManager._bypassAtbEndTurn = true;
       BattleManager.actor().spriteStepForward();
       BattleManager.actor().setActionState('undecided');
       BattleManager.actor().requestMotionRefresh();
       BattleManager.actor().makeActions();
+      BattleManager._bypassAtbEndTurn = undefined;
     }
 };
 

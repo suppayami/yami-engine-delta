@@ -11,7 +11,7 @@ Yanfly.SCI = Yanfly.SCI || {};
 
 //=============================================================================
  /*:
- * @plugindesc v1.01 (Requires YEP_SkillCore.js) Skills can now have an
+ * @plugindesc v1.02 (Requires YEP_SkillCore.js) Skills can now have an
  * item cost attached to them.
  * @author Yanfly Engine Plugins
  *
@@ -213,6 +213,9 @@ Yanfly.SCI = Yanfly.SCI || {};
  * ============================================================================
  * Changelog
  * ============================================================================
+ *
+ * Version 1.02:
+ * - Updated for RPG Maker MV version 1.1.0.
  * 
  * Version 1.01:
  * - Fixed a bug that would display the wrong cost amount for multiple items.
@@ -248,7 +251,8 @@ Yanfly.Param.SCIDisplayColor = Number(Yanfly.Parameters['Text Color']);
 
 Yanfly.SCI.DataManager_isDatabaseLoaded = DataManager.isDatabaseLoaded;
 DataManager.isDatabaseLoaded = function() {
-    if (!Yanfly.SCI.DataManager_isDatabaseLoaded.call(this)) return false;
+  if (!Yanfly.SCI.DataManager_isDatabaseLoaded.call(this)) return false;
+  if (!Yanfly._loaded_YEP_X_SkillCostItems) {
     this.processSCINotetagsI($dataItems);
     this.processSCINotetagsW($dataWeapons);
     this.processSCINotetagsA($dataArmors);
@@ -262,7 +266,9 @@ DataManager.isDatabaseLoaded = function() {
     this.processSCINotetags3($dataItems);
     this.processSCINotetags3($dataWeapons);
     this.processSCINotetags3($dataArmors);
-    return true;
+    Yanfly._loaded_YEP_X_SkillCostItems = true;
+  }
+  return true;
 };
 
 DataManager.processSCINotetagsI = function(group) {

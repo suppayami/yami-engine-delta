@@ -11,7 +11,7 @@ Yanfly.Subclass = Yanfly.Subclass || {};
 
 //=============================================================================
  /*:
- * @plugindesc v1.05 (Requires YEP_ClassChangeCore.js) Allow your actors
+ * @plugindesc v1.10 (Requires YEP_ClassChangeCore.js) Allow your actors
  * to subclass into a secondary class!
  * @author Yanfly Engine Plugins
  *
@@ -75,6 +75,14 @@ Yanfly.Subclass = Yanfly.Subclass || {};
  * @param LUK
  * @desc What rate of the Subclass LUK should be added?
  * @default 0.20
+ *
+ * @param EXP
+ * @desc When gaining EXP, how much should subclasses earn?
+ * @default 0.25
+ *
+ * @param JP
+ * @desc When gaining JP, how much should subclasses earn?
+ * @default 0.25
  *
  * @param ---Traits---
  * @default
@@ -168,6 +176,10 @@ Yanfly.Subclass = Yanfly.Subclass || {};
  *   <Subclass: x>
  *   Sets the actor's default subclass to x.
  *
+ *   <Cannot Change Subclass>
+ *   This prevents this actor from being able to change subclasses. This could
+ *   be reversed from plugin commands, however.
+ *
  *   <Restrict Class: x>
  *   <Restrict Class: x, x, x>
  *   <Restrict Class: x to y>
@@ -225,23 +237,42 @@ Yanfly.Subclass = Yanfly.Subclass || {};
  * Plugin Command:
  * 
  *   ShowSubclass
- *   Shows the Subclass command in the Class Change Menu.
- *
  *   HideSubclass
- *   Hides the Subclass command in the Class Change Menu.
+ *   - Shows/Hides the Subclass command in the Class Change Menu.
  *
  *   EnableSubclass
- *   Enables the Subclass command in the Class Change Menu.
- *
  *   DisableSubclass
- *   Disables the Subclass command in the Class Change Menu.
+ *   - Enables/Disables the Subclass command in the Class Change Menu.
  *
  *   ChangeSubclass x y
- *   Changes actor x's subclass to y. Replace y with 0 to remove a subclass.
+ *   - Changes actor x's subclass to y. Replace y with 0 to remove a subclass.
+ *
+ *   EnableSubclassChange 5
+ *   DisableSubclassChange 5
+ *   - This enables/disables subclass changing for actor 5.
  *
  * ============================================================================
  * Changelog
  * ============================================================================
+ *
+ * Version 1.10:
+ * - Compatibility update with Class Change Core's <Use Nickname> notetag.
+ *
+ * Version 1.09:
+ * - Added <Cannot Change Subclass> notetag for actors. Added plugin commands:
+ * EnableSubclassChange and DisableSubclassChange for actors.
+ *
+ * Version 1.08:
+ * - Compatibility update with other plugins.
+ *
+ * Version 1.07:
+ * - Updated for RPG Maker MV version 1.1.0.
+ *
+ * Version 1.06:
+ * - Added 'EXP' plugin parameter. This determines the rate the equipped
+ * subclass will earn EXP.
+ * - Added 'JP' plugin parameter. This determines the rate the equipped
+ * subclass will earn JP.
  *
  * Version 1.05:
  * - Fixed a bug where changing a dead actor's subclass would revive them.
@@ -289,6 +320,8 @@ Yanfly.Subclass.Param[4] = Number(Yanfly.Parameters['MAT']);
 Yanfly.Subclass.Param[5] = Number(Yanfly.Parameters['MDF']);
 Yanfly.Subclass.Param[6] = Number(Yanfly.Parameters['AGI']);
 Yanfly.Subclass.Param[7] = Number(Yanfly.Parameters['LUK']);
+Yanfly.Param.SubclassExp = Number(Yanfly.Parameters['EXP']);
+Yanfly.Param.SubclassJp = Number(Yanfly.Parameters['JP']);
 
 Yanfly.Param.SubclassSType = eval(String(Yanfly.Parameters['Skill Types']));
 Yanfly.Param.SubParamRates = eval(String(Yanfly.Parameters['Param Rates']));
@@ -310,12 +343,15 @@ Yanfly.Param.SubclassArmors = eval(String(Yanfly.Parameters['Armors']));
 
 Yanfly.Subclass.DataManager_isDatabaseLoaded = DataManager.isDatabaseLoaded;
 DataManager.isDatabaseLoaded = function() {
-    if (!Yanfly.Subclass.DataManager_isDatabaseLoaded.call(this)) return false;
+  if (!Yanfly.Subclass.DataManager_isDatabaseLoaded.call(this)) return false;
+  if (!Yanfly._loaded_YEP_X_Subclass) {
     DataManager.processSubclassNotetags1($dataActors);
     DataManager.processSubclassNotetags2($dataClasses);
     DataManager.processSubclassNotetags3($dataSkills);
     DataManager.processSubclassNotetags3($dataItems);
-    return true;
+    Yanfly._loaded_YEP_X_Subclass = true;
+  }
+  return true;
 };
 
 DataManager.processSubclassNotetags1 = function(group) {
@@ -323,6 +359,7 @@ DataManager.processSubclassNotetags1 = function(group) {
   var note1b = /<(?:RESTRICT CLASS):[ ](\d+)[ ](?:THROUGH|to)[ ](\d+)>/i;
   var note2a = /<(?:RESTRICT SUBCLASS):[ ]*(\d+(?:\s*,\s*\d+)*)>/i;
   var note2b = /<(?:RESTRICT SUBCLASS):[ ](\d+)[ ](?:THROUGH|to)[ ](\d+)>/i;
+  var note3 = /<(?:CANNOT CHANGE SUBCLASS|CANT CHANGE SUBCLASS)>/i;
   for (var n = 1; n < group.length; n++) {
     var obj = group[n];
     var notedata = obj.note.split(/[\r\n]+/);
@@ -330,6 +367,7 @@ DataManager.processSubclassNotetags1 = function(group) {
     obj.subclassId = 0;
     obj.restrictClassChange = [];
     obj.restrictSubclassChange = [];
+    obj.canChangeSubclass = true;
 
     for (var i = 0; i < notedata.length; i++) {
       var line = notedata[i];
@@ -349,6 +387,8 @@ DataManager.processSubclassNotetags1 = function(group) {
         var range = Yanfly.Util.getRange(parseInt(RegExp.$1),
           parseInt(RegExp.$2));
         obj.restrictSubclassChange = obj.restrictSubclassChange.concat(range);
+      } else if (line.match(note3)) {
+        obj.canChangeSubclass = false;
       }
     }
   }
@@ -656,12 +696,24 @@ Game_Actor.prototype.subclass = function() {
 };
 
 Game_Actor.prototype.className = function() {
-    if (!this.subclass()) return this.currentClass().name;
+    if (!this.subclass()) {
+      if (this.currentClass().useNickname) {
+        return this.nickname();
+      } else {
+        return this.currentClass().name;
+      }
+    }
     if (this.currentClass().subclassComboName[this._subclassId]) {
       var text = this.currentClass().subclassComboName[this._subclassId];
     } else {
       var name1 = this.currentClass().name;
+      if (this.currentClass().useNickname) {
+        name1 = this.nickname();
+      }
       var name2 = this.subclass().name;
+      if (this.subclass().useNickname) {
+        name2 = this.nickname();
+      }
       var fmt = Yanfly.Param.SubclassFmt;
       var text = fmt.format(name1, name2);
     }
@@ -699,6 +751,12 @@ Game_Actor.prototype.subclassParamBase = function(paramId) {
     if (!this.subclass()) return 0;
     var rate = Yanfly.Subclass.Param[paramId];
     if (!rate) return 0;
+    if (this.subclass().baseParamFormula) {
+      var formula = this.subclass().baseParamFormula[paramId];
+      if (formula !== '') {
+        return this.classBaseParamFormula(formula, paramId) * rate;
+      }
+    }
     var level = this.classLevel(this._subclassId);
     if (level > 99) {
       var i = this.subclass().params[paramId][99];
@@ -719,6 +777,30 @@ Game_Actor.prototype.restrictSubclassChange = function(classId) {
     return this.actor().restrictSubclassChange.contains(classId);
 };
 
+Yanfly.Subclass.Game_Actor_gainExp = Game_Actor.prototype.gainExp;
+Game_Actor.prototype.gainExp = function(exp) {
+    this.gainExpSubclass(exp);
+    Yanfly.Subclass.Game_Actor_gainExp.call(this, exp);
+};
+
+Game_Actor.prototype.gainExpSubclass = function(exp) {
+    if (!this.subclass()) return;
+    exp *= Yanfly.Param.SubclassExp;
+    var curExp = this._exp[this._subclassId] || 0;
+    var newExp = curExp + Math.round(exp * this.finalExpRate());
+    this._exp[this._subclassId] = Math.max(newExp, 0);
+};
+
+Game_Actor.prototype.canChangeSubclass = function() {
+    if (this._canChangeSubclass) return this._canChangeSubclass;
+    this._canChangeSubclass = this.actor().canChangeSubclass;
+    return this._canChangeSubclass;
+};
+
+Game_Actor.prototype.setCanChangeSubclass = function(value) {
+    this._canChangeSubclass = value;
+};
+
 //=============================================================================
 // Game_Interpreter
 //=============================================================================
@@ -727,11 +809,21 @@ Yanfly.Subclass.Game_Interpreter_pluginCommand =
     Game_Interpreter.prototype.pluginCommand;
 Game_Interpreter.prototype.pluginCommand = function(command, args) {
     Yanfly.Subclass.Game_Interpreter_pluginCommand.call(this, command, args)
-    if (command === 'ShowSubclass') $gameSystem._showSubclass = true;
-    if (command === 'HideSubclass') $gameSystem._showSubclass = false;
-    if (command === 'EnableSubclass') $gameSystem._enableSubclass = true;
-    if (command === 'DisableSubclass') $gameSystem._enableSubclass = false;
-    if (command === 'ChangeSubclass') this.changeSubclass(args);
+    if (command === 'ShowSubclass') {
+      $gameSystem._showSubclass = true;
+    } else if (command === 'HideSubclass') {
+      $gameSystem._showSubclass = false;
+    } else if (command === 'EnableSubclass') {
+      $gameSystem._enableSubclass = true;
+    } else if (command === 'DisableSubclass') {
+      $gameSystem._enableSubclass = false;
+    } else if (command === 'ChangeSubclass') {
+      this.changeSubclass(args);
+    } else if (command === 'EnableSubclassChange') {
+      this.setSubclassChange(args, true);
+    } else if (command === 'DisableSubclassChange') {
+      this.setSubclassChange(args, false);
+    }
 };
 
 Game_Interpreter.prototype.changeSubclass = function(args) {
@@ -740,6 +832,24 @@ Game_Interpreter.prototype.changeSubclass = function(args) {
     var subclassId = parseInt(args[1]);
     var actor = $gameActors.actor(actorId);
     if (actor) actor.setSubclass(subclassId);
+};
+
+Yanfly.Subclass.Game_Interpreter_command315 = 
+    Game_Interpreter.prototype.command315;
+Game_Interpreter.prototype.command315 = function() {
+    var value = this.operateValue(this._params[2], this._params[3],
+      this._params[4]);
+    this.iterateActorEx(this._params[0], this._params[1], function(actor) {
+      actor.gainExpSubclass(value);
+    }.bind(this));
+    return Yanfly.Subclass.Game_Interpreter_command315.call(this);
+};
+
+Game_Interpreter.prototype.setSubclassChange = function(args, enable) {
+    var actorId = parseInt(args[0]);
+    var actor = $gameActors.actor(actorId);
+    if (!actor) return;
+    actor.setCanChangeSubclass(enable);
 };
 
 //=============================================================================
@@ -765,8 +875,14 @@ Window_ClassCommand.prototype.addClassCommand = function() {
 
 Window_ClassCommand.prototype.addSubclassCommand = function() {
     if (!$gameSystem.isShowSubclass()) return;
-    var enabled = $gameSystem.isEnableSubclass();
+    var enabled = this.isSubclassEnabled();
     this.addCommand(Yanfly.Param.SubclassCmd, 'subclass', enabled);
+};
+
+Window_ClassCommand.prototype.isSubclassEnabled = function() {
+    var actor = SceneManager._scene.actor();
+    if (actor && !actor.canChangeSubclass()) return false;
+    return $gameSystem.isEnableSubclass();
 };
 
 //=============================================================================

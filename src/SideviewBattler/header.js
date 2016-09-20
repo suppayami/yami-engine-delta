@@ -1,7 +1,7 @@
 /*:
  * Yami Engine Delta - Sideview Battler Enhancement
  *
- * @plugindesc v1.0.0 This plugin allows user to use any kind of sideview battler.
+ * @plugindesc v1.1.0 This plugin allows user to use any kind of sideview battler.
  * @author Yami Engine Delta [Dr.Yami]
  *
  * @param [Default Setting]
@@ -91,5 +91,15 @@
  *
  * The plugin should be placed under YEP - Battle Engine Core and YEP -
  * Animated Sideview Enemies if used.
+ * ============================================================================
+ * Action Sequences - Action List (For YEP - Battle Engine Core)
+ *
+ * CUSTOM MOTION type: target, (no weapon)
+ *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ * Forces the target to perform a custom motion defined by this plugin. Anything
+ * besides above listed default motions should be called with this action instead.
+ *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ * Usage Example: attack animation: target
+ *
  * ============================================================================
  */

@@ -11,7 +11,7 @@ Yanfly.ARS = Yanfly.ARS || {};
 
 //=============================================================================
  /*:
- * @plugindesc v1.00 (Requires YEP_DamageCore.js) Scale defensive
+ * @plugindesc v1.02 (Requires YEP_DamageCore.js) Scale defensive
  * stats relative to a universal scale.
  * @author Yanfly Engine Plugins
  * 
@@ -93,8 +93,12 @@ Yanfly.ARS = Yanfly.ARS || {};
  *     Rate = -------------                Rate = 2 - -------------
  *             100 + armor                             100 - armor
  *
- * To get an idea of how armor scaling will affect damage, here's a table on
- * how 1,000 base damage is affected.
+ * To get an idea of how armor scaling will affect damage, you can visit
+ * FlyingDream's Armor Scaling Calculator here:
+ *
+ *     http://yanfly.moe/tools/armorscalingcalculator/
+ *
+ * For quick reference, here's a table on how 1,000 base damage is affected.
  *
  * Armor Level   Rate%    Damage           Armor Level   Rate%    Damage
  *           1   99.01%   990                       -1   100.99%  1,010
@@ -333,6 +337,21 @@ Yanfly.ARS = Yanfly.ARS || {};
  *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
  * Usage Example: reset armor reduction
  *=============================================================================
+ *
+ * ============================================================================
+ * Changelog
+ * ============================================================================
+ *
+ * Version 1.02:
+ * - Updated for RPG Maker MV version 1.1.0.
+ *
+ * Version 1.01:
+ * - Fixed the notetag <Armor Reduction: x%> from not working with the intended
+ * effect.
+ * - Negative armor damage calculations are reworked to function as intended.
+ *
+ * Version 1.00:
+ * - Finished Plugin!
  */
 //=============================================================================
 
@@ -361,16 +380,19 @@ Yanfly.Param.ARSBCerArmor = String(Yanfly.Parameters['Certain Base Armor']);
 
 Yanfly.ARS.DataManager_isDatabaseLoaded = DataManager.isDatabaseLoaded;
 DataManager.isDatabaseLoaded = function() {
-    if (!Yanfly.ARS.DataManager_isDatabaseLoaded.call(this)) return false;
-		this.processARSNotetags1($dataSkills);
-	  this.processARSNotetags1($dataItems);
-		this.processARSNotetags2($dataActors);
-		this.processARSNotetags2($dataClasses);
-		this.processARSNotetags2($dataEnemies);
-		this.processARSNotetags2($dataWeapons);
-		this.processARSNotetags2($dataArmors);
-		this.processARSNotetags2($dataStates);
-		return true;
+  if (!Yanfly.ARS.DataManager_isDatabaseLoaded.call(this)) return false;
+  if (!Yanfly._loaded_YEP_X_ArmorScaling) {
+  	this.processARSNotetags1($dataSkills);
+    this.processARSNotetags1($dataItems);
+  	this.processARSNotetags2($dataActors);
+  	this.processARSNotetags2($dataClasses);
+  	this.processARSNotetags2($dataEnemies);
+  	this.processARSNotetags2($dataWeapons);
+  	this.processARSNotetags2($dataArmors);
+  	this.processARSNotetags2($dataStates);
+    Yanfly._loaded_YEP_X_ArmorScaling = true;
+  }
+	return true;
 };
 
 DataManager.processARSNotetags1 = function(group) {
@@ -381,11 +403,11 @@ DataManager.processARSNotetags1 = function(group) {
     var armorScaleMode = 0;
 		if (obj.hitType === 1) {
 			obj.positiveArmorScale = Yanfly.Param.ARSPPhysRate;
-			obj.negativeDmgScale = Yanfly.Param.ARSNPhysRate;
+			obj.negativeArmorScale = Yanfly.Param.ARSNPhysRate;
 			obj.baseArmorScale = Yanfly.Param.ARSBPhysArmor;
 		} else if (obj.hitType === 2) {
 			obj.positiveArmorScale = Yanfly.Param.ARSPMagRate;
-			obj.negativeDmgScale = Yanfly.Param.ARSNMagRate;
+			obj.negativeArmorScale = Yanfly.Param.ARSNMagRate;
 			obj.baseArmorScale = Yanfly.Param.ARSBMagArmor;
 		} else {
 			obj.positiveArmorScale = Yanfly.Param.ARSPCerRate;
@@ -1036,6 +1058,7 @@ Game_Action.prototype.applyCertainArmorScale = function(armor, target) {
 		armor -= this.item().armorReductionFlat;
 		armor -= target.certainArmorReductionFlat();
 		if (armor > 0) {
+      armor *= 1 - this.item().armorReductionRate;
       armor *= target.certainArmorReductionRate();
       armor *= 1 - this.item().armorPenetrationRate;
 			armor *= this.subject().certainArmorPenetrationRate();
@@ -1049,6 +1072,7 @@ Game_Action.prototype.applyPhysicalArmorScale = function(armor, target) {
 		armor -= this.item().armorReductionFlat;
 		armor -= target.physicalArmorReductionFlat();
 		if (armor > 0) {
+      armor *= 1 - this.item().armorReductionRate;
       armor *= target.physicalArmorReductionRate();
       armor *= 1 - this.item().armorPenetrationRate;
 			armor *= this.subject().physicalArmorPenetrationRate();
@@ -1062,6 +1086,7 @@ Game_Action.prototype.applyMagicalArmorScale = function(armor, target) {
 		armor -= this.item().armorReductionFlat;
 		armor -= target.magicalArmorReductionFlat();
 		if (armor > 0) {
+      armor *= 1 - this.item().armorReductionRate;
 			armor *= target.magicalArmorReductionRate();
       armor *= 1 - this.item().armorPenetrationRate;
 			armor *= this.subject().magicalArmorPenetrationRate();

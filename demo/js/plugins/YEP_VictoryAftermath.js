@@ -11,7 +11,7 @@ Yanfly.VA = Yanfly.VA || {};
 
 //=============================================================================
  /*:
- * @plugindesc v1.05a Display an informative window after a battle is over
+ * @plugindesc v1.05b Display an informative window after a battle is over
  * instead of message box text stating what the party earned.
  * @author Yanfly Engine Plugins
  *
@@ -179,6 +179,8 @@ Yanfly.VA = Yanfly.VA || {};
  * results page.
  * - Fixed a graphical issue where an actor in crisis would display its level
  * in the crisis color.
+ * - Changed the Victory Aftermath sequence so that the player can hold down a
+ * button to quickly go through all the Victory Sequence menus.
  *
  * Version 1.04:
  * - Updated the plugin so it doesn't break visually when party sizes are too
@@ -308,7 +310,7 @@ BattleManager.startVictoryPhase = function() {
 };
 
 BattleManager.prepareVictoryInfo = function() {
-    $gameParty.battleMembers().forEach(function(actor) {
+    $gameParty.allMembers().forEach(function(actor) {
         ImageManager.loadFace(actor.faceName());
         actor._preVictoryExp = actor.currentExp();
         actor._preVictoryLv = actor._level;
@@ -316,7 +318,7 @@ BattleManager.prepareVictoryInfo = function() {
         actor._victorySkills = [];
     }, this);
     this.gainRewards();
-    $gameParty.battleMembers().forEach(function(actor) {
+    $gameParty.allMembers().forEach(function(actor) {
         actor._expGained = actor.currentExp() - actor._preVictoryExp;
         actor._postVictoryLv = actor._level;
     }, this);
@@ -930,8 +932,8 @@ Scene_Battle.prototype.finishVictoryDrop = function() {
 };
 
 Scene_Battle.prototype.victoryTriggerContinue = function() {
-    if (Input.isTriggered('ok') || TouchInput.isTriggered()) return true;
-    if (Input.isTriggered('cancel')) return true;
+    if (Input.isRepeated('ok') || TouchInput.isRepeated()) return true;
+    if (Input.isRepeated('cancel')) return true;
     return false;
 };
 

@@ -11,7 +11,7 @@ Yanfly.DMG = Yanfly.DMG || {};
 
 //=============================================================================
  /*:
- * @plugindesc v1.01 Expand the control you have over the game's damage
+ * @plugindesc v1.04 Expand the control you have over the game's damage
  * calculation with more features and effects.
  * @author Yanfly Engine Plugins
  *
@@ -37,39 +37,39 @@ Yanfly.DMG = Yanfly.DMG || {};
  * @param Damage Step 1
  * @desc This is the step after the base value has been calculated.
  * Previous line: baseDamage = this.evalDamageFormula(target);
- * @default value = baseDamage;
+ * @default baseDamage = this.modifyBaseDamage(value, baseDamage, target);
  *
  * @param Damage Step 2
  * @desc This is the next step in the damage flow.
- * @default critical = this.modifyCritical(critical, baseDamage, target);
+ * @default baseDamage *= this.calcElementRate(target);
  *
  * @param Damage Step 3
  * @desc This is the next step in the damage flow.
- * @default target.result().critical = critical;
+ * @default 
  *
  * @param Damage Step 4
  * @desc This is the next step in the damage flow.
- * @default baseDamage = this.modifyBaseDamage(value, baseDamage, target);
+ * @default 
  *
  * @param Damage Step 5
  * @desc This is the next step in the damage flow.
- * @default value *= this.calcElementRate(target);
+ * @default 
  *
  * @param Damage Step 6
  * @desc This is the next step in the damage flow.
- * @default
+ * @default critical = this.modifyCritical(critical, baseDamage, target);
  *
  * @param Damage Step 7
  * @desc This is the next step in the damage flow.
- * @default
+ * @default target.result().critical = critical;
  *
  * @param Damage Step 8
  * @desc This is the next step in the damage flow.
- * @default
+ * @default value = baseDamage;
  *
  * @param Damage Step 9
  * @desc This is the next step in the damage flow.
- * @default
+ * @default 
  *
  * @param Damage Step 10
  * @desc This is the next step in the damage flow.
@@ -697,6 +697,30 @@ Yanfly.DMG = Yanfly.DMG || {};
  * Changelog
  * ============================================================================
  *
+ * Version 1.04:
+ * - Rewored Damage Steps 1 through 8. If you're updating from an old version,
+ * please update the these manually:
+ *   Step 1: baseDamage = this.modifyBaseDamage(value, baseDamage, target);
+ *   Step 2: baseDamage *= this.calcElementRate(target);
+ *   Steps 3 through 5: (empty)
+ *   Step 6: critical = this.modifyCritical(critical, baseDamage, target);
+ *   Step 7: target.result().critical = critical;
+ *   Step 8: value = baseDamage;
+ * - This change was made to Element Absorb and Disperse Damage better. This
+ * damage step change is also more efficient in calculating damage effects that
+ * alters the baseDamage.
+ *
+ * Version 1.03:
+ * - Changed default parameter in Damage Step 4 from
+ *   'baseDamage = this.modifyBaseDamage(value, baseDamage, target);' to
+ *   'value = this.modifyBaseDamage(value, baseDamage, target);'
+ * Be sure to manually change this yourself if you want to get things like the
+ * Selection Control's Disperse Damage mechanic to work.
+ *
+ * Version 1.02:
+ * - Updated for RPG Maker MV version 1.1.0.
+ * - <Damage Formula> notetag now supports comments.
+ *
  * Version 1.01:
  * - Fixed a bug with <Damage Formula> not recording custom formulas correctly.
  *
@@ -715,12 +739,15 @@ Yanfly.Param = Yanfly.Param || {};
 Yanfly.Param.DMGEnableCap = eval(String(Yanfly.Parameters['Enable Cap']));
 Yanfly.Param.DMGMaxDamage = Number(Yanfly.Parameters['Maximum Damage']);
 Yanfly.Param.DMGMaxHealing = Number(Yanfly.Parameters['Maximum Healing']);
-Yanfly.DMG.DamageFlow = '';
-for (Yanfly.i = 1; Yanfly.i <= 100; ++Yanfly.i) {
-  Yanfly.line = "String(Yanfly.Parameters['Damage Step " +
-    Yanfly.i + "'] || '')";
-  Yanfly.DMG.DamageFlow = Yanfly.DMG.DamageFlow + eval(Yanfly.line) + '\n';
+
+Yanfly.SetupParameters = function() {
+  Yanfly.DMG.DamageFlow = '';
+  for (var i = 1; i <= 100; ++i) {
+    var param = 'Damage Step ' + i;
+    Yanfly.DMG.DamageFlow += String(Yanfly.Parameters[param]) + '\n';
+  }
 };
+Yanfly.SetupParameters();
 
 //=============================================================================
 // DataManager
@@ -729,22 +756,25 @@ for (Yanfly.i = 1; Yanfly.i <= 100; ++Yanfly.i) {
 Yanfly.DMG.DataManager_isDatabaseLoaded = DataManager.isDatabaseLoaded;
 DataManager.isDatabaseLoaded = function() {
     if (!Yanfly.DMG.DataManager_isDatabaseLoaded.call(this)) return false;
-    this.processDMGNotetags1($dataSkills);
-    this.processDMGNotetags1($dataItems);
-    this.processDMGNotetags2($dataActors);
-    this.processDMGNotetags2($dataClasses);
-    this.processDMGNotetags2($dataEnemies);
-    this.processDMGNotetags2($dataWeapons);
-    this.processDMGNotetags2($dataArmors);
-    this.processDMGNotetags2($dataStates);
-		return true;
+    if (!Yanfly._loaded_YEP_DamageCore) {
+      this.processDMGNotetags1($dataSkills);
+      this.processDMGNotetags1($dataItems);
+      this.processDMGNotetags2($dataActors);
+      this.processDMGNotetags2($dataClasses);
+      this.processDMGNotetags2($dataEnemies);
+      this.processDMGNotetags2($dataWeapons);
+      this.processDMGNotetags2($dataArmors);
+      this.processDMGNotetags2($dataStates);
+      Yanfly._loaded_YEP_DamageCore = true;
+    }
+    return true;
 };
 
 DataManager.processDMGNotetags1 = function(group) {
   var noteD1 = /<(?:DAMAGE CAP|HEAL CAP|HEALING CAP):[ ](\d+)>/i;
   for (var n = 1; n < group.length; n++) {
-		var obj = group[n];
-		var notedata = obj.note.split(/[\r\n]+/);
+    var obj = group[n];
+    var notedata = obj.note.split(/[\r\n]+/);
 
     var damageFormulaMode = false;
     obj.damage.custom = false;
@@ -752,7 +782,7 @@ DataManager.processDMGNotetags1 = function(group) {
     obj.damageCap = undefined;
 
     for (var i = 0; i < notedata.length; i++) {
-			var line = notedata[i];
+      var line = notedata[i];
       if (line.match(/<(?:BREAK DAMAGE CAP|BYPASS DAMAGE CAP)>/i)) {
         obj.breakDamageCap = true;
         obj.damageCap = undefined;
@@ -760,16 +790,16 @@ DataManager.processDMGNotetags1 = function(group) {
         obj.damageCap = parseInt(RegExp.$1);
         obj.breakDamageCap = false;
       } else if (line.match(/<(?:DAMAGE FORMULA)>/i)) {
-				damageFormulaMode = true;
+        damageFormulaMode = true;
         obj.damage.formula = '';
         obj.damage.custom = true;
-			} else if (line.match(/<\/(?:DAMAGE FORMULA)>/i)) {
-				damageFormulaMode = false;
-			} else if (damageFormulaMode) {
-        obj.damage.formula = obj.damage.formula + line + ' ';
+      } else if (line.match(/<\/(?:DAMAGE FORMULA)>/i)) {
+        damageFormulaMode = false;
+      } else if (damageFormulaMode) {
+        obj.damage.formula = obj.damage.formula + line + '\n';
       }
-		}
-	}
+    }
+  }
 };
 
 DataManager.processDMGNotetags2 = function(group) {
@@ -777,17 +807,17 @@ DataManager.processDMGNotetags2 = function(group) {
   var noteD2 = /<(?:DAMAGE CAP):[ ](\d+)>/i;
   var noteD3 = /<(?:HEAL CAP|HEALING CAP):[ ](\d+)>/i;
   for (var n = 1; n < group.length; n++) {
-		var obj = group[n];
-		var notedata = obj.note.split(/[\r\n]+/);
+    var obj = group[n];
+    var notedata = obj.note.split(/[\r\n]+/);
 
     obj.breakDamageCap = undefined;
     obj.damageCap = undefined;
     obj.healCap = undefined;
 
-		for (var i = 0; i < notedata.length; i++) {
-			var line = notedata[i];
-			if (line.match(noteD1)) {
-				obj.breakDamageCap = true;
+    for (var i = 0; i < notedata.length; i++) {
+      var line = notedata[i];
+      if (line.match(noteD1)) {
+        obj.breakDamageCap = true;
         obj.damageCap = undefined;
         obj.healCap = undefined;
       } else if (line.match(noteD2)) {
@@ -797,8 +827,8 @@ DataManager.processDMGNotetags2 = function(group) {
         obj.healCap = parseInt(RegExp.$1) * -1;
         obj.breakDamageCap = undefined;
       }
-		}
-	}
+    }
+  }
 };
 
 //=============================================================================
@@ -1219,7 +1249,6 @@ Game_Action.prototype.modifyCritical = function(critical, baseDamage, target) {
 };
 
 Game_Action.prototype.modifyBaseDamage = function(value, baseDamage, target) {
-    if (this.calcElementRate(target) < 0) baseDamage *= -1;
     return baseDamage;
 };
 
@@ -1316,7 +1345,7 @@ Yanfly.DMG.Game_Interpreter_pluginCommand =
 Game_Interpreter.prototype.pluginCommand = function(command, args) {
     Yanfly.DMG.Game_Interpreter_pluginCommand.call(this, command, args)
     if (command === 'SetDamageCap') this.setDamageCap(args);
-		if (command === 'SetHealingCap') this.setHealingCap(args);
+    if (command === 'SetHealingCap') this.setHealingCap(args);
     if (command === 'EnableDamageCap') this.setDefaultDamageCap(true);
     if (command === 'DisableDamageCap') this.setDefaultDamageCap(false);
 };

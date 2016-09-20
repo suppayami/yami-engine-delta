@@ -11,7 +11,7 @@ Yanfly.CCC = Yanfly.CCC || {};
 
 //=============================================================================
  /*:
- * @plugindesc v1.05 This plugin creates a system where your player
+ * @plugindesc v1.11 This plugin creates a system where your player
  * can change classes through the main menu.
  * @author Yanfly Engine Plugins
  *
@@ -21,6 +21,11 @@ Yanfly.CCC = Yanfly.CCC || {};
  * @param Class Command
  * @desc This is the text used for the menu command.
  * @default Class
+ *
+ * @param Auto Add Menu
+ * @desc Automatically add the 'Class' command to the main menu?
+ * NO - false     YES - true
+ * @default true
  *
  * @param Show Command
  * @desc Show the Class command in the main menu by default?
@@ -122,6 +127,10 @@ Yanfly.CCC = Yanfly.CCC || {};
  *   This actor will have class(es) x unlocked at the start of the game in
  *   addition to its current class and access to any of the global classes.
  *
+ *   <Cannot Change Class>
+ *   This prevents this actor from being able to change primary classes. This
+ *   could be reversed from plugin commands, however.
+ *
  *   <Class x Character: filename y>
  *   When this actor's class is x, the actor's character sprite will become
  *   'filename' and index y on the fieldmap.
@@ -157,6 +166,10 @@ Yanfly.CCC = Yanfly.CCC || {};
  *   Sets the icon for this class to x. This icon is used in the Class Change
  *   menu listing.
  *
+ *   <Use Nickname>
+ *   This will cause the class to use the nickname used by the actor instead
+ *   of the class name.
+ *
  *   <Help Description>
  *    Text
  *    Text
@@ -189,19 +202,87 @@ Yanfly.CCC = Yanfly.CCC || {};
  * class changing for your game.
  *
  * Plugin Command
- *   OpenClass            This opens the class changing scene.
- *   ShowClass            This shows the Class option from the main menu.
- *   HideClass            This hides the Class option from the main menu.
- *   EnableClass          This makes the Class option enabled.
- *   DisableClass         This makes the Class option disabled.
- *   UnlockClass 5 6      This allows Actor 5 to unlock Class 6.
- *   RemoveClass 5 7      This causes Actor 5 to no longer access Class 7.
- *   UnlockClassAll 8     This unlocks Class 8 for the global pool.
- *   RemoveClassAll 9     This removes Class 9 from the global pool.
+ *   OpenClass
+ *   - This opens the class changing scene.
+ *
+ *   ShowClass
+ *   HideClass
+ *   - This shows/hides the Class option from the main menu.
+ *
+ *   EnableClass
+ *   DisableClass
+ *   - This makes the Class option enabled/disabled.
+ *
+ *   UnlockClass 5 6
+ *   - This allows Actor 5 to unlock Class 6.
+ *
+ *   RemoveClass 5 7
+ *   - This causes Actor 5 to no longer access Class 7.
+ *
+ *   UnlockClassAll 8
+ *   - This unlocks Class 8 for the global pool.
+ *
+ *   RemoveClassAll 9
+ *   - This removes Class 9 from the global pool.
+ *
+ *   EnablePrimaryClassChange 5
+ *   DisablePrimaryClassChange 5
+ *   - This enables/disables primary class changing for actor 5.
+ *
+ * ============================================================================
+ * Main Menu Manager - Positioning the Class Command
+ * ============================================================================
+ *
+ * For those using the Main Menu Manager and would like to position the Row
+ * command in a place you'd like, use the following format:
+ *
+ *       Name: Yanfly.Param.CCCCmdName
+ *     Symbol: class
+ *       Show: $gameSystem.isShowClass()
+ *    Enabled: $gameSystem.isEnableClass()
+ *        Ext: 
+ *  Main Bind: this.commandPersonal.bind(this)
+ * Actor Bind: SceneManager.push(Scene_Class)
+ *
+ * Insert the above setup within a Main Menu Manager slot. Provided you copy
+ * the exact settings to where you need it, it will appear there while using
+ * all of the naming, enabling, disabling, hiding, and showing effects done by
+ * the plugin parameters.
+ *
+ * Remember to turn off 'Auto Add Menu' from the plugin parameters.
  *
  * ============================================================================
  * Changelog
  * ============================================================================
+ *
+ * Version 1.11:
+ * - Added <Use Nickname> notetag for classes. This will cause the class to use
+ * the actor's nickname instead when listed in the class list.
+ *
+ * Version 1.10:
+ * - Added <Cannot Change Class> notetag for actors and two plugin commands:
+ * EnablePrimaryClassChange and DisablePrimaryClassChange for actors.
+ * - Added 'Auto Add Menu' to plugin parameters. This way, users don't have to
+ * make conflict with it if manually positioning the command with the Main Menu
+ * Manager plugin.
+ *
+ * Version 1.09a:
+ * - Optimization update.
+ * - When switching classes to a globally unlocked class, actors won't unlock
+ * those classes anymore. This is to keep the RemoveClassAll working without
+ * having to manually use RemoveClass for all classes individually.
+ *
+ * Version 1.08:
+ * - Updated for RPG Maker MV version 1.1.0.
+ *
+ * Version 1.07:
+ * - Fixed a bug that carried over a previously changed actor's stats into the
+ * stat comparison window.
+ *
+ * Version 1.06:
+ * - Made an update to the 'Change Actor Images' to give changes to actor
+ * images priority over class images. Setting the 'Change Actor Images' to
+ * (None) will return it back to using class images.
  *
  * Version 1.05:
  * - If using the Skill Learn System and Skill Menu Integration, the
@@ -238,6 +319,7 @@ Yanfly.Param = Yanfly.Param || {};
 Yanfly.Icon = Yanfly.Icon || {};
 
 Yanfly.Param.CCCCmdName = String(Yanfly.Parameters['Class Command']);
+Yanfly.Param.CCCAutoAdd = eval(String(Yanfly.Parameters['Auto Add Menu']));
 Yanfly.Param.CCCShowCmd = String(Yanfly.Parameters['Show Command']);
 Yanfly.Param.CCCEnableCmd = String(Yanfly.Parameters['Enable Command']);
 Yanfly.Param.CCCAutoPlace = String(Yanfly.Parameters['Auto Place Command']);
@@ -249,12 +331,14 @@ if (Yanfly.Param.CCCUnlock === '') Yanfly.Param.CCCUnlock = [];
 for (Yanfly.i = 0; Yanfly.i < Yanfly.Param.CCCUnlock.length; ++Yanfly.i) {
   Yanfly.Param.CCCUnlock[Yanfly.i] = parseInt(Yanfly.Param.CCCUnlock[Yanfly.i]);
 }
+
 Yanfly.Param.CCCClassCmd = String(Yanfly.Parameters['Class Change Command']);
 Yanfly.Param.CCCShowClass = String(Yanfly.Parameters['Show Class Change']);
 Yanfly.Param.CCCEnableClass = String(Yanfly.Parameters['Enable Class Change']);
 Yanfly.Param.CCCShowLearn = String(Yanfly.Parameters['Show Skill Learn']);
 Yanfly.Param.CCCFinishCmd = String(Yanfly.Parameters['Finish Command']);
 Yanfly.Param.CCCTextAlign = String(Yanfly.Parameters['Text Alignment']);
+
 Yanfly.Param.CCCClassColor = Number(Yanfly.Parameters['Current Class Color']);
 Yanfly.Param.CCCLvFmt = String(Yanfly.Parameters['Class Level Format']);
 Yanfly.Param.CCCLvFontSize = Number(Yanfly.Parameters['Class Level Font Size']);
@@ -266,9 +350,12 @@ Yanfly.Param.CCCLvFontSize = Number(Yanfly.Parameters['Class Level Font Size']);
 Yanfly.CCC.DataManager_isDatabaseLoaded = DataManager.isDatabaseLoaded;
 DataManager.isDatabaseLoaded = function() {
     if (!Yanfly.CCC.DataManager_isDatabaseLoaded.call(this)) return false;
-    this.processCCCNotetags1($dataClasses);
-    this.processCCCNotetags2($dataActors);
-    this.processCCCNotetags3($dataClasses);
+    if (!Yanfly._loaded_YEP_ClassChangeCore) {
+      this.processCCCNotetags1($dataClasses);
+      this.processCCCNotetags2($dataActors);
+      this.processCCCNotetags3($dataClasses);
+      Yanfly._loaded_YEP_ClassChangeCore = true;
+    }
     return true;
 };
 
@@ -299,6 +386,7 @@ DataManager.processCCCNotetags2 = function(group) {
     obj.classCharacter = {};
     obj.classFace = {};
     obj.classBattler = {};
+    obj.canChangeClass = true;
 
     for (var i = 0; i < notedata.length; i++) {
       var line = notedata[i];
@@ -340,6 +428,8 @@ DataManager.processCCCNotetags2 = function(group) {
         var filename = String(RegExp.$2);
         var classId = Yanfly.ClassIdRef[name];
         if (classId) obj.classBattler[classId] = filename;
+      } else if (line.match(/<(?:CANNOT CHANGE CLASS|CANT CHANGE CLASS)>/i)) {
+        obj.canChangeClass = false;
       }
     }
     obj.unlockedClasses = obj.unlockedClasses.filter(Yanfly.Util.onlyUnique);
@@ -352,6 +442,7 @@ DataManager.processCCCNotetags3 = function(group) {
     var notedata = obj.note.split(/[\r\n]+/);
 
     obj.iconIndex = Yanfly.Icon.DefaultClass;
+    obj.useNickname = false;
     obj.description = '';
     var descMode = false;
     obj.levelUnlockRequirements = {};
@@ -367,6 +458,8 @@ DataManager.processCCCNotetags3 = function(group) {
         descMode = false;
       } else if (descMode) {
         obj.description += line + '\n';
+      } else if (line.match(/<USE NICKNAME>/i)) {
+        obj.useNickname = true;
       } else if (line.match(/<(?:LEVEL UNLOCK REQUIREMENTS)>/i)) {
         evalMode = 'level unlock requirements';
       } else if (line.match(/<\/(?:LEVEL UNLOCK REQUIREMENTS)>/i)) {
@@ -441,6 +534,13 @@ Game_Actor.prototype.initClasses = function() {
     this._unlockedClasses.sort(function(a, b) { return a - b });
 };
 
+Yanfly.CCC.Game_Actor_turnEndOnMap = Game_Actor.prototype.turnEndOnMap;
+Game_Actor.prototype.turnEndOnMap = function() {
+    $gameTemp._noUpdateUnlockedSkills = true;
+    Yanfly.CCC.Game_Actor_turnEndOnMap.call(this);
+    $gameTemp._noUpdateUnlockedSkills = undefined;
+};
+
 Yanfly.CCC.Game_Actor_refresh = Game_Actor.prototype.refresh;
 Game_Actor.prototype.refresh = function() {
     this.updateUnlockedClassSkills();
@@ -481,13 +581,19 @@ Game_Actor.prototype.changeClass = function(classId, keepExp) {
     }
     Yanfly.CCC.Game_Actor_changeClass.call(this, classId, keepExp);
     //this.updateLearnedSkills(classId);
-    this.unlockClass(classId);
+    if (!$gameParty.unlockedClasses().contains(classId)) {
+      this.unlockClass(classId);
+    }
     $gamePlayer.refresh();
 };
 
 Game_Actor.prototype.updateUnlockedClassSkills = function() {
-    for (var i = 0; i < this.unlockedClasses().length; ++i) {
-      var classId = this.unlockedClasses()[i];
+    if ($gameTemp._noUpdateUnlockedSkills) return;
+    if ($gameParty.inBattle()) return;
+    var unlocked = this.unlockedClasses();
+    var length = unlocked.length;
+    for (var i = 0; i < length; ++i) {
+      var classId = unlocked[i];
       this.updateLearnedSkills(classId);
     }
 };
@@ -513,8 +619,24 @@ Game_Actor.prototype.classLevel = function(classId) {
     return level;
 };
 
+Yanfly.CCC.Game_Actor_setCharacterImage =
+    Game_Actor.prototype.setCharacterImage;
+Game_Actor.prototype.setCharacterImage = function(name, index) {
+    if (name !== '') {
+      this._priorityCharacterName = name;
+      this._priorityCharacterIndex = index;
+    } else {
+      this._priorityCharacterName = undefined;
+      this._priorityCharacterIndex = undefined;
+      Yanfly.CCC.Game_Actor_setCharacterImage.call(this, name, index);
+    }
+};
+
 Yanfly.CCC.Game_Actor_characterName = Game_Actor.prototype.characterName;
 Game_Actor.prototype.characterName = function() {
+    if (this._priorityCharacterName !== undefined) {
+      return this._priorityCharacterName;
+    }
     if (this.actor().classCharacter) {
       if (this.actor().classCharacter[this._classId] !== undefined) {
         return this.actor().classCharacter[this._classId][0];
@@ -525,6 +647,9 @@ Game_Actor.prototype.characterName = function() {
 
 Yanfly.CCC.Game_Actor_characterIndex = Game_Actor.prototype.characterIndex;
 Game_Actor.prototype.characterIndex = function() {
+    if (this._priorityCharacterIndex !== undefined) {
+      return this._priorityCharacterIndex;
+    }
     if (this.actor().classCharacter) {
       if (this.actor().classCharacter[this._classId] !== undefined) {
         return this.actor().classCharacter[this._classId][1];
@@ -533,8 +658,23 @@ Game_Actor.prototype.characterIndex = function() {
     return Yanfly.CCC.Game_Actor_characterIndex.call(this);
 };
 
+Yanfly.CCC.Game_Actor_setFaceImage = Game_Actor.prototype.setFaceImage;
+Game_Actor.prototype.setFaceImage = function(name, index) {
+    if (name !== '') {
+      this._priorityFaceName = name;
+      this._priorityFaceIndex = index;
+    } else {
+      this._priorityFaceName = undefined;
+      this._priorityFaceIndex = undefined;
+      Yanfly.CCC.Game_Actor_setFaceImage.call(this, name, index);
+    }
+};
+
 Yanfly.CCC.Game_Actor_faceName = Game_Actor.prototype.faceName;
 Game_Actor.prototype.faceName = function() {
+    if (this._priorityFaceName !== undefined) {
+      return this._priorityFaceName;
+    }
     if (this.actor().classFace) {
       if (this.actor().classFace[this._classId] !== undefined) {
         return this.actor().classFace[this._classId][0];
@@ -545,6 +685,9 @@ Game_Actor.prototype.faceName = function() {
 
 Yanfly.CCC.Game_Actor_faceIndex = Game_Actor.prototype.faceIndex;
 Game_Actor.prototype.faceIndex = function() {
+    if (this._priorityFaceIndex !== undefined) {
+      return this._priorityFaceIndex;
+    }
     if (this.actor().classFace) {
       if (this.actor().classFace[this._classId] !== undefined) {
         return this.actor().classFace[this._classId][1];
@@ -553,8 +696,21 @@ Game_Actor.prototype.faceIndex = function() {
     return Yanfly.CCC.Game_Actor_faceIndex.call(this);
 };
 
+Yanfly.CCC.Game_Actor_setBattlerImage = Game_Actor.prototype.setBattlerImage;
+Game_Actor.prototype.setBattlerImage = function(name) {
+    if (name !== '') {
+      this._priorityBattlerName = name;
+    } else {
+      this._priorityBattlerName = undefined;
+      Yanfly.CCC.Game_Actor_setBattlerImage.call(this, name);
+    }
+};
+
 Yanfly.CCC.Game_Actor_battlerName = Game_Actor.prototype.battlerName;
 Game_Actor.prototype.battlerName = function() {
+    if (this._priorityBattlerName !== undefined) {
+      return this._priorityBattlerName;
+    }
     if (this.actor().classBattler) {
       if (this.actor().classBattler[this._classId] !== undefined) {
         return this.actor().classBattler[this._classId];
@@ -588,6 +744,16 @@ Yanfly.CCC.Game_Actor_releaseUnequippableItems =
 Game_Actor.prototype.releaseUnequippableItems = function(forcing) {
     if (Yanfly.CCC.PreventReleaseItem) return;
     Yanfly.CCC.Game_Actor_releaseUnequippableItems.call(this, forcing);
+};
+
+Game_Actor.prototype.canChangeClass = function() {
+    if (this._canChangeClass) return this._canChangeClass;
+    this._canChangeClass = this.actor().canChangeClass;
+    return this._canChangeClass;
+};
+
+Game_Actor.prototype.setCanChangeClass = function(value) {
+    this._canChangeClass = value;
 };
 
 //=============================================================================
@@ -634,20 +800,34 @@ Yanfly.CCC.Game_Interpreter_pluginCommand =
     Game_Interpreter.prototype.pluginCommand;
 Game_Interpreter.prototype.pluginCommand = function(command, args) {
     Yanfly.CCC.Game_Interpreter_pluginCommand.call(this, command, args)
-    if (command === 'OpenClass') this.gotoSceneClass();
-    if (command === 'ShowClass') $gameSystem._showClass = true;
-    if (command === 'HideClass') $gameSystem._showClass = false;
-    if (command === 'EnableClass') $gameSystem._enableClass = true;
-    if (command === 'DisableClass') $gameSystem._enableClass = false;
-    if (command === 'UnlockClass') this.unlockClass(args);
-    if (command === 'RemoveClass') this.removeClass(args);
-    if (command === 'UnlockClassAll') this.unlockClassAll(args);
-    if (command === 'RemoveClassAll') this.removeClassAll(args);
+    if (command === 'OpenClass') {
+      this.gotoSceneClass();
+    } else if (command === 'ShowClass') {
+      $gameSystem._showClass = true;
+    } else if (command === 'HideClass') {
+      $gameSystem._showClass = false;
+    } else if (command === 'EnableClass') {
+      $gameSystem._enableClass = true;
+    } else if (command === 'DisableClass') {
+      $gameSystem._enableClass = false;
+    } else if (command === 'UnlockClass') {
+      this.unlockClass(args);
+    } else if (command === 'RemoveClass') {
+      this.removeClass(args);
+    } else if (command === 'UnlockClassAll') {
+      this.unlockClassAll(args);
+    } else if (command === 'RemoveClassAll') {
+      this.removeClassAll(args);
+    } else if (command === 'EnablePrimaryClassChange') {
+      this.setPrimaryClassChange(args, true);
+    } else if (command === 'DisablePrimaryClassChange') {
+      this.setPrimaryClassChange(args, false);
+    }
 };
 
 Game_Interpreter.prototype.gotoSceneClass = function() {
     if (!$gameParty.inBattle()) {
-        SceneManager.push(Scene_Class);
+      SceneManager.push(Scene_Class);
     }
     return true;
 };
@@ -682,6 +862,27 @@ Game_Interpreter.prototype.removeClassAll = function(args) {
     $gameParty.removeClass(classId);
 };
 
+Game_Interpreter.prototype.setPrimaryClassChange = function(args, enable) {
+    var actorId = parseInt(args[0]);
+    var actor = $gameActors.actor(actorId);
+    if (!actor) return;
+    actor.setCanChangeClass(enable);
+};
+
+//=============================================================================
+// Window_Base
+//=============================================================================
+
+Window_Base.prototype.drawActorClass = function(actor, x, y, width) {
+  width = width || 168;
+  this.resetTextColor();
+  var text = actor.currentClass().name;
+  if (actor.currentClass().useNickname) {
+    text = actor.nickname();
+  }
+  this.drawText(text, x, y, width);
+};
+
 //=============================================================================
 // Window_SkillStatus
 //=============================================================================
@@ -706,7 +907,7 @@ Yanfly.CCC.Window_MenuCommand_addOriginalCommands =
     Window_MenuCommand.prototype.addOriginalCommands;
 Window_MenuCommand.prototype.addOriginalCommands = function() {
     Yanfly.CCC.Window_MenuCommand_addOriginalCommands.call(this);
-    this.addClassCommand();
+    if (Yanfly.Param.CCCAutoAdd) this.addClassCommand();
 };
 
 Window_MenuCommand.prototype.addClassCommand = function() {
@@ -754,8 +955,14 @@ Window_ClassCommand.prototype.makeCommandList = function() {
 
 Window_ClassCommand.prototype.addClassCommand = function() {
     if (!$gameSystem.isShowClassEnabled()) return;
-    var enabled = $gameSystem.isEnableClassEnabled();
+    var enabled = this.isClassEnabled();
     this.addCommand(Yanfly.Param.CCCClassCmd, 'class', enabled);
+};
+
+Window_ClassCommand.prototype.isClassEnabled = function() {
+    var actor = SceneManager._scene.actor();
+    if (actor && !actor.canChangeClass()) return false;
+    return $gameSystem.isEnableClassEnabled();
 };
 
 Window_ClassCommand.prototype.addSkillLearnCommand = function() {
@@ -851,7 +1058,11 @@ Window_ClassList.prototype.drawClassName = function(item, x, y, width) {
     var iconBoxWidth = Window_Base._iconWidth + 4;
     this.changeClassNameColor(item);
     this.drawIcon(item.iconIndex, x + 2, y + 2);
-    this.drawText(item.name, x + iconBoxWidth, y, width - iconBoxWidth);
+    var text = item.name;
+    if (this._actor && item.useNickname) {
+      text = this._actor.nickname();
+    }
+    this.drawText(text, x + iconBoxWidth, y, width - iconBoxWidth);
 };
 
 Window_ClassList.prototype.changeClassNameColor = function(item) {
@@ -1119,12 +1330,14 @@ Scene_Class.prototype.createCompareWindow = function() {
 
 Scene_Class.prototype.refreshActor = function() {
     var actor = this.actor();
+    this._commandWindow.refresh();
     this._statusWindow.setActor(actor);
     this._itemWindow.setActor(actor);
     this._compareWindow.setActor(actor);
 };
 
 Scene_Class.prototype.refreshWindows = function() {
+    this._commandWindow.refresh();
     this._itemWindow.refresh();
     this._statusWindow.refresh();
     this._compareWindow.refresh();
@@ -1163,7 +1376,7 @@ Scene_Class.prototype.onItemCancel = function() {
     this._commandWindow.activate();
     this._helpWindow.setItem(null);
     this._itemWindow.refresh();
-    this._compareWindow.setTempActor(this._actor);
+    this._compareWindow.setTempActor(null);
 };
 
 Scene_Class.prototype.onActorChange = function() {

@@ -11,7 +11,7 @@ Yanfly.CTB = Yanfly.CTB || {};
 
 //=============================================================================
  /*:
- * @plugindesc v1.07 (Requires YEP_BattleEngineCore.js) Add CTB (Charge
+ * @plugindesc v1.14a (Requires YEP_BattleEngineCore.js) Add CTB (Charge
  * Turn Battle) into your game using this plugin!
  * @author Yanfly Engine Plugins
  *
@@ -388,6 +388,36 @@ Yanfly.CTB = Yanfly.CTB || {};
  * Changelog
  * ============================================================================
  *
+ * Version 1.14a:
+ * - Updated check for CTB Charging. Units in the turn order will not be
+ * considered 'ready' unless they are in the front of the CTB Turn Order.
+ *
+ * Version 1.13:
+ * - Timing has been changed for states that update turns at Turn Start. Now,
+ * the states will update prior to the actor's command box opening or the enemy
+ * make a decision on which action it will use.
+ *
+ * Version 1.12:
+ * - Updated for RPG Maker MV version 1.1.0.
+ *
+ * Version 1.11:
+ * - Counterattacks no longer cause turn order inconsistencies.
+ *
+ * Version 1.10a:
+ * - Updated plugin to update the AI more accordingly with Battle AI Core.
+ * - Optimized CTB Turn Order further to reduce lag when there are larger
+ * quantities of battle members.
+ *
+ * Version 1.09:
+ * - Fixed a bug where forced actions clear out an action's effects before the
+ * turn is over, making post-turn effects to not occur.
+ *
+ * Version 1.08a:
+ * - Fixed a bug where changing back and forth between the Fight/Escape window
+ * would prompt on turn start effects.
+ * - Made an update where if using Battle Engine Core's "Lower Windows" to
+ * false, the icons no longer show above the windows.
+ *
  * Version 1.07:
  * - Made a mechanic change so that turn 0 ends immediately upon battle start
  * rather than requiring a full turn to end.
@@ -683,6 +713,8 @@ BattleManager.startBattle = function() {
     Yanfly.CTB.BattleManager_startBattle.call(this);
     if (this.isCTB()) {
       this._phase = null;
+      this._counterAttacking = false;
+      this.ctbTicksToReadyClear();
       this.startCTB();
     }
 };
@@ -690,6 +722,7 @@ BattleManager.startBattle = function() {
 Yanfly.CTB.BattleManager_endBattle = BattleManager.endBattle;
 BattleManager.endBattle = function(result) {
     Yanfly.CTB.BattleManager_endBattle.call(this, result);
+    this.ctbTicksToReadyClear();
     this.clearCTBData();
 };
 
@@ -804,6 +837,14 @@ BattleManager.ctbTurnOrder = function() {
     return battlers;
 };
 
+BattleManager.ctbTicksToReadyClear = function() {
+    var length = this.allBattleMembers().length;
+    for (var i = 0; i < length; ++i) {
+      var member = this.allBattleMembers()[i];
+      if (member) member._ctbTicksToReady = undefined;
+    }
+};
+
 Yanfly.CTB.BattleManager_update = BattleManager.update;
 BattleManager.update = function() {
     if (this.isCTB()) {
@@ -894,11 +935,12 @@ BattleManager.getChargedCTBBattler = function() {
 
 BattleManager.isBattlerCTBCharged = function(battler) {
     if (!battler.isCTBCharging()) return false;
-    if (battler.ctbChargeRate() < 1) return false;
     if (battler.isConfused()) {
       battler.makeActions();
       if (battler.isActor()) battler.makeConfusionActions();
     }
+    if (battler.ctbChargeRate() < 1) return false;
+    if (battler.ctbTurnOrder() > 0) return false;
     return battler.currentAction() && battler.currentAction().item();
 };
 
@@ -920,7 +962,10 @@ BattleManager.getReadyCTBBattler = function() {
 BattleManager.isBattlerCTBReady = function(battler) {
     if (battler.ctbRate() < 1) return false;
     if (battler.isCTBCharging()) return false;
+    if (battler.ctbTurnOrder() > 0) return false;
     if (battler.currentAction() && battler.currentAction().item()) {
+      this._subject = battler;
+      battler.makeActions();
       battler.setupCTBCharge();
       return true;
     }
@@ -950,6 +995,7 @@ BattleManager.selectNextCommand = function() {
     if (this.isCTB()) {
       if (!this.actor()) return this.setCTBPhase();
       this.resetNonPartyActorCTB();
+      this._subject = this.actor();
       this.actor().setupCTBCharge();
       if (this.actor().isCTBCharging()) {
         this.actor().spriteStepBack();
@@ -1024,6 +1070,7 @@ BattleManager.updateTurnEnd = function() {
 
 BattleManager.startCTBInput = function(battler) {
     if (battler.isDead()) return;
+    battler.onTurnStart();
     battler.makeActions();
     if (battler.isEnemy()) {
       battler.setupCTBCharge();
@@ -1062,6 +1109,18 @@ BattleManager.startCTBAction = function(battler) {
     }
 };
 
+Yanfly.CTB.BattleManager_processForcedAction =
+    BattleManager.processForcedAction;
+BattleManager.processForcedAction = function() {
+    var forced = false;
+    if (this._actionForcedBattler && this.isCTB()) {
+      var action = this._actionForcedBattler.currentAction();
+      forced = true;
+    }
+    Yanfly.CTB.BattleManager_processForcedAction.call(this);
+    if (forced) this._subject.setAction(0, action);
+};
+
 Yanfly.CTB.BattleManager_endAction = BattleManager.endAction;
 BattleManager.endAction = function() {
     if (this.isCTB()) {
@@ -1086,6 +1145,18 @@ BattleManager.endCTBAction = function() {
     } else {
       this.setCTBPhase();
     }
+};
+
+Yanfly.CTB.BattleManager_invokeCounterAttack =
+    BattleManager.invokeCounterAttack;
+BattleManager.invokeCounterAttack = function(subject, target) {
+    if (this.isCTB()) this._counterAttacking = true;
+    Yanfly.CTB.BattleManager_invokeCounterAttack.call(this, subject, target);
+    if (this.isCTB()) this._counterAttacking = false;
+};
+
+BattleManager.isCounterAttacking = function() {
+    return this._counterAttacking;
 };
 
 Yanfly.CTB.BattleManager_processEscape = BattleManager.processEscape;
@@ -1290,6 +1361,7 @@ Game_Action.prototype.applyItemCTBEffect = function(target) {
   this.applyItemCTBSetEffects(target);
   this.applyItemCTBAddEffects(target);
   this.applyItemCTBEvalEffect(target);
+  if (BattleManager.isCounterAttacking()) return;
   this.rebalanceCTBSpeed(target);
 };
 
@@ -1389,11 +1461,12 @@ Game_Action.prototype.rebalanceCTBSpeed = function(target) {
 
 Yanfly.CTB.Game_BattlerBase_refresh = Game_BattlerBase.prototype.refresh;
 Game_BattlerBase.prototype.refresh = function() {
-    Yanfly.CTB.Game_BattlerBase_refresh.call(this);
     if (BattleManager.isCTB() && $gameParty.inBattle()) {
+      BattleManager.ctbTicksToReadyClear();
       this._ctbTickValue = undefined;
       this.clearCTBCommandWindowCache();
     }
+    Yanfly.CTB.Game_BattlerBase_refresh.call(this);
 };
 
 Game_BattlerBase.prototype.clearCTBCommandWindowCache = function() {
@@ -1472,6 +1545,7 @@ Game_Battler.prototype.onBattleEnd = function() {
 };
 
 Game_Battler.prototype.ctbTicksToReady = function() {
+    if (this._ctbTicksToReady !== undefined) return this._ctbTicksToReady;
     var goal = BattleManager.ctbTarget();
     if (this.isCTBCharging()) goal += this.ctbChargeDestination();
     goal -= this.ctbSpeed();
@@ -1481,7 +1555,8 @@ Game_Battler.prototype.ctbTicksToReady = function() {
       var item = this.ctbTicksToReadyActionCheck();
       if (item.speed < 0) goal -= item.speed;
     }
-    return goal / Math.max(1, rate);
+    this._ctbTicksToReady = goal / Math.max(1, rate);
+    return this._ctbTicksToReady;
 };
 
 Game_Battler.prototype.ctbTicksToReadyActionCheck = function() {
@@ -1500,7 +1575,7 @@ Game_Battler.prototype.ctbTicksToReadyActionCheck = function() {
         return this._itemWindowItem;
       }
       this._itemWindowIndex = scene._itemWindow.index();
-      this._itemWindowItem = scene._itemWindow.item()
+      this._itemWindowItem = scene._itemWindow.item();
       return this._itemWindowItem;
     } else if (scene._actorCommandWindow.active) {
       if (this._commandWindowIndex === scene._actorCommandWindow.index()) {
@@ -1571,6 +1646,8 @@ Game_Battler.prototype.setCTBCharge = function(value) {
 };
 
 Game_Battler.prototype.setupCTBCharge = function() {
+    if (BattleManager._subject !== this) return;
+    if (BattleManager._bypassCtbEndTurn) return;
     if (!this.currentAction()) this.makeActions();
     if (this.currentAction()) {
       var item = this.currentAction().item();
@@ -1587,7 +1664,6 @@ Game_Battler.prototype.setupCTBCharge = function() {
       this._ctbChargeMod = 0;
     }
     this.setActionState('waiting');
-    if (BattleManager.isTickBased()) this.onTurnStart();
 };
 
 Yanfly.CTB.Game_Battler_updateTick = Game_Battler.prototype.updateTick;
@@ -2041,6 +2117,18 @@ Window_Help.prototype.meetCTBConditions = function(item) {
 };
 
 //=============================================================================
+// Window_Selectable
+//=============================================================================
+
+Yanfly.CTB.Window_Selectable_select = Window_Selectable.prototype.select;
+Window_Selectable.prototype.select = function(index) {
+    if ($gameParty.inBattle() && BattleManager.isCTB()) {
+      BattleManager.ctbTicksToReadyClear();
+    }
+    Yanfly.CTB.Window_Selectable_select.call(this, index);
+};
+
+//=============================================================================
 // Window_CTBIcon
 //=============================================================================
 
@@ -2058,6 +2146,7 @@ Window_CTBIcon.prototype.initialize = function(mainSprite) {
     this._redraw = false;
     this._position = Yanfly.Param.CTBTurnPosX.toLowerCase();
     this._direction = Yanfly.Param.CTBTurnDirection.toLowerCase();
+    this._lowerWindows = eval(Yanfly.Param.BECLowerWindows);
     Window_Base.prototype.initialize.call(this, 0, 0, width, height);
     this.opacity = 0;
     this.contentsOpacity = 0;
@@ -2367,9 +2456,7 @@ Window_CTBIcon.prototype.opacityFadeRate = function() {
 Window_CTBIcon.prototype.updateOpacity = function() {
     var rate = this.opacityFadeRate();
     if (this._foreverHidden) return this.reduceOpacity();
-    if (this._windowLayer && this._windowLayer.x !== 0) {
-      return this.reduceOpacity();
-    }
+    if (this.isReduceOpacity()) return this.reduceOpacity();
     if (BattleManager._victoryPhase) {
       this._foreverHidden = true;
       return this.reduceOpacity();
@@ -2383,6 +2470,19 @@ Window_CTBIcon.prototype.updateOpacity = function() {
       if (index < 0) return this.reduceOpacity();
     }
     this.contentsOpacity += rate;
+};
+
+Window_CTBIcon.prototype.isReduceOpacity = function() {
+    if (!this._lowerWindows) {
+      if (this.isLargeWindowShowing()) return true;
+    }
+    return this._windowLayer && this._windowLayer.x !== 0;
+};
+
+Window_CTBIcon.prototype.isLargeWindowShowing = function() {
+    if (SceneManager._scene._itemWindow.visible) return true;
+    if (SceneManager._scene._skillWindow.visible) return true;
+    return false;
 };
 
 Window_CTBIcon.prototype.reduceOpacity = function() {

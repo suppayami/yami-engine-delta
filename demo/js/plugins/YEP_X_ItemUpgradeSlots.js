@@ -11,7 +11,7 @@ Yanfly.IUS = Yanfly.IUS || {};
 
 //=============================================================================
  /*:
- * @plugindesc v1.03 (Requires YEP_ItemCore.js) Allows independent items to
+ * @plugindesc v1.06a (Requires YEP_ItemCore.js) Allows independent items to
  * be upgradeable and gain better stats.
  * @author Yanfly Engine Plugins
  *
@@ -158,6 +158,7 @@ Yanfly.IUS = Yanfly.IUS || {};
  *   Stat: -x              - Decreases 'Stat' by x. *Note1
  *   Stat: -x%             - Decreases 'Stat' by x% of base stat. *Note1
  *   Suffix: x             - Changes item's suffix to x. *Note2
+ *   Text Color: x         - Changes item's text color to x.
  *
  * Note1: 'Stat' is to be replaced by 'MaxHP', 'MaxMP', 'ATK', 'DEF', 'MAT',
  * 'MDF', 'AGI', 'LUK', 'SLOTS', 'ALL' or 'CURRENT'. 'ALL' affects all stats.
@@ -189,6 +190,17 @@ Yanfly.IUS = Yanfly.IUS || {};
  * ============================================================================
  * Changelog
  * ============================================================================
+ *
+ * Version 1.06a:
+ * - Fixed a bug that caused an error with the way items upgraded.
+ * - Fixed a bug that didn't connect with the Equip Customize Command plugin.
+ *
+ * Version 1.05:
+ * - Updated for RPG Maker MV version 1.1.0.
+ *
+ * Version 1.04:
+ * - Added 'Text Color: x' upgrade effect to allow you to change the text color
+ * of independent items.
  *
  * Version 1.03:
  * - Fixed a bug that caused slot variance to not calculate correctly.
@@ -230,12 +242,15 @@ Yanfly.Param.IUSUpgradeSound = String(Yanfly.Parameters['Default Sound']);
 
 Yanfly.IUS.DataManager_isDatabaseLoaded = DataManager.isDatabaseLoaded;
 DataManager.isDatabaseLoaded = function() {
-    if (!Yanfly.IUS.DataManager_isDatabaseLoaded.call(this)) return false;
+  if (!Yanfly.IUS.DataManager_isDatabaseLoaded.call(this)) return false;
+  if (!Yanfly._loaded_YEP_X_ItemUpgradeSlots) {
     this.processUpgradeNotetags1($dataItems);
     this.processUpgradeNotetags1($dataWeapons);
     this.processUpgradeNotetags1($dataArmors);
     this.processUpgradeNotetags2($dataItems);
-		return true;
+    Yanfly._loaded_YEP_X_ItemUpgradeSlots = true;
+  }
+	return true;
 };
 
 DataManager.processUpgradeNotetags1 = function(group) {
@@ -456,6 +471,11 @@ ItemManager.processIUSEffect = function(line, mainItem, effectItem) {
       var stat = String(RegExp.$1).toUpperCase();
       return this.effectIUSResetStat(mainItem, stat);
     }
+    // TEXT COLOR: X
+    if (line.match(/TEXT COLOR:[ ](\d+)/i)) {
+      var value = parseInt(RegExp.$1);
+      return this.effectIUSTextColor(mainItem, value);
+    }
     // STAT: +/-X%
     if (line.match(/(.*):[ ]([\+\-]\d+)([%％])/i)) {
       var stat = String(RegExp.$1).toUpperCase();
@@ -473,6 +493,28 @@ ItemManager.processIUSEffect = function(line, mainItem, effectItem) {
       var value = String(RegExp.$1);
       return this.effectIUSSuffix(mainItem, value);
     }
+};
+
+ItemManager.adjustItemTrait = function(mainItem, code, dataId, value, add) {
+    if (add) {
+      this.addTraitToItem(mainItem, code, dataId, value);
+    } else {
+      this.deleteTraitFromItem(mainItem, code, dataId, value);
+    }
+};
+
+ItemManager.addTraitToItem = function(mainItem, code, dataId, value) {
+    var trait = {
+      code: code,
+      dataId: dataId,
+      value: value
+    }
+    mainItem.traits.push(trait);
+};
+
+ItemManager.deleteTraitFromItem = function(mainItem, code, dataId, value) {
+    var index = this.getMatchingTraitIndex(mainItem, code, dataId, value);
+    if (index >= 0) mainItem.traits.splice(index, 1);
 };
 
 ItemManager.effectIUSBaseName = function(item, value) {
@@ -624,6 +666,9 @@ ItemManager.effectIUSRandomChange2 = function(item, stat, value) {
 };
 
 ItemManager.effectIUSResetStat = function(item, stat) {
+    if (Imported.YEP_X_AttachAugments) {
+      var augments = this.removeAllAugments(item);
+    }
     var baseItem = DataManager.getBaseItem(item);
     switch (stat) {
       case 'HP':
@@ -719,6 +764,9 @@ ItemManager.effectIUSResetStat = function(item, stat) {
         this._fullReset = true;
         this._resetItem = item;
         break;
+    }
+    if (Imported.YEP_X_AttachAugments) {
+      this.installAugments(item, augments);
     }
 };
 
@@ -836,6 +884,10 @@ ItemManager.effectIUSParamChange = function(item, stat, value) {
 ItemManager.effectIUSSuffix = function(item, value) {
     this.setNameSuffix(item, value);
     this.updateItemName(item);
+};
+
+ItemManager.effectIUSTextColor = function(item, value) {
+    item.textColor = value;
 };
 
 //=============================================================================
@@ -962,7 +1014,11 @@ Window_ItemActionCommand.prototype.addUpgradeCommand = function() {
     if (eval(Yanfly.Param.IUSShowOnly) && !enabled) return;
     if (!$gameSystem.itemUpgradeEnabled()) enabled = false;
     var fmt = Yanfly.Param.IUSUpgradeCmd;
-    text = '\\i[' + this._item.iconIndex + ']' + this._item.name;
+    text = '\\i[' + this._item.iconIndex + ']';
+    if (this._item.textColor !== undefined) {
+      text += '\\c[' + this._item.textColor + ']';
+    }
+    text += this._item.name;
     text = fmt.format(text);
     this.addCommand(text, 'upgrade', enabled);
 };
@@ -1049,7 +1105,7 @@ Window_UpgradeItemList.prototype.makeItemList = function() {
 };
 
 //=============================================================================
-// Window_ItemActionCommand
+// Scene_Item
 //=============================================================================
 
 Yanfly.IUS.Scene_Item_createItemWindow = Scene_Item.prototype.createItemWindow;
@@ -1083,12 +1139,13 @@ Scene_Item.prototype.onActionUpgrade = function() {
     this._itemActionWindow.deactivate();
     this._upgradeListWindow.show();
     this._upgradeListWindow.activate();
+    this._upgradeItem = this.item();
     this._upgradeListWindow.setItem(this.item());
 };
 
 Scene_Item.prototype.onUpgradeListOk = function() {
     var effectItem = this._upgradeListWindow.item();
-    ItemManager.applyIUSEffects(this.item(), effectItem)
+    ItemManager.applyIUSEffects(this._upgradeItem, effectItem)
     if (ItemManager._fullReset) return this.onUpgradeFullReset();
     this._upgradeListWindow.refresh();
     this._upgradeListWindow.activate();

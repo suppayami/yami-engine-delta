@@ -11,7 +11,7 @@ Yanfly.RCE = Yanfly.RCE || {};
 
 //=============================================================================
  /*:
- * @plugindesc v1.01a Make it so that whenever players step on certain
+ * @plugindesc v1.02 Make it so that whenever players step on certain
  * Region ID's, the game will play certain common events.
  * @author Yanfly Engine Plugins
  *
@@ -1321,6 +1321,10 @@ Yanfly.RCE = Yanfly.RCE || {};
  * Changelog
  * ============================================================================
  *
+ * Version 1.02:
+ * - Fixed a bug that prevented region events from trigger if the mouse button
+ * is held down longer than usual.
+ *
  * Version 1.01a:
  * - Fixed a bug with region event notetags that stopped working if it was used
  * to teleport onto the same map.
@@ -1348,16 +1352,16 @@ for (Yanfly.i = 1; Yanfly.i <= 255; ++Yanfly.i) {
 //=============================================================================
 
 DataManager.processRECNotetags = function() {
-	if (!$dataMap) return;
-	if (!$dataMap.note) return;
-	var notedata = $dataMap.note.split(/[\r\n]+/);
+  if (!$dataMap) return;
+  if (!$dataMap.note) return;
+  var notedata = $dataMap.note.split(/[\r\n]+/);
   $dataMap.regionCommonEvents = {};
-	for (var i = 0; i < notedata.length; i++) {
-		var line = notedata[i];
-		if (line.match(/<(?:REGION)[ ](\d+)[ ](?:EVENT):[ ](\d+)>/i)) {
-			$dataMap.regionCommonEvents[parseInt(RegExp.$1)] = parseInt(RegExp.$2);
-		}
-	}
+  for (var i = 0; i < notedata.length; i++) {
+    var line = notedata[i];
+    if (line.match(/<(?:REGION)[ ](\d+)[ ](?:EVENT):[ ](\d+)>/i)) {
+      $dataMap.regionCommonEvents[parseInt(RegExp.$1)] = parseInt(RegExp.$2);
+    }
+  }
 };
 
 //=============================================================================
@@ -1367,7 +1371,7 @@ DataManager.processRECNotetags = function() {
 Yanfly.RCE.Game_Map_setup = Game_Map.prototype.setup;
 Game_Map.prototype.setup = function(mapId) {
     if ($dataMap) DataManager.processRECNotetags();
-		Yanfly.RCE.Game_Map_setup.call(this, mapId);
+    Yanfly.RCE.Game_Map_setup.call(this, mapId);
 };
 
 Game_Map.prototype.isRegionEvent = function(mx, my) {
@@ -1422,7 +1426,6 @@ Game_Player.prototype.checkEventTriggerHere = function(triggers) {
 Game_Player.prototype.processRegionEvent = function() {
     if (!$gameMap.isRegionEvent(this.x, this.y)) return;
     if (Input.isTriggered('ok')) return;
-    if (TouchInput.isPressed()) return;
     var regionId = $gameMap.regionId(this.x, this.y)
     if ($gameMap.getUniqueRegionCommonEvent(regionId) > 0) {
       var commonEventId = $gameMap.getUniqueRegionCommonEvent(regionId);

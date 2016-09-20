@@ -11,7 +11,7 @@ Yanfly.CoreAI = Yanfly.CoreAI || {};
 
 //=============================================================================
  /*:
- * @plugindesc v1.04 This plugin allows you to structure battle A.I.
+ * @plugindesc v1.08a This plugin allows you to structure battle A.I.
  * patterns with more control.
  * @author Yanfly Engine Plugins
  *
@@ -147,10 +147,10 @@ Yanfly.CoreAI = Yanfly.CoreAI || {};
  * This allows you to match the element rate of element X (use either a number
  * or the name of the element in place of 'X') to see whether or not the
  * conditions for the action are fulfilled. Replace 'case' with 'Neutral' for
- * normal element rate, 'Weakness' for anything above 100% element rate,
- * 'Resistant' for below 100% element rate, 'Null' for 0% element rate, and
- * 'Absorb' for below 0% element rate. Valid targets will be those with the
- * matching element rates.
+ * normal element rate (under 110% and above 90%), 'Weakness' for anything
+ * above 100% element rate, 'Resistant' for below 100% element rate, 'Null' for
+ * 0% element rate, and 'Absorb' for below 0% element rate. Valid targets will
+ * be those with the matching element rates.
  *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
  * Example:   Element Fire Weakness: Fireball, Lowest HP%
  *            Element Water Resistant: Water Cancel, Highest MAT
@@ -372,8 +372,24 @@ Yanfly.CoreAI = Yanfly.CoreAI || {};
  * Changelog
  * ============================================================================
  *
- * Version 1.04:
+ * Version 1.08a:
+ * - Neutral elemental resistance is now considered to be above 90% and under
+ * 110% for a better range of activation.
+ * - Optimization update.
+ *
+ * Version 1.07:
+ * - Fixed a compatibility bug that caused certain conditions to bypass taunts.
+ *
+ * Version 1.06:
+ * - Fixed a bug that caused 'Highest TP' and 'Lowest TP' target searches to
+ * crash the game.
+ *
+ * Version 1.05:
+ * - Updated for RPG Maker MV version 1.1.0.
+ *
+ * Version 1.04a:
  * - Fixed a bug that would cause a crash with the None scope for skills.
+ * - Switched over a function to operate in another for better optimization.
  *
  * Version 1.03:
  * - Fixed a bug that returned the wrong MP% rate.
@@ -408,12 +424,15 @@ Yanfly.Param.CoreAIDefaultLevel = Number(Yanfly.Parameters['Default AI Level']);
 
 Yanfly.CoreAI.DataManager_isDatabaseLoaded = DataManager.isDatabaseLoaded;
 DataManager.isDatabaseLoaded = function() {
-    if (!Yanfly.CoreAI.DataManager_isDatabaseLoaded.call(this)) return false;
+  if (!Yanfly.CoreAI.DataManager_isDatabaseLoaded.call(this)) return false;
+  if (!Yanfly._loaded_YEP_BattleAICore) {
     this.processCoreAINotetags1($dataEnemies);
-		this.processCoreAINotetags2($dataSkills);
+  	this.processCoreAINotetags2($dataSkills);
     this.processCoreAINotetags3($dataStates);
     this.processCoreAINotetags4($dataSystem);
-		return true;
+    Yanfly._loaded_YEP_BattleAICore = true;
+  }
+	return true;
 };
 
 DataManager.processCoreAINotetags1 = function(group) {
@@ -484,8 +503,10 @@ if (eval(Yanfly.Param.CoreAIDynamic)) {
   Yanfly.CoreAI.BattleManager_getNextSubject =
       BattleManager.getNextSubject;
   BattleManager.getNextSubject = function() {
-    this.updateAIPatterns();
-    return Yanfly.CoreAI.BattleManager_getNextSubject.call(this);
+    //this.updateAIPatterns();
+    var battler = Yanfly.CoreAI.BattleManager_getNextSubject.call(this);
+    if (battler && battler.isEnemy()) battler.setAIPattern();
+    return battler;
   };
 };
 
@@ -644,9 +665,9 @@ Game_Troop.prototype.updateAIPatterns = function() {
     }
 };
 
-Yanfly.CoreAI.Game_Troop_onBattleStart = Game_Troop.prototype.onBattleStart;
-Game_Troop.prototype.onBattleStart = function() {
-    Yanfly.CoreAI.Game_Troop_onBattleStart.call(this);
+Yanfly.CoreAI.Game_Troop_setup = Game_Troop.prototype.setup;
+Game_Troop.prototype.setup = function(troopId) {
+    Yanfly.CoreAI.Game_Troop_setup.call(this, troopId);
     this._aiKnownElementRates = {};
 };
 
@@ -773,6 +794,7 @@ AIManager.hasSkill = function(skillId) {
 
 AIManager.getActionGroup = function() {
     var action = this.action();
+    if (Imported.YEP_X_SelectionControl) action.setSelectionFilter(true);
     if (!action) return [];
     if (action.isForUser()) {
       var group = [this.battler()];
@@ -813,7 +835,8 @@ AIManager.setProperTarget = function(group) {
       if (param === 11) return this.setHighestMpRateTarget(group);
       if (param === 12) return this.setHighestLevelTarget(group);
       if (param === 13) return this.setHighestMaxTpTarget(group);
-      if (param > 14) return action.setTarget(randomTarget.index());
+      if (param === 14) return this.setHighestTpTarget(group);
+      if (param > 15) return action.setTarget(randomTarget.index());
       this.setHighestParamTarget(group, param);
     } else if (line.match(/LOWEST[ ](.*)/i)) {
       var param = this.getParamId(String(RegExp.$1));
@@ -824,7 +847,8 @@ AIManager.setProperTarget = function(group) {
       if (param === 11) return this.setLowestMpRateTarget(group);
       if (param === 12) return this.setLowestLevelTarget(group);
       if (param === 13) return this.setLowestMaxTpTarget(group);
-      if (param > 14) return action.setTarget(randomTarget.index());
+      if (param === 14) return this.setLowestTpTarget(group);
+      if (param > 15) return action.setTarget(randomTarget.index());
       this.setLowestParamTarget(group, param);
     } else {
       this.setRandomTarget(group);
@@ -1066,7 +1090,7 @@ AIManager.elementRateMatch = function(target, elementId, type) {
       if (!$gameTroop.aiElementRateKnown(target, elementId)) return true;
     }
     if (['NEUTRAL', 'NORMAL'].contains(type)) {
-      return rate === 1.00;
+      return rate >= 0.90 && rate <= 1.10;
     } else if (['WEAK', 'WEAKNESS', 'VULNERABLE'].contains(type)) {
       return rate > 1.00;
     } else if (['RESIST', 'RESISTANT', 'STRONG'].contains(type)) {

@@ -11,7 +11,7 @@ Yanfly.Taunt = Yanfly.Taunt || {};
 
 //=============================================================================
  /*:
- * @plugindesc v1.00 Adds a Taunt mechanic to battle. Battlers with a
+ * @plugindesc v1.01 Adds a Taunt mechanic to battle. Battlers with a
  * taunt property become the target of enemy focus.
  * @author Yanfly Engine Plugins
  *
@@ -66,6 +66,16 @@ Yanfly.Taunt = Yanfly.Taunt || {};
  *   <Bypass Taunt>
  *   This causes this skill/item to ignore taunts altogether and the skill/item
  *   is able to select single targets as if no taunts existed on the field.
+ *
+ * ============================================================================
+ * Changelog
+ * ============================================================================
+ *
+ * Version 1.01:
+ * - Updated for RPG Maker MV version 1.1.0.
+ *
+ * Version 1.00:
+ * - Finished Plugin!
  */
 //=============================================================================
 
@@ -75,16 +85,19 @@ Yanfly.Taunt = Yanfly.Taunt || {};
 
 Yanfly.Taunt.DataManager_isDatabaseLoaded = DataManager.isDatabaseLoaded;
 DataManager.isDatabaseLoaded = function() {
-    if (!Yanfly.Taunt.DataManager_isDatabaseLoaded.call(this)) return false;
-		this.processTauntNotetags1($dataActors);
-	  this.processTauntNotetags1($dataClasses);
-	  this.processTauntNotetags1($dataWeapons);
-	  this.processTauntNotetags1($dataArmors);
-	  this.processTauntNotetags1($dataStates);
-	  this.processTauntNotetags1($dataEnemies);
-	  this.processTauntNotetags2($dataSkills);
-	  this.processTauntNotetags2($dataEnemies);
-		return true;
+  if (!Yanfly.Taunt.DataManager_isDatabaseLoaded.call(this)) return false;
+  if (!Yanfly._loaded_YEP_Taunt) {
+  	this.processTauntNotetags1($dataActors);
+    this.processTauntNotetags1($dataClasses);
+    this.processTauntNotetags1($dataWeapons);
+    this.processTauntNotetags1($dataArmors);
+    this.processTauntNotetags1($dataStates);
+    this.processTauntNotetags1($dataEnemies);
+    this.processTauntNotetags2($dataSkills);
+    this.processTauntNotetags2($dataEnemies);
+    Yanfly._loaded_YEP_Taunt = true;
+  }
+	return true;
 };
 
 DataManager.processTauntNotetags1 = function(group) {

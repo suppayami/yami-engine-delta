@@ -11,7 +11,7 @@ Yanfly.SLS = Yanfly.SLS || {};
 
 //=============================================================================
  /*:
- * @plugindesc v1.06b Allows actors to learn skills from the skill menu
+ * @plugindesc v1.11 Allows actors to learn skills from the skill menu
  * through crafting them via items or otherwise.
  * @author Yanfly Engine Plugins
  *
@@ -209,6 +209,22 @@ Yanfly.SLS = Yanfly.SLS || {};
  *   use text codes for this.
  *
  * ============================================================================
+ * Lunatic Mode - Custom JP Costs
+ * ============================================================================
+ *
+ * For those who have basic JavaScript knowledge and would like to make the JP
+ * costs for skills dynamic, you can use the following notetags:
+ *
+ * Skill Notetags:
+ *
+ *   <Custom Learn JP Cost>
+ *    cost = user.level * 100;
+ *   </Custom Learn JP Cost>
+ *   The 'cost' variable is the value that will be returned as a result of this
+ *   Lunatic Mode notetag. The value returned here from this code will be added
+ *   on top of the <Learn Cost: x JP> value.
+ *
+ * ============================================================================
  * Plugin Commands
  * ============================================================================
  *
@@ -227,6 +243,23 @@ Yanfly.SLS = Yanfly.SLS || {};
  * ============================================================================
  * Changelog
  * ============================================================================
+ *
+ * Version 1.11:
+ * - Removed dependency on YEP_JobPoints.js if using Integrated skill learn.
+ *
+ * Version 1.10:
+ * - Added <Custom Learn JP Cost> Lunatic Mode notetag. Look in the plugin's
+ * helpfile for more details!
+ *
+ * Version 1.09:
+ * - Compatibility update with Class Change Core's <Use Nickname> notetag.
+ *
+ * Version 1.08:
+ * - Updated for RPG Maker MV version 1.1.0.
+ *
+ * Version 1.07:
+ * - Updated the <Learn Require Level: x> notetag. If you are using the Class
+ * Change Core, the requirement will now depend on the level of the class.
  *
  * Version 1.06b:
  * - Added 'Confirm Window', 'Confirm Text', 'Confirm Yes', 'Confirm No' to the
@@ -292,13 +325,16 @@ Yanfly.Param.SLSDefaultJp = Number(Yanfly.Parameters['Default JP Cost']);
 
 Yanfly.SLS.DataManager_isDatabaseLoaded = DataManager.isDatabaseLoaded;
 DataManager.isDatabaseLoaded = function() {
-    if (!Yanfly.SLS.DataManager_isDatabaseLoaded.call(this)) return false;
-    DataManager.processSLSNotetagsI($dataItems);
-    DataManager.processSLSNotetagsW($dataWeapons);
-    DataManager.processSLSNotetagsA($dataArmors);
-    DataManager.processSLSNotetags1($dataClasses);
-    DataManager.processSLSNotetags2($dataSkills);
-    return true;
+  if (!Yanfly.SLS.DataManager_isDatabaseLoaded.call(this)) return false;
+  if (!Yanfly._loaded_YEP_SkillLearnSystem) {
+    this.processSLSNotetagsI($dataItems);
+    this.processSLSNotetagsW($dataWeapons);
+    this.processSLSNotetagsA($dataArmors);
+    this.processSLSNotetags1($dataClasses);
+    this.processSLSNotetags2($dataSkills);
+    Yanfly._loaded_YEP_SkillLearnSystem = true;
+  }
+  return true;
 };
 
 DataManager.processSLSNotetagsI = function(group) {
@@ -388,6 +424,7 @@ DataManager.processSLSNotetags2 = function(group) {
     obj.learnShowEval = '';
     obj.learnCustomText = '';
     var mode = 'none';
+    obj.customLearnJpCostEval = '';
 
     for (var i = 0; i < notedata.length; i++) {
       var line = notedata[i];
@@ -441,6 +478,12 @@ DataManager.processSLSNotetags2 = function(group) {
         obj.learnCustomText = obj.learnCustomText + line + '\n';
       } else if (mode === 'learnShowEval') {
         obj.learnShowEval = obj.learnShowEval + line + '\n';
+      } else if (line.match(/<(?:CUSTOM LEARN JP COST)>/i)) {
+        mode = 'customLearnJpCost';
+      } else if (line.match(/<\/(?:CUSTOM LEARN JP COST)>/i)) {
+        mode = 'none';
+      } else if (mode === 'customLearnJpCost') {
+        obj.customLearnJpCostEval = obj.customLearnJpCostEval + line + '\n';
       }
     }
   }
@@ -531,6 +574,7 @@ Game_Actor.prototype.sufficientJpLearnSkill = function(skill, classId) {
   if (!skill) return false;
   if (!Imported.YEP_JobPoints) return true;
   var jpCost = skill.learnCostJp;
+  jpCost += this.customLearnSkillJpCost(skill);
   if (this.currentClass().learnSkills.contains(skill.id)) {
     if (this.jp(classId) >= jpCost) return true;
   }
@@ -562,6 +606,21 @@ Yanfly.SLS.Game_Actor_releaseUnequippableItems =
 Game_Actor.prototype.releaseUnequippableItems = function(forcing) {
     if (Yanfly.SLS.PreventReleaseItem) return;
     Yanfly.SLS.Game_Actor_releaseUnequippableItems.call(this, forcing);
+};
+
+Game_Actor.prototype.customLearnSkillJpCost = function(skill) {
+    if (!skill) return 0;
+    if (skill.customLearnJpCostEval === '') return 0;
+    var cost = 0;
+    var item = skill;
+    var a = this;
+    var b = this;
+    var user = this;
+    var target = this;
+    var s = $gameSwitches._data;
+    var v = $gameVariables._data;
+    eval(skill.customLearnJpCostEval);
+    return cost;
 };
 
 //=============================================================================
@@ -625,7 +684,9 @@ Game_Party.prototype.setupLearnSkillBattleTest = function() {
       var classData = actor.currentClass();
       for (var j = 0; j < classData.learnSkills.length; ++j) {
         var skillId = classData.learnSkills[j];
-        if ($dataSkills[skillId]) actor.learnSkill(skillId);
+        if (!$dataSkills[skillId]) continue;
+        if ($dataSkills[skillId].name === '') continue;
+        actor.learnSkill(skillId);
       }
       actor.refresh();
     }
@@ -792,6 +853,7 @@ Window_SkillLearn.prototype.createSkillLearnData = function() {
 };
 
 Window_SkillLearn.prototype.includes = function(skill) {
+    if (skill.name === '') return false;
     if (!this.meetsRequirements(skill)) return false;
     return true;
 };
@@ -799,7 +861,12 @@ Window_SkillLearn.prototype.includes = function(skill) {
 Window_SkillLearn.prototype.meetsRequirements = function(skill) {
     var evalValue = this.getEvalLine(skill.learnShowEval);
     if (evalValue !== undefined) return evalValue;
-    if (skill.learnRequireLevel > this._actor.level) return false;
+    if (Imported.YEP_ClassChangeCore) {
+      var classLevel = this._actor.classLevel(this._classId);
+      if (skill.learnRequireLevel > classLevel) return false;
+    } else {
+      if (skill.learnRequireLevel > this._actor.level) return false;
+    }
     for (var i = 0; i < skill.learnRequireSkill.length; ++i) {
       var skillId = skill.learnRequireSkill[i];
       if (!$dataSkills[skillId]) continue;
@@ -917,12 +984,16 @@ Window_SkillLearnClass.prototype.isEnabled = function(classId) {
     if (!this._skill) return false;
     var item = $dataClasses[classId];
     if (!item) return false;
-    var jpCost = this._skill.learnCostJp;
-    if (jpCost > this._actor.jp(item.id)) return false;
+    if (Imported.YEP_JobPoints) {
+      var jpCost = this._skill.learnCostJp;
+      jpCost += this._actor.customLearnSkillJpCost(this._skill);
+      if (jpCost > this._actor.jp(item.id)) return false;
+    }
     return Window_ClassList.prototype.isEnabled.call(this, classId);
 };
 
 Window_SkillLearnClass.prototype.drawClassLevel = function(item, wx, wy, ww) {
+    if (!Imported.YEP_JobPoints) return;
     var value = Yanfly.Util.toGroup(this._actor.jp(item.id));
     var icon = '\\i[' + Yanfly.Icon.Jp + ']';
     var fmt = Yanfly.Param.JpMenuFormat;
@@ -1037,7 +1108,11 @@ Window_SkillLearnData.prototype.drawCostText = function(wy) {
 
 Window_SkillLearnData.prototype.hasLearnCost = function() {
     if (this._skill.learnCostGold > 0) return true;
-    if (Imported.YEP_JobPoints && this._skill.learnCostJp > 0) return true;
+    if (Imported.YEP_JobPoints) {
+      var cost = this._skill.learnCostJp;
+      cost += this._actor.customLearnSkillJpCost(this._skill);
+      return cost > 0;
+    } 
     if (this._skill.learnCost.length > 0) return true;
     return false;
 };
@@ -1067,13 +1142,15 @@ Window_SkillLearnData.prototype.drawGoldCosts = function(wy) {
 
 Window_SkillLearnData.prototype.drawJpCosts = function(wy) {
     if (!Imported.YEP_JobPoints) return wy;
-    if (this._skill.learnCostJp <= 0) return wy;
+    var cost = this._skill.learnCostJp;
+    cost += this._actor.customLearnSkillJpCost(this._skill);
+    if (cost <= 0) return wy;
     var text = '';
     if (Yanfly.Icon.Jp > 0) text = '\\i[' + Yanfly.Icon.Jp + ']';
     text += Yanfly.Param.Jp;
     var wx = this.drawTextEx(text, 0, wy);
     var ww = this.contents.width - wx - 4;
-    var costText = Yanfly.Util.toGroup(this._skill.learnCostJp);
+    var costText = Yanfly.Util.toGroup(cost);
     this.contents.fontSize = Yanfly.Param.SLSCostSize;
     if (this._actor.sufficientJpLearnSkill(this._skill, this._classId)) {
       this.changeTextColor(this.powerUpColor());
@@ -1198,6 +1275,9 @@ Window_SkillLearnCommand.prototype.addClassCommand = function(classId) {
     var actorClass = $dataClasses[classId];
     if (!actorClass) return;
     var name = actorClass.name;
+    if (actorClass.useNickname) {
+      name = this._actor.nickname();
+    }
     this.addCommand(name, 'class', true, classId);
 };
 
@@ -1377,7 +1457,6 @@ Scene_Skill.prototype.createGoldWindow = function() {
 
 Scene_Skill.prototype.createSkillLearnClassWindow = function() {
     if (!Imported.YEP_ClassChangeCore) return;
-    if (!Imported.YEP_JobPoints) return;
     if (this._skillLearnClassWindow) return;
     var wx = 0;
     var wy = this._statusWindow.y + this._statusWindow.height;
@@ -1464,8 +1543,12 @@ Scene_Skill.prototype.processLearnSkill = function(skill, classId) {
   SoundManager.playUseSkill();
   $gameParty.loseGold(skill.learnCostGold);
   $gameParty.processLearnSkillCost(skill);
+  if (Imported.YEP_JobPoints) {
+    var cost = skill.learnCostJp;
+    cost += this.actor().customLearnSkillJpCost(skill);
+    this.actor().loseJp(cost, classId);
+  }
   this.processLearnCostEval(skill, classId);
-  if (Imported.YEP_JobPoints) this.actor().loseJp(skill.learnCostJp, classId);
   this.actor().refresh();
   this._skillLearnWindow.refresh();
   this._skillLearnWindow.updateHelp();
@@ -1683,8 +1766,12 @@ Scene_LearnSkill.prototype.processLearnSkill = function(skill, classId) {
   SoundManager.playUseSkill();
   $gameParty.loseGold(skill.learnCostGold);
   $gameParty.processLearnSkillCost(skill);
+  if (Imported.YEP_JobPoints) {
+    var cost = skill.learnCostJp;
+    cost += this.actor().customLearnSkillJpCost(skill);
+    this.actor().loseJp(cost, classId);
+  }
   this.processLearnCostEval(skill, classId);
-  if (Imported.YEP_JobPoints) this.actor().loseJp(skill.learnCostJp, classId);
   this.actor().refresh();
   this._skillLearnWindow.refresh();
   this._skillLearnWindow.updateHelp();

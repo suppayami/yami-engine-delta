@@ -11,9 +11,24 @@ Yanfly.APS = Yanfly.APS || {};
 
 //=============================================================================
  /*:
- * @plugindesc v1.05a This plugin allows for some states to function as
+ * @plugindesc v1.11 This plugin allows for some states to function as
  * passives for actors, enemies, skills, and equips.
  * @author Yanfly Engine Plugins
+ *
+ * @param Actor Passives
+ * @desc These states will always appear on actors as passives.
+ * Place a space in between each state ID.
+ * @default 0
+ *
+ * @param Enemy Passives
+ * @desc These states will always appear on enemies as passives.
+ * Place a space in between each state ID.
+ * @default 0
+ *
+ * @param Global Passives
+ * @desc These states will always appear on all battlers as passives.
+ * Place a space in between each state ID.
+ * @default 0
  *
  * @help
  * ============================================================================
@@ -101,6 +116,28 @@ Yanfly.APS = Yanfly.APS || {};
  * Changelog
  * ============================================================================
  *
+ * Version 1.11:
+ * - Added 'Global Passives' that encompass both actors and enemies.
+ *
+ * Version 1.10:
+ * - Added compatibility functionality for Equip Battle Skills to add the
+ * equipped passive states during battle test.
+ *
+ * Version 1.09:
+ * - Added 'Actor Passives' and 'Enemy Passives' plugin parameters. This will
+ * cause all actors and enemies respectively to be affected by the listed
+ * states as passives.
+ *
+ * Version 1.08:
+ * - Fixed conditional checks to make sure all states are being checked
+ * properly without conflict with other conditional states.
+ *
+ * Version 1.07:
+ * - Updated for RPG Maker MV version 1.1.0.
+ *
+ * Version 1.06:
+ * - Added a mass member refresh whenever $gamePlayer is refreshed.
+ *
  * Version 1.05a:
  * - Added Lunatic Mode - <Custom Passive Condition> notetag for states.
  * - Fixed a bug that would cause infinite loops.
@@ -127,23 +164,55 @@ Yanfly.APS = Yanfly.APS || {};
 //=============================================================================
 
 //=============================================================================
+// Parameter Variables
+//=============================================================================
+
+Yanfly.SetupParameters = function() {
+  Yanfly.Parameters = PluginManager.parameters('YEP_AutoPassiveStates');
+  Yanfly.Param = Yanfly.Param || {};
+  Yanfly.Param.APSActorPas = String(Yanfly.Parameters['Actor Passives']);
+  Yanfly.Param.APSActorPas = Yanfly.Param.APSActorPas.split(' ');
+  for (var i = 0; i < Yanfly.Param.APSActorPas.length; ++i) {
+    Yanfly.Param.APSActorPas[i] = parseInt(Yanfly.Param.APSActorPas[i]);
+    Yanfly.Param.APSActorPas[i] = Yanfly.Param.APSActorPas[i] || 0;
+  }
+  Yanfly.Param.APSEnemyPas = String(Yanfly.Parameters['Enemy Passives']);
+  Yanfly.Param.APSEnemyPas = Yanfly.Param.APSEnemyPas.split(' ');
+  for (var i = 0; i < Yanfly.Param.APSEnemyPas.length; ++i) {
+    Yanfly.Param.APSEnemyPas[i] = parseInt(Yanfly.Param.APSEnemyPas[i]);
+    Yanfly.Param.APSEnemyPas[i] = Yanfly.Param.APSEnemyPas[i] || 0;
+  }
+  Yanfly.Param.APSGlobalPas = String(Yanfly.Parameters['Global Passives']);
+  Yanfly.Param.APSGlobalPas = Yanfly.Param.APSGlobalPas.split(' ');
+  for (var i = 0; i < Yanfly.Param.APSGlobalPas.length; ++i) {
+    id = parseInt(Yanfly.Param.APSGlobalPas[i]);
+    Yanfly.Param.APSActorPas.push(id);
+    Yanfly.Param.APSEnemyPas.push(id);
+  }
+};
+Yanfly.SetupParameters();
+
+//=============================================================================
 // DataManager
 //=============================================================================
 
 Yanfly.APS.DataManager_isDatabaseLoaded = DataManager.isDatabaseLoaded;
 DataManager.isDatabaseLoaded = function() {
-    if (!Yanfly.APS.DataManager_isDatabaseLoaded.call(this)) return false;
-    this.processAPSNotetags1($dataActors);
+  if (!Yanfly.APS.DataManager_isDatabaseLoaded.call(this)) return false;
+  if (!Yanfly._loaded_YEP_AutoPassiveStates) {
+    this.processAPSNotetags1($dataActors, Yanfly.Param.APSActorPas);
     this.processAPSNotetags1($dataClasses);
-    this.processAPSNotetags1($dataEnemies);
+    this.processAPSNotetags1($dataEnemies, Yanfly.Param.APSEnemyPas);
     this.processAPSNotetags1($dataSkills);
     this.processAPSNotetags1($dataWeapons);
     this.processAPSNotetags1($dataArmors);
     this.processAPSNotetags2($dataStates);
-    return true;
+    Yanfly._loaded_YEP_AutoPassiveStates = true;
+  }
+  return true;
 };
 
-DataManager.processAPSNotetags1 = function(group) {
+DataManager.processAPSNotetags1 = function(group, inheritArray) {
   var note1 = /<(?:PASSIVE STATE):[ ]*(\d+(?:\s*,\s*\d+)*)>/i;
   var note2 = /<(?:PASSIVE STATE):[ ](\d+)[ ](?:THROUGH|to)[ ](\d+)>/i;
   for (var n = 1; n < group.length; n++) {
@@ -151,6 +220,9 @@ DataManager.processAPSNotetags1 = function(group) {
     var notedata = obj.note.split(/[\r\n]+/);
 
     obj.passiveStates = [];
+    if (inheritArray) {
+      obj.passiveStates = obj.passiveStates.concat(inheritArray);
+    }
 
     for (var i = 0; i < notedata.length; i++) {
       var line = notedata[i];
@@ -282,8 +354,9 @@ Game_BattlerBase.prototype.isStateAffected = function(stateId) {
 
 Game_BattlerBase.prototype.passiveStates = function() {
     var array = [];
-    for (var i = 0; i < this.passiveStatesRaw().length; ++i) {
-      var state = $dataStates[this.passiveStatesRaw()[i]];
+    var raw = this.passiveStatesRaw();
+    for (var i = 0; i < raw.length; ++i) {
+      var state = $dataStates[raw[i]];
       if (state && array.contains(state)) continue;
       array.push(state);
     }
@@ -304,11 +377,21 @@ Game_BattlerBase.prototype.getPassiveStateData = function(obj) {
       if (!this.meetPassiveStateCondition(stateId)) continue;
       array.push(stateId);
     }
+    var added = this.addEquipBattleTestSkillPassives(obj);
+    if (added.length > 0) array = array.concat(added);
     return array;
 };
 
+Game_BattlerBase.prototype.addEquipBattleTestSkillPassives = function(obj) {
+  if (!Imported.YEP_EquipBattleSkills) return [];
+  if (!DataManager.isBattleTest()) return [];
+  if (!DataManager.isSkill(obj)) return [];
+  return obj.equipStates;
+};
+
 Game_BattlerBase.prototype.meetPassiveStateCondition = function(stateId) {
-    if (this._checkingPassiveStateCondition) return false;
+    this._checkPassiveStateCondition = this._checkPassiveStateCondition || [];
+    if (this._checkPassiveStateCondition.contains(stateId)) return false;
     var state = $dataStates[stateId];
     if (!state) return false;
     if (state.passiveCondition !== '') {
@@ -319,28 +402,36 @@ Game_BattlerBase.prototype.meetPassiveStateCondition = function(stateId) {
 };
 
 Game_BattlerBase.prototype.passiveStateConditions = function(state) {
-    this._checkingPassiveStateCondition = state.id;
+    this._checkPassiveStateCondition = this._checkPassiveStateCondition || [];
+    this._checkPassiveStateCondition.push(state.id);
     var condition = true;
     var a = this;
     var user = this;
     var subject = this;
+    var b = this;
+    var target = this;
     var s = $gameSwitches._data;
     var v = $gameVariables._data;
     eval(state.passiveCondition);
-    this._checkingPassiveStateCondition = 0;
+    var index = this._checkPassiveStateCondition.indexOf(state.id);
+    this._checkPassiveStateCondition.splice(index, 1);
     return condition;
 };
 
 Game_BattlerBase.prototype.passiveStateConditionEval = function(state) {
-    this._checkingPassiveStateCondition = state.id;
+    this._checkPassiveStateCondition = this._checkPassiveStateCondition || [];
+    this._checkPassiveStateCondition.push(state.id);
     var condition = true;
     var a = this;
     var user = this;
     var subject = this;
+    var b = this;
+    var target = this;
     var s = $gameSwitches._data;
     var v = $gameVariables._data;
     eval(state.passiveConditionEval);
-    this._checkingPassiveStateCondition = 0;
+    var index = this._checkPassiveStateCondition.indexOf(state.id);
+    this._checkPassiveStateCondition.splice(index, 1);
     return condition;
 };
 
@@ -431,6 +522,33 @@ if (!Game_Enemy.prototype.skills) {
       }
       return skills;
     }
+};
+
+//=============================================================================
+// Game_Unit
+//=============================================================================
+
+Game_Unit.prototype.refreshMembers = function() {
+    var group = this.allMembers();
+    var length = group.length;
+    for (var i = 0; i < length; ++i) {
+      var member = group[i];
+      if (member) member.refresh();
+    }
+};
+
+Game_Unit.prototype.allMembers = function() {
+    return this.members();
+};
+
+//=============================================================================
+// Game_Player
+//=============================================================================
+
+Yanfly.APS.Game_Player_refresh = Game_Player.prototype.refresh;
+Game_Player.prototype.refresh = function() {
+    $gameParty.refreshMembers();
+    Yanfly.APS.Game_Player_refresh.call(this);
 };
 
 //=============================================================================

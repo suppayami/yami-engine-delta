@@ -11,7 +11,7 @@ Yanfly.VATB = Yanfly.VATB || {};
 
 //=============================================================================
  /*:
- * @plugindesc v1.01 (Requires YEP_BattleSysATB.js) Provides a visible ATB
+ * @plugindesc v1.03 (Requires YEP_BattleSysATB.js) Provides a visible ATB
  * gauge for your enemies!
  * @author Yanfly Engine Plugins
  *
@@ -76,6 +76,12 @@ Yanfly.VATB = Yanfly.VATB || {};
  * Changelog
  * ============================================================================
  *
+ * Version 1.03:
+ * - Updated for RPG Maker MV version 1.1.0.
+ *
+ * Version 1.02:
+ * - Optimization update.
+ *
  * Version 1.01:
  * - Fixed a graphical issue to synchronize the opacity value with battlers!
  *
@@ -106,9 +112,12 @@ Yanfly.Param.VATBThick = eval(String(Yanfly.Parameters['Use Thick Gauges']));
 
 Yanfly.VATB.DataManager_isDatabaseLoaded = DataManager.isDatabaseLoaded;
 DataManager.isDatabaseLoaded = function() {
-    if (!Yanfly.VATB.DataManager_isDatabaseLoaded.call(this)) return false;
-    DataManager.processVATBNotetags1($dataEnemies);
-    return true;
+  if (!Yanfly.VATB.DataManager_isDatabaseLoaded.call(this)) return false;
+  if (!Yanfly._loaded_YEP_X_VisualATBGauge) {
+    this.processVATBNotetags1($dataEnemies);
+    Yanfly._loaded_YEP_X_VisualATBGauge = true;
+  }
+  return true;
 };
 
 DataManager.processVATBNotetags1 = function(group) {
@@ -228,12 +237,23 @@ Window_EnemyVisualATB.prototype.updateWindowAspects = function() {
 Window_EnemyVisualATB.prototype.updateWindowSize = function() {
     var spriteWidth = this._battler.atbGaugeWidth();
     var width = spriteWidth + this.standardPadding() * 2;
+    width = Math.min(width, Graphics.boxWidth + this.standardPadding() * 2);
     var height = this.lineHeight() + this.standardPadding() * 2;
     if (width === this.width && height === this.height) return;
     this.width = width;
     this.height = height;
     this.createContents();
     this._requestRefresh = true;
+    this.makeWindowBoundaries();
+};
+
+Window_EnemyVisualATB.prototype.makeWindowBoundaries = function() {
+    if (!this._requestRefresh) return;
+    this._minX = -1 * this.standardPadding();
+    this._maxX = Graphics.boxWidth - this.width + this.standardPadding();
+    this._minY = -1 * this.standardPadding();
+    this._maxY = Graphics.boxHeight - this.height + this.standardPadding();
+    this._maxY -= SceneManager._scene._statusWindow.height;
 };
 
 Window_EnemyVisualATB.prototype.updateWindowPosition = function() {
@@ -241,12 +261,14 @@ Window_EnemyVisualATB.prototype.updateWindowPosition = function() {
     var battler = this._battler;
     this.x = battler.spritePosX();
     this.x -= Math.ceil(this.width / 2);
+    this.x = this.x.clamp(this._minX, this._maxX);
     this.y = battler.spritePosY();
     if (Yanfly.Param.VATBGaugePOS) {
       this.y -= battler.spriteHeight();
     } else {
       this.y -= this.standardPadding();
     }
+    this.y = this.y.clamp(this._minY, this._maxY);
     this.y += Yanfly.Param.VATBYBuffer;
 };
 

@@ -11,7 +11,7 @@ Yanfly.AVar = Yanfly.AVar || {};
 
 //=============================================================================
  /*:
- * @plugindesc v1.01a (Requires YEP_StatusMenuCore.js) Allows you to
+ * @plugindesc v1.03 (Requires YEP_StatusMenuCore.js) Allows you to
  * display variables for each actor.
  * @author Yanfly Engine Plugins
  *
@@ -112,6 +112,13 @@ Yanfly.AVar = Yanfly.AVar || {};
  * Changelog
  * ============================================================================
  *
+ * Version 1.03:
+ * - Fixed a bug that prevented custom positioning with the Status Menu Core's
+ * command order parameter.
+ *
+ * Version 1.02:
+ * - Updated for RPG Maker MV version 1.1.0.
+ *
  * Version 1.01a:
  * - Added 'Hidden Variables' plugin parameter.
  * - Added 'HideActorVariable' and 'ShowActorVariable' plugin command.
@@ -143,9 +150,12 @@ Yanfly.Param.AVarHidden = String(Yanfly.Parameters['Hidden Variables']);
 
 Yanfly.AVar.DataManager_isDatabaseLoaded = DataManager.isDatabaseLoaded;
 DataManager.isDatabaseLoaded = function() {
-    if (!Yanfly.AVar.DataManager_isDatabaseLoaded.call(this)) return false;
+  if (!Yanfly.AVar.DataManager_isDatabaseLoaded.call(this)) return false;
+  if (!Yanfly._loaded_YEP_X_ActorVariables) {
     DataManager.processAVarNotetags($dataActors);
-    return true;
+    Yanfly._loaded_YEP_X_ActorVariables = true;
+  }
+  return true;
 };
 
 DataManager.processAVarNotetags = function(group) {
@@ -302,7 +312,7 @@ Yanfly.AVar.Window_StatusCommand_createCommand =
 Window_StatusCommand.prototype.createCommand = function(command) {
     if (command.toUpperCase() === 'VARIABLES') {
       var text = Yanfly.Param.AVarCmdName;
-      this.addCommand(text, 'variables', true);
+      this.addCommand(text, 'actorVariables', true);
     } else {
       Yanfly.AVar.Window_StatusCommand_createCommand.call(this, command);
     }

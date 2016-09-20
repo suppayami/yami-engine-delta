@@ -11,7 +11,7 @@ Yanfly.Instant = Yanfly.Instant || {};
 
 //=============================================================================
  /*:
- * @plugindesc v1.05 Allows skills/items to be instantly cast after being
+ * @plugindesc v1.08 Allows skills/items to be instantly cast after being
  * selected in the battle menu.
  * @author Yanfly Engine Plugins
  *
@@ -149,6 +149,22 @@ Yanfly.Instant = Yanfly.Instant || {};
  * Changelog
  * ============================================================================
  *
+ * Version 1.08:
+ * - Updated for RPG Maker MV version 1.1.0.
+ *
+ * Version 1.07b:
+ * - Optimized to fit Tick-Based Battle Systems better.
+ * - Fixed a bug where if the user uses an instant action self-berserks itself,
+ * the user will still be able to input an action.
+ * - Added failsafes for those using independent items and then adding this
+ * plugin later. Effects are not applied retroactively.
+ *
+ * Version 1.06c:
+ * - Fixed a bug if instant casting a skill that would make an opponent battler
+ * to force an action to end incorrectly. Thanks to DoubleX for the fix.
+ * - Added a more consistent window refresh upon using instant actions.
+ * - Instant icons are now shown outside of battle.
+ *
  * Version 1.05:
  * - Added a fail safe to keep an action that once it's being used, it will
  * maintain its current status of being an instant or non-instant until the
@@ -188,8 +204,9 @@ Yanfly.Icon.Instant = Number(Yanfly.Parameters['Instant Icon']);
 
 Yanfly.Instant.DataManager_isDatabaseLoaded = DataManager.isDatabaseLoaded;
 DataManager.isDatabaseLoaded = function() {
-    if (!Yanfly.Instant.DataManager_isDatabaseLoaded.call(this)) return false;
-		DataManager.processInstantNotetags1($dataSkills);
+  if (!Yanfly.Instant.DataManager_isDatabaseLoaded.call(this)) return false;
+  if (!Yanfly._loaded_YEP_InstantCast) {
+  	DataManager.processInstantNotetags1($dataSkills);
     DataManager.processInstantNotetags1($dataItems);
     DataManager.processInstantNotetags2($dataActors);
     DataManager.processInstantNotetags2($dataClasses);
@@ -197,7 +214,9 @@ DataManager.isDatabaseLoaded = function() {
     DataManager.processInstantNotetags2($dataWeapons);
     DataManager.processInstantNotetags2($dataArmors);
     DataManager.processInstantNotetags2($dataStates);
-		return true;
+    Yanfly._loaded_YEP_InstantCast = true;
+  }
+	return true;
 };
 
 DataManager.processInstantNotetags1 = function(group) {
@@ -326,11 +345,13 @@ BattleManager.endActorInstantCast = function() {
     user.makeActions();
     if (this.checkBattleEnd()) return;
     this._phase = 'input';
-    if (user.canMove()) {
+    if (user.canMove() && user.canInput()) {
       user.endInstantCast();
     } else {
+      user.makeActions();
       this.selectNextCommand();
     }
+    this.refreshStatus()
 };
 
 BattleManager.endEnemyInstantCastAction = function() {
@@ -345,11 +366,41 @@ BattleManager.endEnemyInstantCastAction = function() {
 };
 
 BattleManager.addInstantCastAction = function(battler) {
+    if (Imported.YEP_X_BattleSysATB && this.isATB()) return;
+    if (Imported.YEP_X_BattleSysCTB && this.isCTB()) return;
     var action = new Game_Action(battler);
     battler._actions.push(action);
     battler.makeActions();
     this.makeActionOrders();
 };
+
+if (Imported.YEP_BattleEngineCore) {
+
+Yanfly.Instant.BattleManager_savePreForceActionSettings =
+    BattleManager.savePreForceActionSettings;
+BattleManager.savePreForceActionSettings = function() {
+    Yanfly.Instant.BattleManager_savePreForceActionSettings.call(this);
+    this._instantCasting = false;
+};
+
+Yanfly.Instant.BattleManager_setPreForceActionSettings =
+BattleManager.setPreForceActionSettings;
+BattleManager.setPreForceActionSettings = function() {
+    var settings =
+      Yanfly.Instant.BattleManager_setPreForceActionSettings.call(this);
+    settings['instantCasting'] = this._instantCasting;
+    return settings;
+};
+
+Yanfly.Instant.BattleManager_resetPreForceActionSettings =
+BattleManager.resetPreForceActionSettings;
+BattleManager.resetPreForceActionSettings = function(settings) {
+    Yanfly.Instant.BattleManager_resetPreForceActionSettings.call(this,
+      settings);
+    this._instantCasting = settings['instantCasting'];
+};
+
+} // Imported.YEP_BattleEngineCore
 
 //=============================================================================
 // Game_Battler
@@ -389,9 +440,12 @@ Game_Battler.prototype.isCancelInstantCast = function(item) {
 
 Game_Battler.prototype.checkInstantCast = function(obj, item) {
     var id = item.id;
+    if (!obj) return false;
     if (DataManager.isSkill(item)) {
+      if (!obj.instantSkill) return false;
       if (obj.instantSkill.contains(id)) return true;
     } else if (DataManager.isItem(item)) {
+      if (!obj.instantItem) return false;
       if (obj.instantItem.contains(id)) return true;
     }
     return false;
@@ -399,12 +453,30 @@ Game_Battler.prototype.checkInstantCast = function(obj, item) {
 
 Game_Battler.prototype.checkCancelInstantCast = function(obj, item) {
     var id = item.id;
+    if (!obj) return false;
     if (DataManager.isSkill(item)) {
+      if (!obj.cancelInstantSkill) return false;
       if (obj.cancelInstantSkill.contains(id)) return true;
     } else if (DataManager.isItem(item)) {
+      if (!obj.cancelInstantItem) return false;
       if (obj.cancelInstantItem.contains(id)) return true;
     }
     return false;
+};
+
+Yanfly.Instant.Game_Battler_onRestrict = Game_Battler.prototype.onRestrict;
+Game_Battler.prototype.onRestrict = function() {
+    var instant = false;
+    if ($gameParty.inBattle()) {
+      if (BattleManager._subject === this && BattleManager._instantCasting) {
+        instant = true;
+        var currentAction = this.currentAction();
+      }
+    }
+    Yanfly.Instant.Game_Battler_onRestrict.call(this);
+    if (instant) {
+      this.setAction(0, currentAction);
+    }
 };
 
 //=============================================================================
@@ -521,10 +593,9 @@ Window_Base.prototype.drawItemName = function(item, wx, wy, ww) {
 Window_Base.prototype.drawInstantIcon = function(item, wx, wy, ww) {
     var icon = Yanfly.Icon.Instant;
     if (icon <= 0) return;
-    if (!$gameParty.inBattle()) return;
     if (!item) return;
     if (!DataManager.isItem(item) && !DataManager.isSkill(item)) return;
-    var actor = BattleManager.actor();
+    var actor = this._actor;
     if (!actor) return;
     if (!actor.isInstantCast(item)) return;
     this.drawIcon(icon, wx + 2, wy + 2);

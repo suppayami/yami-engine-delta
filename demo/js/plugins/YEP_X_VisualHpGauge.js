@@ -11,7 +11,7 @@ Yanfly.VHG = Yanfly.VHG || {};
 
 //=============================================================================
  /*:
- * @plugindesc v1.03 (Requires YEP_BattleEngineCore.js) Reveal HP Gauges
+ * @plugindesc v1.05 (Requires YEP_BattleEngineCore.js) Reveal HP Gauges
  * when a battler is selected or takes damage in battle.
  * @author Yanfly Engine Plugins
  *
@@ -143,6 +143,12 @@ Yanfly.VHG = Yanfly.VHG || {};
  * Changelog
  * ============================================================================
  *
+ * Version 1.05:
+ * - Updated for RPG Maker MV version 1.1.0.
+ *
+ * Version 1.04:
+ * - Optimization update.
+ *
  * Version 1.03:
  * - Fixed a bug when Escape skill-effects are used on battlers.
  *
@@ -201,10 +207,13 @@ Yanfly.Param.VHGShowMax = eval(String(Yanfly.Parameters['Show Max']));
 
 Yanfly.VHG.DataManager_isDatabaseLoaded = DataManager.isDatabaseLoaded;
 DataManager.isDatabaseLoaded = function() {
-    if (!Yanfly.VHG.DataManager_isDatabaseLoaded.call(this)) return false;
-		this.processVHGNotetags($dataClasses);
-		this.processVHGNotetags($dataEnemies);
-		return true;
+  if (!Yanfly.VHG.DataManager_isDatabaseLoaded.call(this)) return false;
+  if (!Yanfly._loaded_YEP_X_VisualHpGauge) {
+  	this.processVHGNotetags($dataClasses);
+  	this.processVHGNotetags($dataEnemies);
+    Yanfly._loaded_YEP_X_VisualHpGauge = true;
+  }
+	return true;
 };
 
 DataManager.processVHGNotetags = function(group) {
@@ -474,6 +483,7 @@ Window_VisualHPGauge.prototype.updateWindowAspects = function() {
 Window_VisualHPGauge.prototype.updateWindowSize = function() {
     var spriteWidth = this._battler.hpGaugeWidth();
     var width = spriteWidth + this.standardPadding() * 2;
+    width = Math.min(width, Graphics.boxWidth + this.standardPadding() * 2);
     var height = Math.max(this.lineHeight(), this.gaugeHeight() + 4);
     height += this.standardPadding() * 2;
     if (width === this.width && height === this.height) return;
@@ -481,19 +491,31 @@ Window_VisualHPGauge.prototype.updateWindowSize = function() {
     this.height = height;
     this.createContents();
     this._requestRefresh = true;
+    this.makeWindowBoundaries();
+};
+
+Window_VisualHPGauge.prototype.makeWindowBoundaries = function() {
+    if (!this._requestRefresh) return;
+    this._minX = -1 * this.standardPadding();
+    this._maxX = Graphics.boxWidth - this.width + this.standardPadding();
+    this._minY = -1 * this.standardPadding();
+    this._maxY = Graphics.boxHeight - this.height + this.standardPadding();
+    this._maxY -= SceneManager._scene._statusWindow.height;
 };
 
 Window_VisualHPGauge.prototype.updateWindowPosition = function() {
     if (!this._battler) return;
     var battler = this._battler;
     this.x = battler.spritePosX();
-    this.x -= Math.ceil(this.width / 2);
+    this.x -= Math.ceil(this.width / 2); 
+    this.x = this.x.clamp(this._minX, this._maxX);
     this.y = battler.spritePosY();
     if (Yanfly.Param.VHGGaugePos) {
       this.y -= battler.spriteHeight();
     } else {
       this.y -= this.standardPadding();
     }
+    this.y = this.y.clamp(this._minY, this._maxY);
     this.y += Yanfly.Param.VHGBufferY;
 };
 
@@ -527,7 +549,11 @@ Window_VisualHPGauge.prototype.updateHpPosition = function() {
 };
 
 Window_VisualHPGauge.prototype.updateDisplayCounter = function() {
-    if (this._currentHpValue == this._displayedValue) return;
+    if (this._battler._barrierAltered) {
+      this._battler._barrierAltered = false;
+    } else if (this._currentHpValue === this._displayedValue) {
+      return;
+    }
     var d = this._dropSpeed;
     var c = this._currentHpValue;
     if (this._displayedValue > this._currentHpValue) {
@@ -568,7 +594,11 @@ Window_VisualHPGauge.prototype.drawActorHp = function(actor, x, y, width) {
     var color1 = this.hpGaugeColor1();
     var color2 = this.hpGaugeColor2();
     var rate = this._displayedValue / actor.mhp;
-    this.drawGauge(x, y, width, rate, color1, color2);
+    if (Imported.YEP_AbsorptionBarrier && actor.barrierPoints() > 0) {
+      ww = this.drawBarrierGauge(actor, x, y, width);
+    } else {
+      this.drawGauge(x, y, width, rate, color1, color2);
+    }
     if (Yanfly.Param.VHGShowHP) {
       this.changeTextColor(this.systemColor());
       this.drawText(TextManager.hpA, x, y, 44);

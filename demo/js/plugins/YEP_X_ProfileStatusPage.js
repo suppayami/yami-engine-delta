@@ -11,7 +11,7 @@ Yanfly.PSP = Yanfly.PSP || {};
 
 //=============================================================================
  /*:
- * @plugindesc v1.00 (Requires YEP_StatusMenuCore.js) Places a Profile
+ * @plugindesc v1.01 (Requires YEP_StatusMenuCore.js) Places a Profile
  * Status Page in the status menu for your actors.
  * @author Yanfly Engine Plugins
  *
@@ -109,6 +109,9 @@ Yanfly.PSP = Yanfly.PSP || {};
  * Changelog
  * ============================================================================
  *
+ * Version 1.01:
+ * - Updated for RPG Maker MV version 1.1.0.
+ *
  * Version 1.00:
  * - Finished Plugin!
  */
@@ -134,9 +137,12 @@ Yanfly.Param.PSPImageAlign = String(Yanfly.Parameters['Image Align']);
 
 Yanfly.PSP.DataManager_isDatabaseLoaded = DataManager.isDatabaseLoaded;
 DataManager.isDatabaseLoaded = function() {
-    if (!Yanfly.PSP.DataManager_isDatabaseLoaded.call(this)) return false;
+  if (!Yanfly.PSP.DataManager_isDatabaseLoaded.call(this)) return false;
+  if (!Yanfly._loaded_YEP_X_ProfileStatusPage) {
     this.processPSPNotetags($dataActors);
-    return true;
+    Yanfly._loaded_YEP_X_ProfileStatusPage = true;
+  }
+  return true;
 };
 
 DataManager.processPSPNotetags = function(group) {

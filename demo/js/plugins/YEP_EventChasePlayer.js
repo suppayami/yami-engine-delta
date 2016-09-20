@@ -11,7 +11,7 @@ Yanfly.ECP = Yanfly.ECP || {};
 
 //=============================================================================
  /*:
- * @plugindesc v1.00 When a player is in the proximity of a certain event,
+ * @plugindesc v1.04 When a player is in the proximity of a certain event,
  * the event will start chasing or fleeing from the player.
  * @author Yanfly Engine Plugins
  *
@@ -44,6 +44,15 @@ Yanfly.ECP = Yanfly.ECP || {};
  * Use 0 if you do not wish to use a Common Event.
  * @default 0
  *
+ * @param Return After
+ * @desc After chasing/fleeing from a player, the event returns
+ * to its original spot. NO - false   YES - true
+ * @default true
+ *
+ * @param Return Wait
+ * @desc The frames to wait after finishing a chase/flee.
+ * @default 180
+ *
  * @help
  * ============================================================================
  * Introduction
@@ -72,13 +81,48 @@ Yanfly.ECP = Yanfly.ECP || {};
  *  this._seePlayer = false    Doesn't require event to be able to see player.
  *  this._alertBalloon = x     This balloon will play when player is seen.
  *  this._alertSound = x       This sound will play when player is seen.
+ *  this._alertSoundVol = x    The volume used by the alert sound.
+ *  this._alertSoundPitch = x  The pitch used by the alert sound.
+ *  this._alertSoundPan = x    The pan used by the alert sound.
  *  this._alertCommonEvent = x This event will play when player is seen.
+ *  this._returnAfter = true   Returns the event back to its original spot.
+ *  this._returnAfter = false  Event stays where it is when finished chasing.
+ *  this._returnWait = x       How long event waits after finishing chase/flee.
  *
  * It is best to play this inside of a custom move route for the event at a
  * high frequency rate. Keep in mind these effects only occur after the setting
  * is made and ran, which means upon loading a map, if the event with a low
  * frequency hasn't loaded up 'this._chaseRange = x' in its movement queue yet,
  * the event will not chase the player just yet.
+ *
+ * ============================================================================
+ * Changelog
+ * ============================================================================
+ *
+ * Version 1.04:
+ * - Fixed a bug with this._seePlayer causing them to see stealthed players.
+ *
+ * Version 1.03:
+ * - Improved pathfinding for chasing events. They will get stuck less by walls
+ * and/or events that may be blocking the event.
+ * - Added random factor for fleeing events. Fleeing events won't simply just
+ * run away 180 degrees away from the player. They will sometimes move in a
+ * random direction.
+ *
+ * Version 1.02:
+ * - Added 'Return After' parameter where events will return to their original
+ * spot after chasing/fleeing from a player.
+ * - Added 'Return Wait' parameter to determine how long an event will wait in
+ * place before returning after a finished chase/flee.
+ * - Added 'this._returnAfter' and 'this._returnWait' to the list of available
+ * movement route script calls.
+ *
+ * Version 1.01:
+ * - Added 'this._alertSoundPitch' 'this._alertSoundVol' 'this._alertSoundPan'
+ * to the settings you can alter to adjust the alert sound.
+ *
+ * Version 1.00:
+ * - Finished Plugin!
  */
 //=============================================================================
 
@@ -95,6 +139,8 @@ Yanfly.Param.ECPAlertTimer = Number(Yanfly.Parameters['Alert Timer']);
 Yanfly.Param.ECPAlertBalloon = Number(Yanfly.Parameters['Alert Balloon']);
 Yanfly.Param.ECPAlertSound = String(Yanfly.Parameters['Alert Sound']);
 Yanfly.Param.ECPAlertEvent = Number(Yanfly.Parameters['Alert Common Event']);
+Yanfly.Param.ECPReturn = eval(String(Yanfly.Parameters['Return After']));
+Yanfly.Param.ECPReturnWait = Number(Yanfly.Parameters['Return Wait']);
 
 //=============================================================================
 // Main Code
@@ -112,6 +158,9 @@ Game_Event.prototype.clearChaseSettings = function() {
   this._alertLock = 0;
   this._alertPlayer = false;
   this._alertSound = Yanfly.Param.ECPAlertSound;
+  this._alertSoundVol = 100;
+  this._alertSoundPitch = 100;
+  this._alertSoundPan = 0;
   this._alertTimer = 0;
   this._chasePlayer = false;
   this._chaseRange = 0;
@@ -122,6 +171,13 @@ Game_Event.prototype.clearChaseSettings = function() {
   this._fleeSpeed = this._moveSpeed;
   this._seePlayer = eval(Yanfly.Param.ECPSeePlayer);
   this._sightLock = eval(Yanfly.Param.ECPSightLock);
+  this._returnAfter = Yanfly.Param.ECPReturn;
+  this._returnWait = Yanfly.Param.ECPReturnWait;
+  this._returnPhase = false;
+  this._returnFrames = 0;
+  this._startLocationX = this.x;
+  this._startLocationY = this.y;
+  this._startLocationDir = this._direction;
 };
 
 Yanfly.ECP.Game_Event_updateSelfMovement =
@@ -137,6 +193,7 @@ Yanfly.ECP.Game_Event_update = Game_Event.prototype.update;
 Game_Event.prototype.update = function() {
     Yanfly.ECP.Game_Event_update.call(this);
     this.updateAlert();
+    this.updateReturnPhase();
 };
 
 Game_Event.prototype.canSeePlayer = function() {
@@ -161,23 +218,43 @@ Game_Event.prototype.updateChaseDistance = function() {
     var dis = Math.abs(this.deltaXFrom($gamePlayer.x));
     dis += Math.abs(this.deltaYFrom($gamePlayer.y));
     if (this.chaseConditions(dis)) {
-      this._chasePlayer = true;
-      this.setMoveSpeed(this._chaseSpeed);
+      this.startEventChase();
     } else if (this._chasePlayer) {
-      this._chasePlayer = false;
-      this.setMoveSpeed(this._defaultSpeed);
-      if (this._alertTimer <= 0) this._alertPlayer = false;
+      this.endEventChase();
     }
 };
 
 Game_Event.prototype.chaseConditions = function(dis) {
-    if (this._alertLock > 0) return true;
-    if (dis <= this._chaseRange && this.canSeePlayer()) return true;
-    if (dis <= this._chaseRange && !this._seePlayer) {
+    if (dis <= this._chaseRange && this.nonSeePlayer()) {
       this._alertLock = this._sightLock;
       return true;
     }
+    if (this._alertLock > 0) return true;
+    if (dis <= this._chaseRange && this.canSeePlayer()) return true;
     return false;
+};
+
+Game_Event.prototype.nonSeePlayer = function() {
+  if (Imported.YEP_X_EventChaseStealth) {
+    if (this.meetStealthModeConditions()) {
+      this.stealthClearChaseSettings();
+      this._stopCount = 0;
+      return false;
+    }
+  }
+  return !this._seePlayer;
+};
+
+Game_Event.prototype.startEventChase = function() {
+    this._chasePlayer = true;
+    this.setMoveSpeed(this._chaseSpeed);
+};
+
+Game_Event.prototype.endEventChase = function() {
+    this._chasePlayer = false;
+    this.setMoveSpeed(this._defaultSpeed);
+    if (this._alertTimer <= 0) this._alertPlayer = false;
+    this.startReturnPhase();
 };
 
 Game_Event.prototype.updateFleeDistance = function() {
@@ -186,12 +263,9 @@ Game_Event.prototype.updateFleeDistance = function() {
     var dis = Math.abs(this.deltaXFrom($gamePlayer.x));
     dis += Math.abs(this.deltaYFrom($gamePlayer.y));
     if (this.fleeConditions(dis)) {
-      this._fleePlayer = true;
-      this.setMoveSpeed(this._fleeSpeed);
+      this.startEventFlee();
     } else if (this._fleePlayer) {
-      this._fleePlayer = false;
-      this.setMoveSpeed(this._defaultSpeed);
-      if (this._alertTimer <= 0) this._alertPlayer = false;
+      this.endEventFlee();
     }
 };
 
@@ -205,13 +279,39 @@ Game_Event.prototype.fleeConditions = function(dis) {
     return false;
 };
 
+Game_Event.prototype.startEventFlee = function() {
+    this._fleePlayer = true;
+    this.setMoveSpeed(this._fleeSpeed);
+};
+
+Game_Event.prototype.endEventFlee = function() {
+    this._fleePlayer = false;
+    this.setMoveSpeed(this._defaultSpeed);
+    if (this._alertTimer <= 0) this._alertPlayer = false;
+    this.startReturnPhase();
+};
+
 Game_Event.prototype.updateChaseMovement = function() {
     if (this._stopCount > 0 && this._chasePlayer) {
-      this.moveTowardPlayer();
+      var direction = this.findDirectionTo($gamePlayer.x, $gamePlayer.y);
+      if (direction > 0) this.moveStraight(direction);
     } else if (this._stopCount > 0 && this._fleePlayer) {
-      this.moveAwayFromPlayer();
+      this.updateFleeMovement();
+    } else if (this._returnPhase) {
+      this.updateMoveReturnAfter();
     } else {
       Yanfly.ECP.Game_Event_updateSelfMovement.call(this);
+    }
+};
+
+Game_Event.prototype.updateFleeMovement = function() {
+    switch (Math.randomInt(6)) {
+    case 0: case 1: case 2: case 3: case 4:
+      this.moveAwayFromPlayer();
+      break;
+    case 5:
+      this.moveRandom();
+      break;
     }
 };
 
@@ -238,9 +338,9 @@ Game_Event.prototype.playAlertSound = function() {
     if (this._alertSound === '') return;
     var sound = {
       name:   this._alertSound,
-      volume: 100,
-      pitch:  100,
-      pan:    100
+      volume: this._alertSoundVol,
+      pitch:  this._alertSoundPitch,
+      pan:    this._alertSoundPan
     };
     AudioManager.playSe(sound);
 };
@@ -248,6 +348,46 @@ Game_Event.prototype.playAlertSound = function() {
 Game_Event.prototype.playAlertCommonEvent = function() {
     if (this._alertCommonEvent <= 0) return;
     $gameTemp.reserveCommonEvent(this._alertCommonEvent);
+};
+
+Game_Event.prototype.startReturnPhase = function() {
+    if (!this._returnAfter) return;
+    this._returnPhase = true;
+    this._returnFrames = this._returnWait;
+};
+
+Game_Event.prototype.updateReturnPhase = function() {
+    if (this._returnPhase) this._returnFrames--;
+};
+
+Game_Event.prototype.updateMoveReturnAfter = function() {
+    if (this._returnFrames > 0) return;
+    var sx = this.deltaXFrom(this._startLocationX);
+    var sy = this.deltaYFrom(this._startLocationY);
+    if (Math.abs(sx) > Math.abs(sy)) {
+      if (Math.randomInt(6) <= 4) {
+        this.moveStraight(sx > 0 ? 4 : 6);
+        if (!this.isMovementSucceeded() && sy !== 0) {
+          this.moveStraight(sy > 0 ? 8 : 2);
+        }
+      } else {
+        this.moveRandom();
+      }
+    } else if (sy !== 0) {
+      if (Math.randomInt(6) <= 4) {
+        this.moveStraight(sy > 0 ? 8 : 2);
+        if (!this.isMovementSucceeded() && sx !== 0) {
+          this.moveStraight(sx > 0 ? 4 : 6);
+        }
+      } else {
+        this.moveRandom();
+      }
+    }
+    if (sx === 0 && sy === 0) {
+      this._returnPhase = false;
+      this._returnFrames = 0;
+      this._direction = this._startLocationDir;
+    }
 };
 
 //=============================================================================

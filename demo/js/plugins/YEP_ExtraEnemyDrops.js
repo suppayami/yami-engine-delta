@@ -11,7 +11,7 @@ Yanfly.EED = Yanfly.EED || {};
 
 //=============================================================================
  /*:
- * @plugindesc v1.02 Allows your enemies to drop more than just three
+ * @plugindesc v1.06 Allows your enemies to drop more than just three
  * items as per the editor's limit.
  * @author Yanfly Engine Plugins
  *
@@ -86,17 +86,17 @@ Yanfly.EED = Yanfly.EED || {};
  *   <Conditional Item x Drop>
  *    condition: +y%
  *    condition: -y%
- *   <Conditional Item x Drop>
+ *   </Conditional Item x Drop>
  *
  *   <Conditional Weapon x Drop>
  *    condition: +y%
  *    condition: -y%
- *   <Conditional Weapon x Drop>
+ *   </Conditional Weapon x Drop>
  *
  *   <Conditional Armor x Drop>
  *    condition: +y%
  *    condition: -y%
- *   <Conditional Armor x Drop>
+ *   </Conditional Armor x Drop>
  *   The above notetags will create the conditions for item, weapon, or armor x
  *   to drop. Insert various conditions in between the notetags to produce the
  *   conditional rate increases or decreases of y% for the drop.
@@ -104,7 +104,7 @@ Yanfly.EED = Yanfly.EED || {};
  *   <Conditional Named Drop>
  *    condition: +y%
  *    condition: -y%
- *   <Conditional Named Drop>
+ *   </Conditional Named Drop>
  *   If you prefer to name your drop, use the above format. If database entries
  *   have matching names, priority will be given to the item with the highest
  *   ID in the order of items, weapons, then armor. Insert various conditions
@@ -165,11 +165,22 @@ Yanfly.EED = Yanfly.EED || {};
  * DEATH TURN EVAL
  *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
  * This will run an eval check to compare the turn number the enemy has died.
- * This plugin requires the Battle Engine Core.
+ * This effect requires the Battle Engine Core.
  *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
  * Example:   Death Turn > 5: +10%
  *            Death Turn === 5: +20%
  *            Death Turn <= 4: +30%
+ * =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+ *
+ * =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+ * ENEMY LEVEL EVAL
+ *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ * This will run an eval check to compare the enemy's level. This effect
+ * requires the YEP Enemy Levels plugin.
+ *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ * Example:   Enemy Level === 10: +30%
+ *            Enemy Level <= 5: -20%
+ *            Enemy Level >= 15: +10%
  * =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
  *
  * =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -345,6 +356,22 @@ Yanfly.EED = Yanfly.EED || {};
  * Changelog
  * ============================================================================
  *
+ * Version v1.06:
+ * - New Conditional Drop line: Enemy Level. If you are using the
+ * YEP Enemy Level plugin, this will allow conditional drops to check around
+ * the enemy's level at death.
+ *
+ * Version v1.05:
+ * - Eval condition is given more priority as to not be triggered by other
+ * conditions.
+ *
+ * Version v1.04:
+ * - Updated for RPG Maker MV version 1.1.0.
+ *
+ * Version v1.03:
+ * - Fixed documentation errors.
+ * - Fixed a bug with the Turn Count condition.
+ *
  * Version v1.02:
  * - Fixed a bug that crashed the game when a conditional drop is made based
  * off of an item count.
@@ -373,7 +400,8 @@ Yanfly.Param.Variables = String(Yanfly.Parameters['Variables']);
 
 Yanfly.EED.DataManager_isDatabaseLoaded = DataManager.isDatabaseLoaded;
 DataManager.isDatabaseLoaded = function() {
-    if (!Yanfly.EED.DataManager_isDatabaseLoaded.call(this)) return false;
+  if (!Yanfly.EED.DataManager_isDatabaseLoaded.call(this)) return false;
+  if (!Yanfly._loaded_YEP_ExtraEnemyDrops) {
     this.processEEDNotetagsI($dataItems);
     this.processEEDNotetagsW($dataWeapons);
     this.processEEDNotetagsA($dataArmors);
@@ -381,7 +409,9 @@ DataManager.isDatabaseLoaded = function() {
     this.processEEDNotetagsT($dataStates);
     this.processEEDNotetagsSys($dataSystem);
     this.processEEDNotetags1($dataEnemies);
-    return true;
+    Yanfly._loaded_YEP_ExtraEnemyDrops = true;
+  }
+  return true;
 };
 
 DataManager.processEEDNotetagsI = function(group) {
@@ -767,6 +797,11 @@ DropManager.getConditionalRate = function(conditions) {
 };
 
 DropManager.meetsLineCondition = function(line) {
+    // EVAL
+    if (line.match(/EVAL[ ](.*)/i)) {
+      var line = String(RegExp.$1);
+      return this.conditionEval(line);
+    }
     // ALIVE MEMBERS
     if (line.match(/ALIVE MEMBERS[ ](.*)/i)) {
       var line = String(RegExp.$1);
@@ -791,6 +826,11 @@ DropManager.meetsLineCondition = function(line) {
     if (line.match(/DEATH TURN[ ](.*)/i)) {
       var line = String(RegExp.$1);
       return this.conditionDeathTurn(line);
+    }
+    // ENEMY LEVEL
+    if (line.match(/ENEMY LEVEL[ ](.*)/i)) {
+      var line = String(RegExp.$1);
+      return this.conditionEnemyLevel(line);
     }
     // LAST STRIKE
     if (line.match(/LAST STRIKE[ ](.*)/i)) {
@@ -829,11 +869,6 @@ DropManager.meetsLineCondition = function(line) {
       var varId = parseInt(RegExp.$1);
       var varLine = String(RegExp.$2).toUpperCase();
       return this.conditionVariable(varId, varLine);
-    }
-    // EVAL
-    if (line.match(/EVAL[ ](.*)/i)) {
-      var line = String(RegExp.$1);
-      return this.conditionEval(line);
     }
     return false;
 };
@@ -899,6 +934,17 @@ DropManager.conditionDeathTurn = function(line) {
     var s = $gameSwitches._data;
     var v = $gameVariables._data;
     value = eval('user.deathTurn() ' + line);
+    return value;
+};
+
+DropManager.conditionEnemyLevel = function(line) {
+    if (!Imported.YEP_EnemyLevels) return false;
+    var user = this._enemy;
+    var enemy = this._enemy;
+    var a = this._enemy;
+    var s = $gameSwitches._data;
+    var v = $gameVariables._data;
+    value = eval('enemy.level ' + line);
     return value;
 };
 
@@ -1007,7 +1053,7 @@ DropManager.conditionTurn = function(line) {
     var a = this._enemy;
     var s = $gameSwitches._data;
     var v = $gameVariables._data;
-    value = eval('$gameParty.turnCount() ' + line);
+    value = eval('$gameTroop.turnCount() ' + line);
     return value;
 };
 

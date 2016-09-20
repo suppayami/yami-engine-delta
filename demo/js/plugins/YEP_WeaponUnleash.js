@@ -11,7 +11,7 @@ Yanfly.WUL = Yanfly.WUL || {};
 
 //=============================================================================
  /*:
- * @plugindesc v1.00 Replace the Attack command or give it the option of
+ * @plugindesc v1.02 Replace the Attack command or give it the option of
  * have a skill randomly occur when using it!
  * @author Yanfly Engine Plugins
  *
@@ -221,7 +221,7 @@ Yanfly.WUL = Yanfly.WUL || {};
  *   weapon unleashes later in the list, that weapon unleash will take priority
  *   and override all the following weapon unleashes.
  *
-  *   --- Guard Unleash ---
+ *   --- Guard Unleash ---
  *
  *   <Custom Guard Unleash: x>
  *   rate = user.hp / user.mhp;
@@ -247,6 +247,21 @@ Yanfly.WUL = Yanfly.WUL || {};
  *   If a guard unleash check passes earlier in the list while there are still
  *   guard unleashes later in the list, that guard unleash will take priority
  *   and override all the following guard unleashes.
+ *
+ * ============================================================================
+ * Changelog
+ * ============================================================================
+ *
+ * Verison 1.02:
+ * - If a battler is afflicted with berserk, charm, or confusion and they use a
+ * scope other than a single target action, the scope will now be adjusted to
+ * fit the scope of the action if it targets multiple enemies or allies.
+ *
+ * Version 1.01:
+ * - Updated for RPG Maker MV version 1.1.0.
+ *
+ * Version 1.00:
+ * - Finished Plugin!
  */
 //=============================================================================
 
@@ -263,7 +278,8 @@ Yanfly.Param = Yanfly.Param || {};
 
 Yanfly.WUL.DataManager_isDatabaseLoaded = DataManager.isDatabaseLoaded;
 DataManager.isDatabaseLoaded = function() {
-    if (!Yanfly.WUL.DataManager_isDatabaseLoaded.call(this)) return false;
+  if (!Yanfly.WUL.DataManager_isDatabaseLoaded.call(this)) return false;
+  if (!Yanfly._loaded_YEP_WeaponUnleash) {
     this.processWULNotetagsS($dataSkills);
     this.processWULNotetags1($dataActors);
     this.processWULNotetags1($dataClasses);
@@ -272,7 +288,9 @@ DataManager.isDatabaseLoaded = function() {
     this.processWULNotetags1($dataArmors);
     this.processWULNotetags1($dataStates);
     this.processWULNotetags2($dataSkills);
-    return true;
+    Yanfly._loaded_YEP_WeaponUnleash = true;
+  }
+  return true;
 };
 
 DataManager.processWULNotetagsS = function(group) {
@@ -824,6 +842,41 @@ Game_Action.prototype.switchUnleashSkill = function(unleashes, isWeapon) {
       this.setSkill(skillId);
       return;
     }
+};
+
+Yanfly.WUL.Game_Action_makeTargets = Game_Action.prototype.makeTargets;
+Game_Action.prototype.makeTargets = function() {
+  if (!this._forcing && this.subject().isConfused()) {
+    return this.makeConfusionTargets();
+  } else {
+    return Yanfly.WUL.Game_Action_makeTargets.call(this);
+  }
+};
+
+Game_Action.prototype.makeConfusionTargets = function() {
+  if (this.isForOne()) return [this.confusionTarget()];
+  switch (this.subject().confusionLevel()) {
+  case 1:
+    if (this.isForAll()) {
+      return this.opponentsUnit().aliveMembers();
+    } else {
+      return this.opponentsUnit().randomTarget();
+    }
+  case 2:
+    if (this.isForAll()) {
+      if (Math.randomInt(2) === 0) return this.opponentsUnit().aliveMembers();
+      return this.friendsUnit().aliveMembers();
+    } else {
+      if (Math.randomInt(2) === 0) return this.opponentsUnit().randomTarget();
+      return this.friendsUnit().randomTarget();
+    }
+  default:
+    if (this.isForAll()) {
+      return this.friendsUnit().aliveMembers();
+    } else {
+      return this.friendsUnit().randomTarget();
+    }
+  }
 };
 
 //=============================================================================

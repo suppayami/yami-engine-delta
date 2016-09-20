@@ -11,7 +11,7 @@ Yanfly.SVE = Yanfly.SVE || {};
 
 //=============================================================================
  /*:
- * @plugindesc v1.03 (Requires YEP_BattleEngineCore.js) This plugin lets
+ * @plugindesc v1.14 (Requires YEP_BattleEngineCore.js) This plugin lets
  * you use Animated Sideview Actors for enemies!
  * @author Yanfly Engine Plugins
  *
@@ -52,6 +52,11 @@ Yanfly.SVE = Yanfly.SVE || {};
  * @desc The default frame speed used in between motions.
  * Default: 12
  * @default 12
+ *
+ * @param Show State Overlay
+ * @desc Show state overlays on sideview enemies?
+ * NO - false     YES - true
+ * @default true
  *
  * @param ---Shadows---
  * @default
@@ -568,6 +573,13 @@ Yanfly.SVE = Yanfly.SVE || {};
  *   the faster the sideview battler animates. The higher it is, the slower the
  *   battler animates.
  *
+ *   --- State Overlays ---
+ *
+ *   <Sideview Show State Overlay>
+ *   <Sideview Hide State Overlay>
+ *   This will either show or hide the state overlay for the sideview enemy and
+ *   ignore the default setting within the plugin parameters.
+ *
  *   --- Motions ---
  *
  *   <Sideview Attack Motion: swing>
@@ -701,19 +713,66 @@ Yanfly.SVE = Yanfly.SVE || {};
  * Changelog
  * ============================================================================
  *
- * Version v1.03:
+ * Version 1.14:
+ * - Pixi4 update to fix bug that caused state icons to fly off the screen.
+ * - Fixed a compatibility issue with YEP_X_VisualStateFX regarding state
+ * sprites being disabled and causing crashes.
+ *
+ * Version 1.13:
+ * - Compatibility update with YEP_X_VisualStateFX to disable State Overlays on
+ * enemies properly.
+ *
+ * Version 1.12:
+ * - Fixed a bug that caused the <Sideview Show State Overlay> and 
+ * <Sideview Hide State Overlay> notetags to not work.
+ * - Fixed a bug that caused scaled enemies to have their state icons and
+ * overlays appear in odd places.
+ *
+ * Version 1.11:
+ * - Fixed a bug that caused hidden enemies to appear early on.
+ *
+ * Version 1.10:
+ * - Optimized plugin to use less resources. Animated enemies will no longer
+ * have a static graphic once the game is loaded.
+ *
+ * Version 1.09:
+ * - Added a fix for state icons appearing behind battlers for the users who
+ * aren't using the Action Sequence Packs.
+ *
+ * Version 1.08:
+ * - State Icon and State Overlays will now synch together for floating and
+ * jumping battlers.
+ *
+ * Version 1.07:
+ * - Updated for RPG Maker MV version 1.1.0.
+ *
+ * Version 1.06a:
+ * - Fixed a bug that prevented animated sideview enemies from not mirroring.
+ * - Added <Sideview Show State Overlay> and <Sideview Hide State Overlay>
+ * notetags to make certain enemies show/hide state overlays.
+ * - Fixed a bug that was caused by motion notetags not retrieved properly.
+ *
+ * Version 1.05:
+ * - Made adjustments to the <Sprite Height: x> notetag to also affect the
+ * location of the state icons and effects.
+ *
+ * Version 1.04:
+ * - Fixed a bug with Sprite Smoothing disabled on Shadows.
+ * - Fixed a bug with the anchor Y positions being overwritten.
+ *
+ * Version 1.03:
  * - Fixed a bug that would cause <Sideview Width: x> & <Sideview Height: x>
  * notetags to crash the game.
  *
- * Version v1.02:
+ * Version 1.02:
  * - Synchronized state icons and overlays with floating enemies.
  *
- * Version v1.01:
+ * Version 1.01:
  * - Added 'HP Link Breathing' plugin parameter. If enabled, the lower the HP,
  * the slower the enemy breathes.
  * - Added <Enable HP Link Breathing> and <Disable HP Link Breathing> notetags.
  *
- * Version v1.00:
+ * Version 1.00:
  * - Finished plugin! Hooray!
  */
 //=============================================================================
@@ -731,9 +790,12 @@ Yanfly.Param.SVEAnchorX = Number(Yanfly.Parameters['Anchor X']);
 Yanfly.Param.SVEAnchorY = Number(Yanfly.Parameters['Anchor Y']);
 Yanfly.Param.SVESmoothing = eval(String(Yanfly.Parameters['Sprite Smoothing']));
 Yanfly.Param.SVEWidth = String(Yanfly.Parameters['Sprite Width']);
+Yanfly.Param.SVEWidth = Yanfly.Param.SVEWidth.toLowerCase();
 Yanfly.Param.SVEHeight = String(Yanfly.Parameters['Sprite Height']);
+Yanfly.Param.SVEHeight = Yanfly.Param.SVEHeight.toLowerCase();
 Yanfly.Param.SVECollapse = eval(String(Yanfly.Parameters['Collapse']));
 Yanfly.Param.SVEFrameSpeed = Number(Yanfly.Parameters['Frame Speed']);
+Yanfly.Param.SVEOverlay = eval(String(Yanfly.Parameters['Show State Overlay']));
 
 Yanfly.Param.SVEBreathing = Number(Yanfly.Parameters['Enable Breathing']);
 Yanfly.Param.SVEBreathSpeed = Number(Yanfly.Parameters['Breathing Speed']);
@@ -765,12 +827,12 @@ Yanfly.Param.SVEWeaponMotion = {};
 Yanfly.Param.SVEWeaponAnimation = {};
 Yanfly.Param.SVEWeaponMotion[0] = Yanfly.Param.SVEAttackMotion.toLowerCase();
 for (Yanfly.i = 1; Yanfly.i < 31; ++Yanfly.i) {
-	Yanfly.s1 = 'Weapon ' + Yanfly.i + ' Motion';
-	Yanfly.s2 = String(Yanfly.Parameters[Yanfly.s1]);
-	Yanfly.Param.SVEWeaponMotion[Yanfly.i] = Yanfly.s2.toLowerCase();
-	Yanfly.s1 = 'Weapon ' + Yanfly.i + ' Animation';
-	Yanfly.s2 = Number(Yanfly.Parameters[Yanfly.s1]);
-	Yanfly.Param.SVEWeaponAnimation[Yanfly.i] = Yanfly.s2;
+  Yanfly.s1 = 'Weapon ' + Yanfly.i + ' Motion';
+  Yanfly.s2 = String(Yanfly.Parameters[Yanfly.s1]);
+  Yanfly.Param.SVEWeaponMotion[Yanfly.i] = Yanfly.s2.toLowerCase();
+  Yanfly.s1 = 'Weapon ' + Yanfly.i + ' Animation';
+  Yanfly.s2 = Number(Yanfly.Parameters[Yanfly.s1]);
+  Yanfly.Param.SVEWeaponAnimation[Yanfly.i] = Yanfly.s2;
 };
 
 //=============================================================================
@@ -779,17 +841,20 @@ for (Yanfly.i = 1; Yanfly.i < 31; ++Yanfly.i) {
 
 Yanfly.SVE.DataManager_isDatabaseLoaded = DataManager.isDatabaseLoaded;
 DataManager.isDatabaseLoaded = function() {
-    if (!Yanfly.SVE.DataManager_isDatabaseLoaded.call(this)) return false;
-		DataManager.processSVENotetags1($dataEnemies);
-    DataManager.processSVENotetags2($dataStates);
-		return true;
+  if (!Yanfly.SVE.DataManager_isDatabaseLoaded.call(this)) return false;
+  if (!Yanfly._loaded_YEP_X_AnimatedSVEnemies) {
+    this.processSVENotetags1($dataEnemies);
+    this.processSVENotetags2($dataStates);
+    Yanfly._loaded_YEP_X_AnimatedSVEnemies = true;
+  }
+  return true;
 };
 
 DataManager.processSVENotetags1 = function(group) {
   var noteWeapon = /<(?:SIDEVIEW WEAPON):[ ](\d+),[ ](.*),[ ](\d+)>/i;
-	for (var n = 1; n < group.length; n++) {
-		var obj = group[n];
-		var notedata = obj.note.split(/[\r\n]+/);
+  for (var n = 1; n < group.length; n++) {
+    var obj = group[n];
+    var notedata = obj.note.split(/[\r\n]+/);
 
     obj.sideviewBattler = [];
     obj.sideviewAttackMotion = Yanfly.Param.SVEAttackMotion.toLowerCase();
@@ -823,9 +888,10 @@ DataManager.processSVENotetags1 = function(group) {
     obj.sideviewFloatSpeed = Yanfly.Param.SVEFloatSpeed;
     obj.sideviewFloatRate = Yanfly.Param.SVEFloatRate;
     obj.sideviewFloatHeight = Yanfly.Param.SVEFloatHeight;
+    obj.sideviewStateOverlay = Yanfly.Param.SVEOverlay;
 
-		for (var i = 0; i < notedata.length; i++) {
-			var line = notedata[i];
+    for (var i = 0; i < notedata.length; i++) {
+      var line = notedata[i];
        if (line.match(/<(?:SCALE SPRITE):[ ](\d+)([%％])>/i)) {
         obj.spriteScaleX = parseFloat(RegExp.$1) * 0.01;
         obj.spriteScaleY = obj.spriteScaleX;
@@ -834,33 +900,33 @@ DataManager.processSVENotetags1 = function(group) {
       } else if (line.match(/<(?:SCALE SPRITE HEIGHT):[ ](\d+)([%％])>/i)) {
         obj.spriteScaleY = parseFloat(RegExp.$1) * 0.01;
       } else if (line.match(/<(?:SIDEVIEW BATTLER):[ ](.*)>/i)) {
-				obj.sideviewBattler.push(String(RegExp.$1));
+        obj.sideviewBattler.push(String(RegExp.$1));
         obj.sideviewBreathing = [2, 3].contains(Yanfly.Param.SVEBreathing);
-			} else if (line.match(/<(?:SIDEVIEW ATTACK MOTION):[ ](.*)>/i)) {
-				obj.sideviewAttackMotion = String(RegExp.$1).toLowerCase();
-			} else if (line.match(/<(?:SIDEVIEW IDLE MOTION):[ ](.*)>/i)) {
-				obj.sideviewIdleMotion.push(String(RegExp.$1).toLowerCase());
-			} else if (line.match(/<(?:SIDEVIEW DAMAGE MOTION):[ ](.*)>/i)) {
-				obj.sideviewDmgMotion.push(String(RegExp.$1).toLowerCase());
-			} else if (line.match(/<(?:SIDEVIEW EVADE MOTION):[ ](.*)>/i)) {
-				obj.sideviewEvadeMotion = String(RegExp.$1).toLowerCase();
-			} else if (line.match(/<(?:SIDEVIEW ESCAPE MOTION):[ ](.*)>/i)) {
-				obj.sideviewEscMotion = String(RegExp.$1).toLowerCase();
-			} else if (line.match(/<(?:SIDEVIEW GUARD MOTION):[ ](.*)>/i)) {
-				obj.sideviewGuardMotion = String(RegExp.$1).toLowerCase();
-			} else if (line.match(/<(?:SIDEVIEW ABNORMAL MOTION):[ ](.*)>/i)) {
-				obj.sideviewAbnMotion = String(RegExp.$1).toLowerCase();
-			} else if (line.match(/<(?:SIDEVIEW SLEEP MOTION):[ ](.*)>/i)) {
-				obj.sideviewSleepMotion = String(RegExp.$1).toLowerCase();
-			} else if (line.match(/<(?:SIDEVIEW DYING MOTION):[ ](.*)>/i)) {
-				obj.sideviewDyingMotion = String(RegExp.$1).toLowerCase();
-			} else if (line.match(/<(?:SIDEVIEW DEAD MOTION):[ ](.*)>/i)) {
-				obj.sideviewDeadMotion = String(RegExp.$1).toLowerCase();
-			} else if (line.match(/<(?:SIDEVIEW ANCHOR X):[ ](\d+)[.](\d+)>/i)) {
-				obj.sideviewAnchorX = eval(String(RegExp.$1) + '.' + String(RegExp.$2));
-			} else if (line.match(/<(?:SIDEVIEW ANCHOR Y):[ ](\d+)[.](\d+)>/i)) {
-				obj.sideviewAnchorY = eval(String(RegExp.$1) + '.' + String(RegExp.$2));
-			} else if (line.match(/<(?:SIDEVIEW WEAPON):[ ](\d+)>/i)) {
+      } else if (line.match(/<(?:SIDEVIEW ATTACK MOTION):[ ](.*)>/i)) {
+        obj.sideviewAttackMotion = String(RegExp.$1).toLowerCase();
+      } else if (line.match(/<(?:SIDEVIEW IDLE MOTION):[ ](.*)>/i)) {
+        obj.sideviewIdleMotion.push(String(RegExp.$1).toLowerCase());
+      } else if (line.match(/<(?:SIDEVIEW DAMAGE MOTION):[ ](.*)>/i)) {
+        obj.sideviewDmgMotion = String(RegExp.$1).toLowerCase();
+      } else if (line.match(/<(?:SIDEVIEW EVADE MOTION):[ ](.*)>/i)) {
+        obj.sideviewEvadeMotion = String(RegExp.$1).toLowerCase();
+      } else if (line.match(/<(?:SIDEVIEW ESCAPE MOTION):[ ](.*)>/i)) {
+        obj.sideviewEscMotion = String(RegExp.$1).toLowerCase();
+      } else if (line.match(/<(?:SIDEVIEW GUARD MOTION):[ ](.*)>/i)) {
+        obj.sideviewGuardMotion = String(RegExp.$1).toLowerCase();
+      } else if (line.match(/<(?:SIDEVIEW ABNORMAL MOTION):[ ](.*)>/i)) {
+        obj.sideviewAbnMotion = String(RegExp.$1).toLowerCase();
+      } else if (line.match(/<(?:SIDEVIEW SLEEP MOTION):[ ](.*)>/i)) {
+        obj.sideviewSleepMotion = String(RegExp.$1).toLowerCase();
+      } else if (line.match(/<(?:SIDEVIEW DYING MOTION):[ ](.*)>/i)) {
+        obj.sideviewDyingMotion = String(RegExp.$1).toLowerCase();
+      } else if (line.match(/<(?:SIDEVIEW DEAD MOTION):[ ](.*)>/i)) {
+        obj.sideviewDeadMotion = String(RegExp.$1).toLowerCase();
+      } else if (line.match(/<(?:SIDEVIEW ANCHOR X):[ ](\d+)[.](\d+)>/i)) {
+        obj.sideviewAnchorX = eval(String(RegExp.$1) + '.' + String(RegExp.$2));
+      } else if (line.match(/<(?:SIDEVIEW ANCHOR Y):[ ](\d+)[.](\d+)>/i)) {
+        obj.sideviewAnchorY = eval(String(RegExp.$1) + '.' + String(RegExp.$2));
+      } else if (line.match(/<(?:SIDEVIEW WEAPON):[ ](\d+)>/i)) {
         var weaponId = parseInt(RegExp.$1);
         var motionId = Yanfly.Param.SVEWeaponMotion[weaponId].toLowerCase();
         var aniId = Yanfly.Param.SVEWeaponAnimation[weaponId];
@@ -885,10 +951,10 @@ DataManager.processSVENotetags1 = function(group) {
       } else if (line.match(/<(?:SIDEVIEW HIDE SHADOW)>/i)) {
         obj.sideviewShadowShow = false;
       } else if (line.match(/<(?:SIDEVIEW SHADOW WIDTH):[ ](\d+)([%％])>/i)) {
-				obj.sideviewShadowScaleX = parseFloat(RegExp.$1 * 0.01);
-			} else if (line.match(/<(?:SIDEVIEW SHADOW HEIGHT):[ ](\d+)([%％])>/i)) {
-				obj.sideviewShadowScaleY = parseFloat(RegExp.$1 * 0.01);
-			} else if (line.match(/<(?:SIDEVIEW FRAME SPEED):[ ](\d+)>/i)) {
+        obj.sideviewShadowScaleX = parseFloat(RegExp.$1 * 0.01);
+      } else if (line.match(/<(?:SIDEVIEW SHADOW HEIGHT):[ ](\d+)([%％])>/i)) {
+        obj.sideviewShadowScaleY = parseFloat(RegExp.$1 * 0.01);
+      } else if (line.match(/<(?:SIDEVIEW FRAME SPEED):[ ](\d+)>/i)) {
         obj.sideviewFrameSpeed = parseInt(RegExp.$1);
       } else if (line.match(/<(?:FLOATING|float)>/i)) {
         obj.sideviewFloating = true;
@@ -899,8 +965,12 @@ DataManager.processSVENotetags1 = function(group) {
         obj.sideviewFloatRate = rate;
       } else if (line.match(/<(?:FLOATING HEIGHT):[ ](\d+)>/i)) {
         obj.sideviewFloatHeight = parseInt(RegExp.$1);
+      } else if (line.match(/<SIDEVIEW SHOW STATE OVERLAY>/i)) {
+        obj.sideviewStateOverlay = true;
+      } else if (line.match(/<SIDEVIEW HIDE STATE OVERLAY>/i)) {
+        obj.sideviewStateOverlay = false;
       }
-		}
+    }
     // Breathing
     for (var i = 0; i < notedata.length; i++) {
       var line = notedata[i];
@@ -922,18 +992,25 @@ DataManager.processSVENotetags1 = function(group) {
         obj.sideviewLinkBreathing = false;
       }
     }
-		// Create Defaults
-		if (obj.sideviewIdleMotion.length <= 0) {
-			obj.sideviewIdleMotion = [Yanfly.Param.SVEIdleMotion.toLowerCase()];
-		}
-		if (obj.sideviewWeaponImage.length <= 0) {
-			var weaponId = Yanfly.Param.SVEWeaponIndex;
-			var motionId = Yanfly.Param.SVEWeaponMotion[weaponId].toLowerCase();
-			var aniId = Yanfly.Param.SVEWeaponAnimation[weaponId];
-			obj.sideviewWeaponImage = [[weaponId, motionId, aniId]];
-		}
+    // Create Defaults
+    if (obj.sideviewIdleMotion.length <= 0) {
+      obj.sideviewIdleMotion = [Yanfly.Param.SVEIdleMotion.toLowerCase()];
+    }
+    if (obj.sideviewWeaponImage.length <= 0) {
+      var weaponId = Yanfly.Param.SVEWeaponIndex;
+      var motionId = Yanfly.Param.SVEWeaponMotion[weaponId].toLowerCase();
+      var aniId = Yanfly.Param.SVEWeaponAnimation[weaponId];
+      obj.sideviewWeaponImage = [[weaponId, motionId, aniId]];
+    }
     obj.sideviewFrameSpeed = Math.max(1, obj.sideviewFrameSpeed);
-	}
+    if (obj.sideviewBattler.length > 0) {
+      if (Imported.YEP_X_BattleSysCTB) {
+        Yanfly.Param.CTBEnemySVBattler = true;
+      }
+      obj.battlerName = '';
+      obj.battlerHue = 0;
+    }
+  }
 };
 
 DataManager.processSVENotetags2 = function(group) {
@@ -974,16 +1051,31 @@ ImageManager.loadSystemSmooth = function(filename, hue) {
 
 Yanfly.SVE.Game_Battler_spriteWidth = Game_Battler.prototype.spriteWidth;
 Game_Battler.prototype.spriteWidth = function() {
-    var value = Yanfly.SVE.Game_Battler_spriteWidth.call(this);
-    if (this.isEnemy()) value *= Math.abs(this.spriteScaleX());
-    return value;
+    if (this.isSideviewDimensions('width')) {
+      var value = this.sideviewWidth();
+    } else {
+      var value = Yanfly.SVE.Game_Battler_spriteWidth.call(this);
+    }
+    //value *= Math.abs(this.spriteScaleX());
+    return Math.floor(value);
 };
 
 Yanfly.SVE.Game_Battler_spriteHeight = Game_Battler.prototype.spriteHeight;
 Game_Battler.prototype.spriteHeight = function() {
-    var value = Yanfly.SVE.Game_Battler_spriteHeight.call(this);
-    if (this.isEnemy()) value *= Math.abs(this.spriteScaleY());
-    return value;
+    if (this.isSideviewDimensions('height')) {
+      var value = this.sideviewHeight();
+    } else {
+      var value = Yanfly.SVE.Game_Battler_spriteHeight.call(this);
+    }
+    //value *= Math.abs(this.spriteScaleY());
+    return Math.floor(value);
+};
+
+Game_Battler.prototype.isSideviewDimensions = function(value) {
+    if (!this.isEnemy()) return false;
+    if (!this.hasSVBattler()) return false;
+    if (value === 'width') return this.sideviewWidth() !== 'auto';
+    if (value === 'height') return this.sideviewHeight() !== 'auto';
 };
 
 //=============================================================================
@@ -1013,20 +1105,20 @@ Game_Enemy.prototype.setupSVAttributes = function() {
 };
 
 Yanfly.SVE.Game_Enemy_attackAnimationId =
-		Game_Enemy.prototype.attackAnimationId;
+    Game_Enemy.prototype.attackAnimationId;
 Game_Enemy.prototype.attackAnimationId = function() {
-		if (this.hasSVBattler() && !this.isHideSVWeapon()) {
-			if (this._svAttackAnimationId) return this._svAttackAnimationId;
-			this.setupSVAttributes();
-			return this._svAttackAnimationId;
-		}
+    if (this.hasSVBattler() && !this.isHideSVWeapon()) {
+      if (this._svAttackAnimationId) return this._svAttackAnimationId;
+      this.setupSVAttributes();
+      return this._svAttackAnimationId;
+    }
     return Yanfly.SVE.Game_Enemy_attackAnimationId.call(this);
 };
 
 Game_Enemy.prototype.svBattlerName = function() {
-		if (this._svBattlerName) return this._svBattlerName;
-		var array = this.enemy().sideviewBattler;
-		this._svBattlerName = Yanfly.Util.getRandomElement(array);
+    if (this._svBattlerName) return this._svBattlerName;
+    var array = this.enemy().sideviewBattler;
+    this._svBattlerName = Yanfly.Util.getRandomElement(array);
     return this._svBattlerName;
 };
 
@@ -1036,22 +1128,22 @@ Game_Enemy.prototype.hasSVBattler = function() {
 
 Game_Enemy.prototype.weaponImageId = function() {
     if (this.isHideSVWeapon()) return 0;
-		if (this._svWeaponImageId) return this._svWeaponImageId;
-		this.setupSVAttributes();
+    if (this._svWeaponImageId) return this._svWeaponImageId;
+    this.setupSVAttributes();
     return this._svWeaponImageId;
 };
 
 Game_Enemy.prototype.attackMotion = function() {
     if (this.weaponImageId() === 0) return this.enemy().sideviewAttackMotion;
-		if (this._svAttackMotion) return this._svAttackMotion;
-		this.setupSVAttributes();
+    if (this._svAttackMotion) return this._svAttackMotion;
+    this.setupSVAttributes();
     return this._svAttackMotion;
 };
 
 Game_Enemy.prototype.idleMotion = function() {
-		if (this._svIdleMotion) return this._svIdleMotion;
-		var array = this.enemy().sideviewIdleMotion;
-		this._svIdleMotion = Yanfly.Util.getRandomElement(array);
+    if (this._svIdleMotion) return this._svIdleMotion;
+    var array = this.enemy().sideviewIdleMotion;
+    this._svIdleMotion = Yanfly.Util.getRandomElement(array);
     return this._svIdleMotion;
 };
 
@@ -1093,6 +1185,16 @@ Game_Enemy.prototype.sideviewAnchorX = function() {
 
 Game_Enemy.prototype.sideviewAnchorY = function() {
     return this.enemy().sideviewAnchorY;
+};
+
+Game_Enemy.prototype.anchorX = function() {
+    if (this.hasSVBattler()) return this.sideviewAnchorX();
+    return Game_Battler.prototype.anchorX.call(this);
+};
+
+Game_Enemy.prototype.anchorY = function() {
+    if (this.hasSVBattler()) return this.sideviewAnchorY();
+    return Game_Battler.prototype.anchorY.call(this);
 };
 
 Game_Enemy.prototype.sideviewWidth = function() {
@@ -1236,8 +1338,8 @@ Yanfly.SVE.Game_Enemy_transform = Game_Enemy.prototype.transform;
 Game_Enemy.prototype.transform = function(enemyId) {
     this.clearSVAttributes();
     Yanfly.SVE.Game_Enemy_transform.call(this, enemyId);
-    this.battler().setBattler(this);
     this.battler().setTransform(this);
+    this.battler().setBattler(this);
 };
 
 //=============================================================================
@@ -1258,6 +1360,7 @@ Game_Party.prototype.requestMotionRefresh = function() {
 Yanfly.SVE.Sprite_Enemy_initMembers = Sprite_Enemy.prototype.initMembers;
 Sprite_Enemy.prototype.initMembers = function() {
     Yanfly.SVE.Sprite_Enemy_initMembers.call(this);
+    this._battlerName = null;
     this.initSVSprites();
 };
 
@@ -1280,10 +1383,16 @@ Sprite_Enemy.prototype.setTransform = function(battler) {
     this._weaponSprite.opacity = 0;
     this._mainSprite.opacity = 0;
     this._stateSprite.opacity = 0;
-    this.createShadowSprite();
-    this.createWeaponSprite();
-    this.createMainSprite();
-    this.createStateSprite();
+    if (battler.svBattlerName()) {
+      this.createShadowSprite();
+      this.createWeaponSprite();
+      this.createMainSprite();
+      this.createStateSprite();
+      this._shadowSprite.opacity = 255;
+      this._weaponSprite.opacity = 255;
+      this._mainSprite.opacity = 255;
+      this._stateSprite.opacity = 255;
+    }
 };
 
 Sprite_Enemy.prototype.createMainSprite = function() {
@@ -1292,7 +1401,11 @@ Sprite_Enemy.prototype.createMainSprite = function() {
 
 Sprite_Enemy.prototype.createShadowSprite = function() {
     this._shadowSprite = new Sprite();
-    this._shadowSprite.bitmap = ImageManager.loadSystemSmooth('Shadow2');
+    if (Yanfly.Param.SVESmoothing) {
+      this._shadowSprite.bitmap = ImageManager.loadSystemSmooth('Shadow2');
+    } else {
+      this._shadowSprite.bitmap = ImageManager.loadSystem('Shadow2');
+    }    
     this._shadowSprite.anchor.x = 0.5;
     this._shadowSprite.anchor.y = 0.5;
     this._shadowSprite.y = -2;
@@ -1305,12 +1418,16 @@ Sprite_Enemy.prototype.createWeaponSprite = function() {
 };
 
 Sprite_Enemy.prototype.createStateSprite = function() {
+    if (Imported.YEP_X_VisualStateFX) {
+      if (!Yanfly.Param.VSFXEnemyOver) return;
+    }
     Sprite_Actor.prototype.createStateSprite.call(this);
 };
 
 Yanfly.SVE.Sprite_Enemy_setBattler = Sprite_Enemy.prototype.setBattler;
 Sprite_Enemy.prototype.setBattler = function(battler) {
     this._svBattlerEnabled = false;
+    this.initSVSprites();
     Yanfly.SVE.Sprite_Enemy_setBattler.call(this, battler);
     this.setSVBattler(battler);
 };
@@ -1326,7 +1443,7 @@ Sprite_Enemy.prototype.setSVBattler = function(battler) {
     this._adjustMainBitmapSettings = false;
     this._actor = this._enemy;
     this._svBattlerEnabled = true;
-    this._stateSprite.setup(battler);
+    if (this._stateSprite) this._stateSprite.setup(battler);
 };
 
 Yanfly.SVE.Sprite_Enemy_update = Sprite_Enemy.prototype.update;
@@ -1334,6 +1451,7 @@ Sprite_Enemy.prototype.update = function() {
     Yanfly.SVE.Sprite_Enemy_update.call(this);
     if (this._svBattlerEnabled) this.updateMotion();
     this.updateBreathing();
+    if (!Imported.YEP_X_ActSeqPack2) this.updateStateIconHeight();
 };
 
 Yanfly.SVE.Sprite_Enemy_updateStateSprite =
@@ -1348,17 +1466,21 @@ Sprite_Enemy.prototype.updateStateSprite = function() {
 };
 
 Sprite_Enemy.prototype.updateSVStateSprite = function() {
-    var height = this._mainSprite.height * -1;
+    if (!this._stateSprite) return;
+    this._stateSprite.visible = this._enemy.enemy().sideviewStateOverlay;
+    return;
+    var height = this._enemy.spriteHeight() * -1;
     height -= Sprite_StateIcon._iconHeight;
     this._stateIconSprite.y = height;
-    this._stateSprite.y = 0;
+    this._stateSprite.y = (this._enemy.spriteHeight() - 64) * -1;
 };
 
 Sprite_Enemy.prototype.updateFloatingStateSprite = function() {
     if (this._enemy && this._enemy.isFloating()) {
       var heightRate = this.addFloatingHeight();
-      this._stateIconSprite.y += heightRate * this.height;
-      this._stateSprite.y += heightRate * this.height;
+      var height = this._enemy.spriteHeight();
+      this._stateIconSprite.y += Math.ceil(heightRate * height);
+      this._stateSprite.y += Math.ceil(heightRate * height);
     };
 };
 
@@ -1376,7 +1498,9 @@ Sprite_Enemy.prototype.updateBreathing = function() {
       var scaleX = 0;
       var scaleY = 0;
     }
+    var mirror = this.scale.x > 0 ? 1 : -1;
     this.scale.x = this._enemy.spriteScaleX() + scaleX;
+    this.scale.x = Math.abs(this.scale.x) * mirror;
     this.scale.y = this._enemy.spriteScaleY() + scaleY;
 };
 
@@ -1403,13 +1527,24 @@ Sprite_Battler.prototype.addFloatingHeight = function() {
     return value;
 };
 
-}; // Imported.YEP_X_ActSeqPack2
+} else { // If YEP_X_ActSeqPack2 is NOT installed
+
+Sprite_Enemy.prototype.updateStateIconHeight = function() {
+  if (!this._stateIconSprite) return;
+  var height = this._battler.spriteHeight() * -1;
+  height -= Sprite_StateIcon._iconHeight;
+  height /= this.scale.y;
+  this._stateIconSprite.y = height;
+};
+
+} // Imported.YEP_X_ActSeqPack2
 
 Yanfly.SVE.Sprite_Enemy_updateBitmap = Sprite_Enemy.prototype.updateBitmap;
 Sprite_Enemy.prototype.updateBitmap = function() {
     Yanfly.SVE.Sprite_Enemy_updateBitmap.call(this);
     if (!this._svBattlerEnabled) this.updateScale();
     this.updateSVBitmap();
+    this.adjustAnchor();
 };
 
 Sprite_Enemy.prototype.updateSVBitmap = function() {
@@ -1424,6 +1559,7 @@ Sprite_Enemy.prototype.updateSVBitmap = function() {
       this.updateScale();
     } else if (this._svBattlerName === '') {
       this._svBattlerName = '';
+      this._svBattlerEnabled = false;
       if (this._createdDummyMainSprite) return;
       this._createdDummyMainSprite = true;
       this._mainSprite = new Sprite_Base();
@@ -1434,15 +1570,19 @@ Sprite_Enemy.prototype.updateSVBitmap = function() {
 
 Sprite_Enemy.prototype.adjustAnchor = function() {
     if (!this._mainSprite) return;
-    if (this._createdAnchorSettings) return;
-    this._createdAnchorSettings = true;
-		this._mainSprite.anchor.x = this._enemy.sideviewAnchorX();
+    this._mainSprite.anchor.x = this._enemy.sideviewAnchorX();
     this._mainSprite.anchor.y = this._enemy.sideviewAnchorY();
 };
 
 Sprite_Enemy.prototype.updateScale = function() {
     this.scale.x = this._enemy.spriteScaleX();
     this.scale.y = this._enemy.spriteScaleY();
+    if (this._stateIconSprite) {
+      var safe = 1 / 100000;
+      var sprite = this._stateIconSprite;
+      sprite.scale.x = 1 / Math.max(safe, Math.abs(this.scale.x));
+      sprite.scale.y = 1 / Math.max(safe, Math.abs(this.scale.y));
+    }
 };
 
 Yanfly.SVE.Sprite_Enemy_updateFrame = Sprite_Enemy.prototype.updateFrame;
@@ -1546,6 +1686,8 @@ Sprite_Enemy.prototype.refreshMotion = function() {
     if (!this._svBattlerEnabled) return;
     var enemy = this._enemy;
     if (!enemy) return;
+    var motionGuard = Sprite_Actor.MOTIONS['guard'];
+    if (this._motion === motionGuard && !BattleManager.isInputting()) return;
     var stateMotion = enemy.stateMotionIndex();
     if (enemy.isInputting() || enemy.isActing()) {
         this.startMotion('walk');
@@ -1637,18 +1779,6 @@ Yanfly.SVE.Sprite_Enemy_updateInstantCollapse =
 Sprite_Enemy.prototype.updateInstantCollapse = function() {
     if (!this.isSideviewCollapse()) return;
     Yanfly.SVE.Sprite_Enemy_updateInstantCollapse.call(this);
-};
-
-//=============================================================================
-// Sprite_StateIcon
-//=============================================================================
-
-Yanfly.SVE.Sprite_StateIcon_updateMirror =
-    Sprite_StateIcon.prototype.updateMirror;
-Sprite_StateIcon.prototype.updateMirror = function() {
-    this.scale.x = 1 / Math.max(1 / 10000, Math.abs(this.parent.scale.x));
-    this.scale.y = 1 / Math.max(1 / 10000, Math.abs(this.parent.scale.y));
-    Yanfly.SVE.Sprite_StateIcon_updateMirror.call(this);
 };
 
 //=============================================================================

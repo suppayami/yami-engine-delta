@@ -1,7 +1,7 @@
 /*:
  * Yami Engine Delta - Sideview Battler Enhancement
  *
- * @plugindesc v1.0.0 This plugin allows user to use any kind of sideview battler.
+ * @plugindesc v1.1.0 This plugin allows user to use any kind of sideview battler.
  * @author Yami Engine Delta [Dr.Yami]
  *
  * @param [Default Setting]
@@ -91,6 +91,16 @@
  *
  * The plugin should be placed under YEP - Battle Engine Core and YEP -
  * Animated Sideview Enemies if used.
+ * ============================================================================
+ * Action Sequences - Action List (For YEP - Battle Engine Core)
+ *
+ * CUSTOM MOTION type: target, (no weapon)
+ *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ * Forces the target to perform a custom motion defined by this plugin. Anything
+ * besides above listed default motions should be called with this action instead.
+ *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ * Usage Example: attack animation: target
+ *
  * ============================================================================
  */
 
@@ -475,6 +485,34 @@ Imported.YED_SideviewBattler = true;
     };
 }(YED.SideviewBattler));
 
+(function () {
+    if (!Imported.YEP_BattleEngineCore) {
+        return;
+    }
+
+    var _BattleManager_processActionSequence = BattleManager.processActionSequence;
+    BattleManager.processActionSequence = function (actionName, actionArgs) {
+        if (actionName.match(/CUSTOM MOTION[ ](.*)/i)) {
+            return this.actionCustomMotionTarget(String(RegExp.$1), actionArgs);
+        }
+        return _BattleManager_processActionSequence.call(this,
+            actionName, actionArgs);
+    };
+
+    BattleManager.actionCustomMotionTarget = function (name, actionArgs) {
+        var movers = this.makeActionTargets(actionArgs[0]);
+        if (movers.length < 1) return true;
+        if (actionArgs[1] && actionArgs[1].toUpperCase() === 'NO WEAPON') {
+            var showWeapon = false;
+        } else {
+            var showWeapon = true;
+        }
+        movers.forEach(function (mover) {
+            mover.forceMotion(name.toLowerCase());
+        });
+        return false;
+    };
+} ());
 (function() {
     Game_Battler.prototype.getBattler = function() {
         var battler;

@@ -11,38 +11,38 @@ Yanfly.RR = Yanfly.RR || {};
 
 //=============================================================================
  /*:
- * @plugindesc v1.01 Use regions to block out Events and/or the player from
+ * @plugindesc v1.03 Use regions to block out Events and/or the player from
  * being able to venture into those spots.
  * @author Yanfly Engine Plugins
  *
  * @param Player Restrict
  * @desc This region ID will restrict the player from entering.
- * Use 0 if you do not wish to make use of this property.
+ * To use multiple regions, separate them by spaces.
  * @default 0
  *
  * @param Event Restrict
  * @desc This region ID will restrict all events from entering.
- * Use 0 if you do not wish to make use of this property.
+ * To use multiple regions, separate them by spaces.
  * @default 0
  *
  * @param All Restrict
  * @desc This region ID will restrict players and events.
- * Use 0 if you do not wish to make use of this property.
+ * To use multiple regions, separate them by spaces.
  * @default 0
  *
  * @param Player Allow
  * @desc This region ID will always allow player passability.
- * Use 0 if you do not wish to make use of this property.
+ * To use multiple regions, separate them by spaces.
  * @default 0
  *
  * @param Event Allow
  * @desc This region ID will always allow events passability.
- * Use 0 if you do not wish to make use of this property.
+ * To use multiple regions, separate them by spaces.
  * @default 0
  *
  * @param All Allow
  * @desc This region ID will always allow both passability.
- * Use 0 if you do not wish to make use of this property.
+ * To use multiple regions, separate them by spaces.
  * @default 0
  *
  * @help
@@ -109,6 +109,14 @@ Yanfly.RR = Yanfly.RR || {};
  * Changelog
  * ============================================================================
  *
+ * Version 1.03:
+ * - Fixed an issue with vehicles being capable of landing the player in region
+ * restricted zones.
+ *
+ * Version 1.02:
+ * - Plugin parameters have been upgraded to now accept multiple region ID's.
+ * Insert a space in between them to add more than one region ID.
+ *
  * Version 1.01:
  * - Added new notetags to allow for more region restriction settings!
  *
@@ -121,15 +129,42 @@ Yanfly.RR = Yanfly.RR || {};
 // Parameter Variables
 //=============================================================================
 
-Yanfly.Parameters = PluginManager.parameters('YEP_RegionRestrictions');
 Yanfly.Param = Yanfly.Param || {};
 
-Yanfly.Param.RRAllAllow = Number(Yanfly.Parameters['All Allow']);
-Yanfly.Param.RRAllRestrict = Number(Yanfly.Parameters['All Restrict']);
-Yanfly.Param.RREventAllow = Number(Yanfly.Parameters['Event Allow']);
-Yanfly.Param.RREventRestrict = Number(Yanfly.Parameters['Event Restrict']);
-Yanfly.Param.RRPlayerAllow = Number(Yanfly.Parameters['Player Allow']);
-Yanfly.Param.RRPlayerRestrict = Number(Yanfly.Parameters['Player Restrict']);
+Yanfly.SetupParameters = function() {
+  var parameters = PluginManager.parameters('YEP_RegionRestrictions');
+  Yanfly.Param.RRAllAllow = String(parameters['All Allow']);
+  Yanfly.Param.RRAllAllow = Yanfly.Param.RRAllAllow.split(' ');
+  for (var i = 0; i < Yanfly.Param.RRAllAllow.length; ++i) {
+    Yanfly.Param.RRAllAllow[i] = Number(Yanfly.Param.RRAllAllow[i]);
+  }
+  Yanfly.Param.RRAllRestrict = String(parameters['All Restrict']);
+  Yanfly.Param.RRAllRestrict = Yanfly.Param.RRAllRestrict.split(' ');
+  for (var i = 0; i < Yanfly.Param.RRAllRestrict.length; ++i) {
+    Yanfly.Param.RRAllRestrict[i] = Number(Yanfly.Param.RRAllRestrict[i]);
+  }
+  Yanfly.Param.RREventAllow = String(parameters['Event Allow']);
+  Yanfly.Param.RREventAllow = Yanfly.Param.RREventAllow.split(' ');
+  for (var i = 0; i < Yanfly.Param.RREventAllow.length; ++i) {
+    Yanfly.Param.RREventAllow[i] = Number(Yanfly.Param.RREventAllow[i]);
+  }
+  Yanfly.Param.RREventRestrict = String(parameters['Event Restrict']);
+  Yanfly.Param.RREventRestrict = Yanfly.Param.RREventRestrict.split(' ');
+  for (var i = 0; i < Yanfly.Param.RREventRestrict.length; ++i) {
+    Yanfly.Param.RREventRestrict[i] = Number(Yanfly.Param.RREventRestrict[i]);
+  }
+  Yanfly.Param.RRPlayerAllow = String(parameters['Player Allow']);
+  Yanfly.Param.RRPlayerAllow = Yanfly.Param.RRPlayerAllow.split(' ');
+  for (var i = 0; i < Yanfly.Param.RRPlayerAllow.length; ++i) {
+    Yanfly.Param.RRPlayerAllow[i] = Number(Yanfly.Param.RRPlayerAllow[i]);
+  }
+  Yanfly.Param.RRPlayerRestrict = String(parameters['Player Restrict']);
+  Yanfly.Param.RRPlayerRestrict = Yanfly.Param.RRPlayerRestrict.split(' ');
+  for (var i = 0; i < Yanfly.Param.RRPlayerRestrict.length; ++i) {
+    Yanfly.Param.RRPlayerRestrict[i] = Number(Yanfly.Param.RRPlayerRestrict[i]);
+  }
+};
+Yanfly.SetupParameters();
 
 //=============================================================================
 // DataManager
@@ -137,10 +172,14 @@ Yanfly.Param.RRPlayerRestrict = Number(Yanfly.Parameters['Player Restrict']);
 
 DataManager.processRRNotetags = function() {
   if (!$dataMap) return;
-  $dataMap.restrictPlayerRegions = [];
-  $dataMap.restrictEventRegions = [];
-  $dataMap.allowPlayerRegions = [];
-  $dataMap.allowEventRegions = [];
+  $dataMap.restrictPlayerRegions = Yanfly.Param.RRAllRestrict.concat(
+    Yanfly.Param.RRPlayerRestrict);
+  $dataMap.restrictEventRegions = Yanfly.Param.RRAllRestrict.concat(
+    Yanfly.Param.RREventRestrict);
+  $dataMap.allowPlayerRegions = Yanfly.Param.RRAllAllow.concat(
+    Yanfly.Param.RRPlayerAllow);
+  $dataMap.allowEventRegions = Yanfly.Param.RRAllAllow.concat(
+    Yanfly.Param.RREventAllow);
   if (!$dataMap.note) return;
 
   var note1a = /<(?:PLAYER RESTRICT REGION):[ ]*(\d+(?:\s*,\s*\d+)*)>/i;
@@ -159,7 +198,6 @@ DataManager.processRRNotetags = function() {
 
   var notedata = $dataMap.note.split(/[\r\n]+/);
 
-
   for (var i = 0; i < notedata.length; i++) {
     var line = notedata[i];
     if (line.match(note1a)) {
@@ -168,8 +206,8 @@ DataManager.processRRNotetags = function() {
         $dataMap.restrictPlayerRegions.concat(array);
     } else if (line.match(note1b)) {
       var mainArray = $dataMap.restrictPlayerRegions;
-      var range = Yanfly.Util.getRange(parseInt(RegExp.$1), 
-        parseInt(RegExp.$2));
+      var range = Yanfly.Util.getRange(Number(RegExp.$1), 
+        Number(RegExp.$2));
       $dataMap.restrictPlayerRegions =
         $dataMap.restrictPlayerRegions.concat(range);
     } else if (line.match(note2a)) {
@@ -177,8 +215,8 @@ DataManager.processRRNotetags = function() {
       $dataMap.restrictEventRegions =
         $dataMap.restrictEventRegions.concat(array);
     } else if (line.match(note2b)) {
-      var range = Yanfly.Util.getRange(parseInt(RegExp.$1), 
-        parseInt(RegExp.$2));
+      var range = Yanfly.Util.getRange(Number(RegExp.$1), 
+        Number(RegExp.$2));
       $dataMap.restrictEventRegions =
         $dataMap.restrictEventRegions.concat(range);
     } else if (line.match(note3a)) {
@@ -188,8 +226,8 @@ DataManager.processRRNotetags = function() {
       $dataMap.restrictEventRegions =
         $dataMap.restrictEventRegions.concat(array);
     } else if (line.match(note3b)) {
-      var range = Yanfly.Util.getRange(parseInt(RegExp.$1), 
-        parseInt(RegExp.$2));
+      var range = Yanfly.Util.getRange(Number(RegExp.$1), 
+        Number(RegExp.$2));
       $dataMap.restrictPlayerRegions =
         $dataMap.restrictPlayerRegions.concat(array);
       $dataMap.restrictEventRegions =
@@ -199,23 +237,23 @@ DataManager.processRRNotetags = function() {
       $dataMap.allowPlayerRegions =
         $dataMap.allowPlayerRegions.concat(array);
     } else if (line.match(note4b)) {
-      var range = Yanfly.Util.getRange(parseInt(RegExp.$1), 
-        parseInt(RegExp.$2));
+      var range = Yanfly.Util.getRange(Number(RegExp.$1), 
+        Number(RegExp.$2));
       $dataMap.allowPlayerRegions =$dataMap.allowPlayerRegions.concat(range);
     } else if (line.match(note5a)) {
       array = JSON.parse('[' + RegExp.$1.match(/\d+/g) + ']');
       $dataMap.allowEventRegions = $dataMap.allowEventRegions.concat(array);
     } else if (line.match(note5b)) {
-      var range = Yanfly.Util.getRange(parseInt(RegExp.$1), 
-        parseInt(RegExp.$2));
+      var range = Yanfly.Util.getRange(Number(RegExp.$1), 
+        Number(RegExp.$2));
       $dataMap.allowEventRegions = $dataMap.allowEventRegions.concat(range);
     } else if (line.match(note6a)) {
       array = JSON.parse('[' + RegExp.$1.match(/\d+/g) + ']');
       $dataMap.allowPlayerRegions = $dataMap.allowPlayerRegions.concat(array);
       $dataMap.allowEventRegions = $dataMap.allowEventRegions.concat(array);
     } else if (line.match(note6b)) {
-      var range = Yanfly.Util.getRange(parseInt(RegExp.$1), 
-        parseInt(RegExp.$2));
+      var range = Yanfly.Util.getRange(Number(RegExp.$1), 
+        Number(RegExp.$2));
       $dataMap.allowPlayerRegions = $dataMap.allowPlayerRegions.concat(array);
       $dataMap.allowEventRegions = $dataMap.allowEventRegions.concat(array);
     }
@@ -292,8 +330,7 @@ Game_CharacterBase.prototype.isEventRegionForbid = function(x, y, d) {
     var regionId = this.getRegionId(x, y, d);
     if (regionId === 0) return false;
     if ($gameMap.restrictEventRegions().contains(regionId)) return true;
-    if (regionId === Yanfly.Param.RRAllRestrict) return true;
-    return regionId === Yanfly.Param.RREventRestrict;
+    return false;
 };
 
 Game_CharacterBase.prototype.isPlayerRegionForbid = function(x, y, d) {
@@ -302,8 +339,7 @@ Game_CharacterBase.prototype.isPlayerRegionForbid = function(x, y, d) {
     var regionId = this.getRegionId(x, y, d);
     if (regionId === 0) return false;
     if ($gameMap.restrictPlayerRegions().contains(regionId)) return true;
-    if (regionId === Yanfly.Param.RRAllRestrict) return true;
-    return regionId === Yanfly.Param.RRPlayerRestrict;
+    return false;
 };
 
 Game_CharacterBase.prototype.isEventRegionAllow = function(x, y, d) {
@@ -311,8 +347,7 @@ Game_CharacterBase.prototype.isEventRegionAllow = function(x, y, d) {
     var regionId = this.getRegionId(x, y, d);
     if (regionId === 0) return false;
     if ($gameMap.allowEventRegions().contains(regionId)) return true;
-    if (regionId === Yanfly.Param.RRAllAllow) return true;
-    return regionId === Yanfly.Param.RREventAllow;
+    return false;
 };
 
 Game_CharacterBase.prototype.isPlayerRegionAllow = function(x, y, d) {
@@ -320,8 +355,7 @@ Game_CharacterBase.prototype.isPlayerRegionAllow = function(x, y, d) {
     var regionId = this.getRegionId(x, y, d);
     if (regionId === 0) return false;
     if ($gameMap.allowPlayerRegions().contains(regionId)) return true;
-    if (regionId === Yanfly.Param.RRAllAllow) return true;
-    return regionId === Yanfly.Param.RRPlayerAllow;
+    return false
 };
 
 Game_CharacterBase.prototype.getRegionId = function(x, y, d) {
@@ -353,8 +387,10 @@ Game_CharacterBase.prototype.getRegionId = function(x, y, d) {
     case 9:
       return $gameMap.regionId(x + 1, y - 1);
       break;
+    default:
+      return $gameMap.regionId(x, y);
+      break;
     }
-    return 0;
 };
 
 //=============================================================================
@@ -371,6 +407,29 @@ Game_Event.prototype.isEvent = function() {
 
 Game_Player.prototype.isPlayer = function() {
     return true;
+};
+
+//=============================================================================
+// Game_Vehicle
+//=============================================================================
+
+Yanfly.RR.Game_Vehicle_isLandOk = Game_Vehicle.prototype.isLandOk;
+Game_Vehicle.prototype.isLandOk = function(x, y, d) {
+  var value = Yanfly.RR.Game_Vehicle_isLandOk.call(this, x, y, d);
+  if (!value) return false;
+  if (this.isAirship()) {
+    d = 5;
+    $gamePlayer._through = false;
+  }
+  if ($gamePlayer.isPlayerRegionForbid(x, y, d)) {
+    if (this.isAirship()) $gamePlayer._through = true;
+    return false;
+  }
+  if ($gamePlayer.isPlayerRegionAllow(x, y, d)) {
+    if (this.isAirship()) $gamePlayer._through = true;
+    return true;
+  }
+  return true;
 };
 
 //=============================================================================
